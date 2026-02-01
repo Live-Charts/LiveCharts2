@@ -77,7 +77,7 @@ runs:
         n=0
         while [ $n -lt 3 ]; do
           echo "Starting Attempt $((n+1))..."
-          timeout 15m dotnet run --project tests/UITests -c Release --report-trx --no-progress --select ${{ inputs.test-id }} --test-env tf=${{ inputs.target-framework }} lvcversionsuffix=-${{ github.sha }}
+          timeout 15m dotnet run --project tests/UITests -c Release --report-trx --report-trx-filename results.trx --no-progress --select ${{ inputs.test-id }} --test-env tf=${{ inputs.target-framework }} lvcversionsuffix=-${{ github.sha }}
           if [ $? -eq 0 ]; then exit 0; fi
           n=$((n+1))
           sleep 10
