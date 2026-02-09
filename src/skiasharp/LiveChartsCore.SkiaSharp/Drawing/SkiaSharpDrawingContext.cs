@@ -105,8 +105,6 @@ public class SkiaSharpDrawingContext(
 
     internal override void OnBeginDraw()
     {
-        if (Background == SKColor.Empty) return;
-
         // For fully opaque backgrounds, Clear is safe and efficient.
         if (Background.Alpha == 255)
         {
@@ -114,11 +112,14 @@ public class SkiaSharpDrawingContext(
             return;
         }
 
-        // For translucent backgrounds, draw a filled rect with SrcOver
-        // to avoid clearing through to the underlying OS surface.
+        // For transparent or translucent backgrounds, draw a filled rect with SrcOver
+        // to avoid clearing through to the underlying OS surface while still clearing
+        // the motion canvas to prevent ghosting/trails from previous frames.
+        var clearColor = Background == SKColor.Empty ? SKColors.Transparent : Background;
+        
         using var backgroundPaint = new SKPaint
         {
-            Color = Background,
+            Color = clearColor,
             Style = SKPaintStyle.Fill,
             BlendMode = SKBlendMode.SrcOver
         };
