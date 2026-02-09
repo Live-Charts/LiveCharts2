@@ -116,12 +116,12 @@ public class SkiaSharpDrawingContext(
         // to avoid clearing through to the underlying OS surface while still clearing
         // the motion canvas to prevent ghosting/trails from previous frames.
         var clearColor = Background == SKColor.Empty ? SKColors.Transparent : Background;
-        
+
         using var backgroundPaint = new SKPaint
         {
             Color = clearColor,
             Style = SKPaintStyle.Fill,
-            BlendMode = SKBlendMode.SrcOver
+            BlendMode = SKBlendMode.Src
         };
 
         var bounds = Canvas.DeviceClipBounds;
