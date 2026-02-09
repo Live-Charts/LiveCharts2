@@ -9,14 +9,6 @@ public partial class View : UserControl
     public View()
     {
         InitializeComponent();
-
-        Loaded += async (s, e) =>
-        {
-            await Task.Delay(2000);
-            OpenTab2();
-            await Task.Delay(2000);
-            ScrollToChart();
-        };
     }
 
     public CartesianChart Chart1 => this.Find<CartesianChart>("chart1")!;
