@@ -107,9 +107,24 @@ public class SkiaSharpDrawingContext(
     {
         if (Background == SKColor.Empty) return;
 
-        _ = Canvas.SaveLayer();
-        Canvas.Clear(Background);
-        Canvas.Restore();
+        // For fully opaque backgrounds, Clear is safe and efficient.
+        if (Background.Alpha == 255)
+        {
+            Canvas.Clear(Background);
+            return;
+        }
+
+        // For translucent backgrounds, draw a filled rect with SrcOver
+        // to avoid clearing through to the underlying OS surface.
+        using var backgroundPaint = new SKPaint
+        {
+            Color = Background,
+            Style = SKPaintStyle.Fill,
+            BlendMode = SKBlendMode.SrcOver
+        };
+
+        var bounds = Canvas.DeviceClipBounds;
+        Canvas.DrawRect(bounds, backgroundPaint);
     }
 
     internal override void OnEndDraw()
