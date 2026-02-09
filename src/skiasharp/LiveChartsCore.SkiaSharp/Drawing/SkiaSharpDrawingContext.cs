@@ -121,7 +121,7 @@ public class SkiaSharpDrawingContext(
         {
             Color = clearColor,
             Style = SKPaintStyle.Fill,
-            BlendMode = SKBlendMode.Src
+            BlendMode = SKBlendMode.SrcATop
         };
 
         var bounds = Canvas.DeviceClipBounds;
