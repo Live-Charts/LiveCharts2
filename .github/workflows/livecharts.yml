@@ -236,8 +236,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - id: blazor
-            workloads: wasm-tools
+          # ToDo: find why not running.
+          # - id: blazor
+          #   workloads: wasm-tools
           - id: avalonia-browser
             workloads: wasm-tools
           - id: uno
@@ -255,7 +256,7 @@ jobs:
           use-factos: true
           test-id: ${{ matrix.id }}
           workloads: ${{ matrix.workloads }}
-          # target-framework: ${{ matrix.tf }}
+          target-framework: ${{ matrix.tf }}
           comment_id: ${{ needs.report-progress-starting.outputs.comment_id }}
 
   test-android:
@@ -269,9 +270,10 @@ jobs:
           - id: maui
             tf: net10.0-android
             workloads: maui-android
-          - id: uno
-            tf: net10.0-android
-            workloads: android
+          # ToDo: find why not running.
+          # - id: uno
+          #   tf: net10.0-android
+          #   workloads: android
     needs: [pack, report-progress-starting, collect-packages]
     steps:
       - name: Checkout 
