@@ -13,6 +13,15 @@ runs:
       with:
         dotnet-version: '10.0.100'
 
+    - name: Generate cache key
+      if: ${{ inputs.workloads != '' }}
+      id: cache-key
+      shell: pwsh
+      run: |
+        $workloads = "${{ inputs.workloads }}"
+        $sanitized = $workloads -replace '[,\s]+', '-'
+        echo "sanitized=$sanitized" >> $env:GITHUB_OUTPUT
+
     - name: Cache .NET workloads
       if: ${{ inputs.workloads != '' }}
       uses: actions/cache@v5.0.3
@@ -23,7 +32,7 @@ runs:
           ~/.dotnet/sdk-packs
           ~/.dotnet/template-packs
           ~/.dotnet/workloadsets
-        key: dotnet-workloads-${{ runner.os }}-10.0.100-${{ inputs.workloads }}
+        key: dotnet-workloads-${{ runner.os }}-10.0.100-${{ steps.cache-key.outputs.sanitized }}
         restore-keys: |
           dotnet-workloads-${{ runner.os }}-10.0.100-
 
