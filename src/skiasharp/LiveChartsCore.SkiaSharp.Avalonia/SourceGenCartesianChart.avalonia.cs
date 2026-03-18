@@ -46,8 +46,8 @@ public partial class SourceGenCartesianChart : SourceGenChart, ICartesianChartVi
     {
         var pinchGesture = new PinchGestureRecognizer();
         GestureRecognizers.Add(pinchGesture);
-        AddHandler(Gestures.PinchEvent, OnPinched);
 
+        Pinch += OnPinched;
         PointerWheelChanged += OnPointerWheelChanged;
     }
 
