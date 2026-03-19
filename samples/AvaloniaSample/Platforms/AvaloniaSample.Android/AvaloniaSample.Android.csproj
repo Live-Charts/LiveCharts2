@@ -24,6 +24,10 @@
     </AndroidResource>
   </ItemGroup>
 
+  <PropertyGroup Condition="'$(UseV12)' == 'true'">
+    <AvaloniaVersion>12.0.0-preview2</AvaloniaVersion>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Avalonia.Android" Version="$(AvaloniaVersion)" />
     <PackageReference Include="Xamarin.AndroidX.Core.SplashScreen" Version="1.0.1.1" />

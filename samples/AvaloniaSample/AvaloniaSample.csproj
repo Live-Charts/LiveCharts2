@@ -18,13 +18,16 @@
     <None Remove="Platforms\**" />
   </ItemGroup>
 
+  <PropertyGroup Condition="'$(UseV12)' == 'true'">
+    <AvaloniaVersion>12.0.0-preview2</AvaloniaVersion>
+    <DefineConstants>$(DefineConstants);USES_AVALONIA_V12</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="$(AvaloniaVersion)" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
     <PackageReference Include="Avalonia.Fonts.Inter" Version="$(AvaloniaVersion)" />
-    <PackageReference Include="Avalonia.ReactiveUI" Version="$(AvaloniaVersion)" />
-    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
-   </ItemGroup>
+  </ItemGroup>
   
   <ItemGroup>
     <ProjectReference Include="..\ViewModelsSamples\ViewModelsSamples.csproj" />

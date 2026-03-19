@@ -12,7 +12,7 @@
     </UserControl.Resources>
 
     <Grid RowDefinitions="Auto,*">
-        <Grid ColumnDefinitions="Auto,*" Margin="8,4">
+        <Grid ColumnDefinitions="Auto,*" Margin="8,50,8,10">
             <Label
                 Content="Select sample:"
                 VerticalAlignment="Center"/>

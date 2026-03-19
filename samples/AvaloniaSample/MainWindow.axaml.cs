@@ -1,4 +1,3 @@
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
@@ -10,7 +9,9 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 #if DEBUG
-        this.AttachDevTools();
+        // disabled due a breaking change from Avalonia 11 to 12,
+        // ToDo: add it back when things stabilize to v12.
+        //this.AttachDevTools();
 #endif
     }
 
