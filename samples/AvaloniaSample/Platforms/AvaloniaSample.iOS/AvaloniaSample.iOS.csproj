@@ -6,12 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(UseV12)' == 'true'">
-    <AvaloniaVersion>12.0.0-preview2</AvaloniaVersion>
-  </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="Avalonia.iOS" Version="$(AvaloniaVersion)" />
+    <PackageReference Include="Avalonia.iOS" Version="$(SampleAvaloniaVersion)" />
   </ItemGroup>
 
   <ItemGroup>

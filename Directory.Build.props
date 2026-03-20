@@ -10,6 +10,10 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
 
+    <SampleAvaloniaVersion>12.0.0-rc1</SampleAvaloniaVersion>
+    <MinAvaloniaVersion>12.0.0-rc1</MinAvaloniaVersion>
+    <DefineConstants>$(DefineConstants);USES_AVALONIA_V12</DefineConstants>
+
     <!--
     This version is the minimum supported version by LiveCharts,
     currently only used by Avalonia, if you need to downgrade any view package,

@@ -1,9 +1,9 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
     
-    <TargetFrameworks Condition="'$(UseV12)' == 'true'">net8.0;net10.0</TargetFrameworks>
-    <TargetFrameworks Condition="'$(UseV12)' == '' or '$(UseV12)' == 'false'">netstandard2.0;net6.0;net8.0;</TargetFrameworks>
+    <TargetFrameworks Condition="$(MinAvaloniaVersion.Contains('12.'))">net8.0;net10.0</TargetFrameworks>
+    <TargetFrameworks Condition="!$(MinAvaloniaVersion.Contains('12.'))">netstandard2.0;net6.0;net8.0;</TargetFrameworks>
 
     <AssemblyName>LiveChartsCore.SkiaSharpView.Avalonia</AssemblyName>
     <RootNamespace>LiveChartsCore.SkiaSharpView.Avalonia</RootNamespace>
@@ -47,18 +47,9 @@
     <AvaloniaNameGeneratorIsEnabled>false</AvaloniaNameGeneratorIsEnabled>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(UseV12)' == 'true'">
-    <DefineConstants>$(DefineConstants);USES_AVALONIA_V12</DefineConstants>
-  </PropertyGroup>
-
-  <ItemGroup Condition="'$(UseV12)' == 'true'">
-    <PackageReference Include="Avalonia" Version="12.0.0-preview2" />
-    <PackageReference Include="Avalonia.Skia" Version="12.0.0-preview2" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(UseV12)' == '' or '$(UseV12)' == 'false'">
-    <PackageReference Include="Avalonia" Version="11.0.0" />
-    <PackageReference Include="Avalonia.Skia" Version="11.0.0" />
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="$(MinAvaloniaVersion)" />
+    <PackageReference Include="Avalonia.Skia" Version="$(MinAvaloniaVersion)" />
   </ItemGroup>
 
   <ItemGroup>

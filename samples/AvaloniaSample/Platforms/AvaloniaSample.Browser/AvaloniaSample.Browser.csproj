@@ -5,12 +5,8 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(UseV12)' == 'true'">
-    <AvaloniaVersion>12.0.0-preview2</AvaloniaVersion>
-  </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="Avalonia.Browser" Version="$(AvaloniaVersion)" />
+    <PackageReference Include="Avalonia.Browser" Version="$(SampleAvaloniaVersion)" />
   </ItemGroup>
 
   <ItemGroup>
