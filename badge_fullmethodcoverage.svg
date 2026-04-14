@@ -1,0 +1,144 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="155" height="20">
+    <style type="text/css">
+          <![CDATA[
+            @keyframes fade1 {
+                0% { visibility: visible; opacity: 1; }
+               23% { visibility: visible; opacity: 1; }
+               25% { visibility: hidden; opacity: 0; }
+               48% { visibility: hidden; opacity: 0; }
+               50% { visibility: hidden; opacity: 0; }
+               73% { visibility: hidden; opacity: 0; }
+               75% { visibility: hidden; opacity: 0; }
+               98% { visibility: hidden; opacity: 0; }
+              100% { visibility: visible; opacity: 1; }
+            }
+            @keyframes fade2 {
+                0% { visibility: hidden; opacity: 0; }
+               23% { visibility: hidden; opacity: 0; }
+               25% { visibility: visible; opacity: 1; }
+               48% { visibility: visible; opacity: 1; }
+               50% { visibility: hidden; opacity: 0; }
+               73% { visibility: hidden; opacity: 0; }
+               75% { visibility: hidden; opacity: 0; }
+               98% { visibility: hidden; opacity: 0; }
+              100% { visibility: hidden; opacity: 0; }
+            }
+            @keyframes fade3 {
+                0% { visibility: hidden; opacity: 0; }
+               23% { visibility: hidden; opacity: 0; }
+               25% { visibility: hidden; opacity: 0; }
+               48% { visibility: hidden; opacity: 0; }
+               50% { visibility: visible; opacity: 1; }
+               73% { visibility: visible; opacity: 1; }
+               75% { visibility: hidden; opacity: 0; }
+               98% { visibility: hidden; opacity: 0; }
+              100% { visibility: hidden; opacity: 0; }
+            }
+            @keyframes fade4 {
+                0% { visibility: hidden; opacity: 0; }
+               23% { visibility: hidden; opacity: 0; }
+               25% { visibility: hidden; opacity: 0; }
+               48% { visibility: hidden; opacity: 0; }
+               50% { visibility: hidden; opacity: 0; }
+               73% { visibility: hidden; opacity: 0; }
+               75% { visibility: visible; opacity: 1; }
+               98% { visibility: visible; opacity: 1; }
+              100% { visibility: hidden; opacity: 0; }
+            }
+            .linecoverage {
+                animation-duration: 15s;
+                animation-name: fade1;
+                animation-iteration-count: infinite;
+            }
+            .branchcoverage {
+                animation-duration: 15s;
+                animation-name: fade2;
+                animation-iteration-count: infinite;
+            }
+            .methodcoverage {
+                animation-duration: 15s;
+                animation-name: fade3;
+                animation-iteration-count: infinite;
+            }
+            .fullmethodcoverage {
+                animation-duration: 15s;
+                animation-name: fade4;
+                animation-iteration-count: infinite;
+            }
+          ]]>
+    </style>
+    <title>Code coverage</title>
+    <defs>
+        <linearGradient id="gradient" x2="0" y2="100%">
+            <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
+            <stop offset="1" stop-opacity=".1"/>
+        </linearGradient>
+
+        <linearGradient id="c">
+          <stop offset="0" stop-color="#d40000"/>
+          <stop offset="1" stop-color="#ff2a2a"/>
+        </linearGradient>
+        <linearGradient id="a">
+          <stop offset="0" stop-color="#e0e0de"/>
+          <stop offset="1" stop-color="#fff"/>
+        </linearGradient>
+        <linearGradient id="b">
+          <stop offset="0" stop-color="#37c837"/>
+          <stop offset="1" stop-color="#217821"/>
+        </linearGradient>
+        <linearGradient xlink:href="#a" id="e" x1="106.44" x2="69.96" y1="-11.96" y2="-46.84" gradientTransform="matrix(-.8426 -.00045 -.00045 -.8426 -94.27 -75.82)" gradientUnits="userSpaceOnUse"/>
+        <linearGradient xlink:href="#b" id="f" x1="56.19" x2="77.97" y1="-23.45" y2="10.62" gradientTransform="matrix(.8426 .00045 .00045 .8426 94.27 75.82)" gradientUnits="userSpaceOnUse"/>
+        <linearGradient xlink:href="#c" id="g" x1="79.98" x2="132.9" y1="10.79" y2="10.79" gradientTransform="matrix(.8426 .00045 .00045 .8426 94.27 75.82)" gradientUnits="userSpaceOnUse"/>
+
+        <mask id="mask">
+            <rect width="155" height="20" rx="3" fill="#fff"/>
+        </mask>
+
+        <g id="icon" transform="matrix(.04486 0 0 .04481 -.48 -.63)">
+            <rect width="52.92" height="52.92" x="-109.72" y="-27.13" fill="url(#e)" transform="rotate(-135)"/>
+            <rect width="52.92" height="52.92" x="70.19" y="-39.18" fill="url(#f)" transform="rotate(45)"/>
+            <rect width="52.92" height="52.92" x="80.05" y="-15.74" fill="url(#g)" transform="rotate(45)"/>
+        </g>
+    </defs>
+    
+    <g mask="url(#mask)">
+        <rect x="0" y="0" width="90" height="20" fill="#444"/>
+        <rect x="90" y="0" width="20" height="20" fill="#c00"/>
+        <rect x="110" y="0" width="45" height="20" fill="#00B600"/>
+        <rect x="0" y="0" width="155" height="20" fill="url(#gradient)"/>
+    </g>
+
+    <g>
+        
+        
+        
+        <path class="" fill="#fff" d="m 107,6.230765 v 6.46154 c 0,0.196313 -0.0505,0.378603 -0.1515,0.54687 -0.10093,0.168273 -0.23833,0.300087 -0.4122,0.39544 l -5.9231,3.23076 c -0.15707,0.08975 -0.32813,0.13462 -0.5132,0.13462 -0.185133,0 -0.356233,-0.04487 -0.5133,-0.13462 l -5.923,-3.23076 C 93.389767,13.539262 93.252333,13.407448 93.1514,13.239175 93.050467,13.070908 93,12.888618 93,12.692305 v -6.46154 c 0,-0.22436 0.0645,-0.4290867 0.1935,-0.61418 0.129,-0.1851 0.300067,-0.31691 0.5132,-0.39543 l 5.9231,-2.15385 c 0.1234,-0.044867 0.2468,-0.0673 0.3702,-0.0673 0.1234,0 0.2468,0.022433 0.3702,0.0673 l 5.923,2.15385 c 0.21313,0.07852 0.38423,0.21033 0.5133,0.39543 0.129,0.1850933 0.1935,0.38982 0.1935,0.61418 z"/>
+          <path class=""
+             style="fill:none;stroke:#cc0000;stroke-width:1;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1"
+             d="m 100.0644,16.676777 -0.002,-7.833027 6.90625,-2.546875" />
+          <path class=""
+             style="fill:none;stroke:#cc0000;stroke-width:1;stroke-linecap:round;stroke-dasharray:none;stroke-opacity:1"
+             d="M 99.914297,8.7645146 93.052236,5.882392" />
+    </g>
+    
+    <g fill="#fff" text-anchor="middle" font-family="Verdana,Arial,Geneva,sans-serif" font-size="11">
+        <a xlink:href="https://github.com/danielpalme/ReportGenerator" target="_top">
+            <title>Generated by: ReportGenerator 5.5.4.0</title>
+            <use xlink:href="#icon" transform="translate(3,1) scale(3.5)"/>
+        </a>
+
+        <text x="53" y="15" fill="#010101" fill-opacity=".3">Coverage</text>
+        <text x="53" y="14" fill="#fff">Coverage</text>
+        
+        
+        
+        <text class="" x="132.5" y="15" fill="#010101" fill-opacity=".3">N/A</text><text class="" x="132.5" y="14">N/A</text>
+    </g>
+
+    <g>
+        
+        
+        
+        <rect class="" x="90" y="0" width="65" height="20" fill-opacity="0"><title>Full method coverage</title></rect>
+    </g>
+</svg>
