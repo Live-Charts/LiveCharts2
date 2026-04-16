@@ -344,3 +344,4 @@ healthchecksdb
 samples/XamarinSample/XamarinSample/XamarinSample.Android/XamarinSample.Android.csproj
 samples/XamarinSample/XamarinSample/XamarinSample.Android/Resources/Resource.designer.cs
 nuget.exe
+/.claude/settings.local.json
