@@ -9,7 +9,8 @@
         ExtendClientAreaTitleBarHeightHint="50"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="AvaloniaSample.MainWindow"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        Padding="0, 35, 0, 0">
 
     <local:MainView />
 

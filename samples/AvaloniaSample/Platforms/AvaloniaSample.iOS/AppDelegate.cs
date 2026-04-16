@@ -1,6 +1,5 @@
 using Avalonia;
 using Avalonia.iOS;
-using Foundation;
 
 namespace AvaloniaSample.iOS;
 
