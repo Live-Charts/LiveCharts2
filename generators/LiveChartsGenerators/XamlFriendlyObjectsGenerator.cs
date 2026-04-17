@@ -39,6 +39,14 @@ public class XamlFriendlyObjectsGenerator : IIncrementalGenerator
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
+#if DEBUG_CODE_GENERATION
+        if (!System.Diagnostics.Debugger.IsAttached)
+        {
+            System.Diagnostics.Debugger.Launch();
+            System.Diagnostics.Debugger.Break();
+        }
+#endif
+
         var assemblyAttributes = context.CompilationProvider
             .Select(GetConsumerAssemblyType);
 

@@ -1,8 +1,2 @@
 {
-  "profiles": {
-    "Profile 1": {
-      "commandName": "DebugRoslynComponent",
-      "targetProject": "..\\..\\src\\skiasharp\\LiveChartsCore.SkiaSharpView.Uno.WinUI\\LiveChartsCore.SkiaSharpView.Uno.WinUI.csproj"
-    }
-  }
 }
