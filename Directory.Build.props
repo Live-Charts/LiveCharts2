@@ -38,7 +38,7 @@
 
     <!-- Useful to toggle between using project references or nuget references -->
     <UseNuGetForSamples>false</UseNuGetForSamples>
-    <UseNuGetForGenerator>true</UseNuGetForGenerator>
+    <DebugCodeGeneration>true</DebugCodeGeneration>
 
   </PropertyGroup>
 
@@ -63,6 +63,11 @@
       $(TargetFramework.Contains('-tizen'))
     )">
     <DefineConstants>$(DefineConstants);HAS_OS_LVC</DefineConstants>
+    <HasOS>true</HasOS>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$(DebugCodeGeneration)">
+    <DefineConstants>$(DefineConstants);DEBUG_CODE_GENERATION</DefineConstants>
     <HasOS>true</HasOS>
   </PropertyGroup>
 
