@@ -38,7 +38,7 @@
 
     <!-- Useful to toggle between using project references or nuget references -->
     <UseNuGetForSamples>false</UseNuGetForSamples>
-    <DebugCodeGeneration>true</DebugCodeGeneration>
+    <DebugCodeGeneration>false</DebugCodeGeneration>
 
   </PropertyGroup>
 

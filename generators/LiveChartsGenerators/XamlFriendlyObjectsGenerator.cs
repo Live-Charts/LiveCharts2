@@ -39,6 +39,8 @@ public class XamlFriendlyObjectsGenerator : IIncrementalGenerator
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
+        // To debug the source generator, go to directory.build.props and set the property <DebugCodeGeneration> to true
+
 #if DEBUG_CODE_GENERATION
         if (!System.Diagnostics.Debugger.IsAttached)
         {
