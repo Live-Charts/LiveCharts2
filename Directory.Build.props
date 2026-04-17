@@ -68,7 +68,6 @@
 
   <PropertyGroup Condition="$(DebugCodeGeneration)">
     <DefineConstants>$(DefineConstants);DEBUG_CODE_GENERATION</DefineConstants>
-    <HasOS>true</HasOS>
   </PropertyGroup>
 
 </Project>
