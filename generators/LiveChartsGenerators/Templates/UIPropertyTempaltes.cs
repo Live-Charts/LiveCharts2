@@ -59,7 +59,9 @@ public static class UIPropertyTempaltes
             : propertyType;
 
         var converter = string.Empty;
-        if (XamlObjectTempaltes.TypeConverters.TryGetValue(target.Type.ToDisplayString(), out var typeConverter))
+        // disable type converters in avalonia, they "work" partially and when migrated to v12 properties of a LiveCharts type just throw on bindings
+        // https://github.com/AvaloniaUI/Avalonia/issues/12194
+        if (template.Key != "Avalonia" && XamlObjectTempaltes.TypeConverters.TryGetValue(target.Type.ToDisplayString(), out var typeConverter))
             converter = @$"[System.ComponentModel.TypeConverter(typeof({typeConverter}))]
     ";
 
