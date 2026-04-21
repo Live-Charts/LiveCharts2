@@ -62,6 +62,7 @@ public abstract class Chart
     private LvcSize _previousSize = new();
     private int _nextSeriesId = 0;
     private long _lastMeasureTimeStamp = -1;
+    private volatile bool _renderRetryScheduled;
 
 #if NET5_0_OR_GREATER
     private readonly bool _isMobile;
@@ -323,6 +324,7 @@ public abstract class Chart
     public virtual void Unload()
     {
         _lastMeasureTimeStamp = -1;
+        _renderRetryScheduled = false;
         IsLoaded = false;
         _everMeasuredElements.Clear();
         _toDeleteElements.Clear();
@@ -809,7 +811,24 @@ public abstract class Chart
         var canMeasure = Canvas._lastFrameTimestamp != _lastMeasureTimeStamp;
 
         if (canMeasure)
+        {
             _lastMeasureTimeStamp = Canvas._lastFrameTimestamp;
+            _renderRetryScheduled = false;
+        }
+        else if (!_renderRetryScheduled)
+        {
+            // Fix for https://github.com/Live-Charts/LiveCharts2/issues/1986
+            // When the canvas is not rendering (e.g. chart is in a hidden tab or off-screen in a
+            // ScrollViewer), schedule a retry. If/when the canvas renders a new frame
+            // (_lastFrameTimestamp changes), the retry will find IsRendering() == true and proceed.
+            // This breaks the deadlock: no measure → no draw → no new frame → no measure.
+            _renderRetryScheduled = true;
+            _ = Task.Delay(100).ContinueWith(_ =>
+            {
+                _renderRetryScheduled = false;
+                if (IsLoaded) Update();
+            });
+        }
 
         return canMeasure;
     }

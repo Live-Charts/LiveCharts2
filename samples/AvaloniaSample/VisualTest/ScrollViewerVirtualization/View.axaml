@@ -1,0 +1,49 @@
+<UserControl
+    x:Class="AvaloniaSample.VisualTest.ScrollViewerVirtualization.View"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
+    xmlns:vm="using:AvaloniaSample.VisualTest.ScrollViewerVirtualization"
+    x:DataType="vm:ViewModel">
+
+    <!--
+        Visual test for https://github.com/Live-Charts/LiveCharts2/issues/1986
+        Charts in a TabControl + ScrollViewer where series data is assigned asynchronously.
+        Without the fix, charts remain blank even after data arrives because IsRendering()
+        blocks measurement while the canvas is not actively rendering frames.
+    -->
+
+    <TabControl x:Name="tabs">
+        <TabItem Header="page 1">
+            <ScrollViewer>
+                <StackPanel>
+                    <Border Height="600" Background="#1E88E5" CornerRadius="4">
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            Foreground="White"
+                            TextAlignment="Center"
+                            Text="Scroll down — chart data loads after ~1 second.&#10;The chart must render automatically once data arrives." />
+                    </Border>
+                    <lvc:CartesianChart x:Name="chart1" Height="300" Series="{Binding Series1}" />
+                </StackPanel>
+            </ScrollViewer>
+        </TabItem>
+        <TabItem Header="page 2">
+            <ScrollViewer>
+                <StackPanel>
+                    <Border Height="600" Background="#43A047" CornerRadius="4">
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            Foreground="White"
+                            TextAlignment="Center"
+                            Text="Scroll down — chart data loads after ~1 second.&#10;The chart must render automatically once data arrives." />
+                    </Border>
+                    <lvc:CartesianChart x:Name="chart2" Height="300" Series="{Binding Series2}" />
+                </StackPanel>
+            </ScrollViewer>
+        </TabItem>
+    </TabControl>
+
+</UserControl>

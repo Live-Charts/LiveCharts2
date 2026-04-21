@@ -100,6 +100,33 @@ public class CartesianChartTests
         await Task.Delay(1000);
         Assert.ChartIsLoaded(sut.Chart1);
     }
+
+    // based on:
+    // https://github.com/Live-Charts/LiveCharts2/issues/1986
+    // ensure charts render when series data is assigned asynchronously while the chart is
+    // off-screen (in a ScrollViewer below the viewport). This is the scenario @busitech
+    // described: measure is suppressed because the canvas is not rendering when data arrives.
+
+    [AppTestMethod]
+    public async Task ScrollViewerVirtualizationRendersAsyncData()
+    {
+        var sut = await App.NavigateTo<Samples.VisualTest.ScrollViewerVirtualization.View>();
+
+        // wait for the 1 second async data load to complete, then give the chart time to render.
+        await Task.Delay(2500);
+
+        // scroll to reveal chart1 and verify it rendered with the async data.
+        sut.ScrollToChart();
+        await Task.Delay(1000);
+        Assert.ChartIsLoaded(sut.Chart1);
+
+        // switch to tab 2, scroll to chart2, and verify it also loaded.
+        sut.OpenTab2();
+        await Task.Delay(500);
+        sut.ScrollToChart();
+        await Task.Delay(1000);
+        Assert.ChartIsLoaded(sut.Chart2);
+    }
 #endif
 
 #if (WPF_UI_TESTING && TEST_HA_VIEWS) || MAUI_UI_TESTING || WINUI_UI_TESTING || (UNO_UI_TESTING && HAS_OS_LVC)
