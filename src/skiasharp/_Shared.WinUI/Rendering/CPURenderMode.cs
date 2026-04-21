@@ -51,9 +51,15 @@ internal partial class CPURenderMode : SKXamlCanvas, IRenderMode
 
     private void OnPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
     {
-        var density = GetPixelDensity();
-        if (density.DpiX != 1 || density.DpiY != 1)
-            e.Surface.Canvas.Scale(density.DpiX, density.DpiY);
+        // Derive scale from actual surface vs logical size so that RDP and per-monitor
+        // DPI changes are always reflected correctly, regardless of what system APIs report.
+        if (ActualWidth > 0 && ActualHeight > 0)
+        {
+            var scaleX = e.Info.Width / (float)ActualWidth;
+            var scaleY = e.Info.Height / (float)ActualHeight;
+            if (scaleX != 1f || scaleY != 1f)
+                e.Surface.Canvas.Scale(scaleX, scaleY);
+        }
 
         FrameRequest?.Invoke(new SkiaSharpDrawingContext(
             _canvas, e.Surface.Canvas, GetBackground()));
@@ -61,23 +67,6 @@ internal partial class CPURenderMode : SKXamlCanvas, IRenderMode
 
     public void InvalidateRenderer() =>
         Invalidate();
-
-    private PixelDensity GetPixelDensity()
-    {
-#if HAS_UNO_WINUI
-        var d = Windows.Graphics.Display.DisplayInformation.GetForCurrentView().LogicalDpi / 96.0f;
-        return new(d, d);
-#else
-        var scaleFactor = (float)XamlRoot.RasterizationScale;
-        return new(scaleFactor, scaleFactor);
-#endif
-    }
-
-    private readonly struct PixelDensity(float dpiX, float dpiY)
-    {
-        public float DpiX { get; } = dpiX;
-        public float DpiY { get; } = dpiY;
-    }
 
     private SKColor GetBackground() =>
         ((Parent as FrameworkElement)?.Parent as IChartView)?.BackColor.AsSKColor() ?? SKColor.Empty;
