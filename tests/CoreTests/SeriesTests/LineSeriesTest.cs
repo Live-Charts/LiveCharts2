@@ -532,4 +532,49 @@ public class LineSeriesTest
         AssertIsStraightLine(points);
         Assert.IsTrue(segments == 5);
     }
+
+    [TestMethod]
+    public void NullGapsShouldNotLeaveOrphanSegments()
+    {
+        // Regression test for https://github.com/Live-Charts/LiveCharts2/issues/2132
+        // When a gap (null value) is introduced, the path for the segment BEFORE the gap
+        // must not retain orphan segments that now belong to the segment AFTER the gap.
+        var values = new List<double?> { 1, 2, 3, 4, 5 };
+
+        var series = new LineSeries<double?> { Values = values };
+        var chart = new SKCartesianChart
+        {
+            Width = 1000,
+            Height = 1000,
+            Series = [series]
+        };
+
+        _ = chart.GetImage();
+
+        // Initially 5 non-null values: expect 1 path segment with 5 bezier commands
+        var pathContainer = series._fillPathHelperDictionary.Values.First();
+        Assert.AreEqual(1, pathContainer.Count, "should have 1 path");
+        Assert.AreEqual(5, pathContainer[0].Commands.Count, "path should have 5 commands");
+
+        // Introduce a gap at index 2: [1, 2, null, 4, 5]
+        // Expect 2 path segments: path[0]=[p0,p1] (2 commands), path[1]=[p3,p4] (2 commands)
+        values[2] = null;
+        _ = chart.GetImage();
+
+        pathContainer = series._fillPathHelperDictionary.Values.First();
+        Assert.AreEqual(2, pathContainer.Count, "should have 2 paths after gap");
+        Assert.AreEqual(2, pathContainer[0].Commands.Count,
+            "path before the gap should only have 2 commands (not orphan segments from after the gap)");
+        Assert.AreEqual(2, pathContainer[1].Commands.Count,
+            "path after the gap should have 2 commands");
+
+        // Remove the gap: [1, 2, 3, 4, 5] → back to 1 segment with 5 commands
+        values[2] = 3;
+        _ = chart.GetImage();
+
+        pathContainer = series._fillPathHelperDictionary.Values.First();
+        Assert.AreEqual(1, pathContainer.Count, "should have 1 path after gap is removed");
+        Assert.AreEqual(5, pathContainer[0].Commands.Count,
+            "path should have all 5 commands after gap is removed");
+    }
 }
