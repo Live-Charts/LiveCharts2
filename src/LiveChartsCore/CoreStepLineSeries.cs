@@ -401,6 +401,9 @@ public abstract class CoreStepLineSeries<TModel, TVisual, TLabel, TPathGeometry,
             }
 
             if (!isSegmentEmpty) segmentI++;
+
+            fillVector?.TrimTail();
+            strokeVector?.TrimTail();
         }
 
         var maxSegment = fillPathHelperContainer.Count > strokePathHelperContainer.Count

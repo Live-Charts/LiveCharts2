@@ -478,6 +478,12 @@ public abstract class CoreLineSeries<TModel, TVisual, TLabel, TPathGeometry, TEr
             }
 
             if (!isSegmentEmpty) segmentI++;
+
+            // Remove any trailing segments left over from before a new gap was introduced.
+            // Without this, orphan segments from after the gap remain in the path for the
+            // sub-segment before the gap, causing the line to incorrectly cross the gap.
+            fillVector?.TrimTail();
+            strokeVector?.TrimTail();
         }
 
         var maxSegment = fillPathHelperContainer.Count > strokePathHelperContainer.Count

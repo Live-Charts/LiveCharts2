@@ -102,4 +102,20 @@ internal class VectorManager(LinkedList<Segment> list)
             _currentNode = _currentNode.Next;
         }
     }
+
+    /// <summary>
+    /// Removes all segments that follow the last processed segment.
+    /// Call this after a sub-segment is fully processed to discard segments
+    /// that used to be in this path but now belong to a different sub-segment
+    /// (e.g. when a new null gap is introduced in the data).
+    /// </summary>
+    public void TrimTail()
+    {
+        while (_currentNode is not null)
+        {
+            var next = _currentNode.Next;
+            list.Remove(_currentNode);
+            _currentNode = next;
+        }
+    }
 }
