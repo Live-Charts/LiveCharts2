@@ -17,7 +17,8 @@ runs:
       if: ${{ inputs.workloads != '' }}
       shell: pwsh
       run: |
+        $rollback = "${{ github.workspace }}/.github/workloads/rollback.json"
         $workloads = "${{ inputs.workloads }}".Split(' ')
         foreach ($workload in $workloads) {
-          dotnet workload install $workload
+          dotnet workload install $workload --from-rollback-file $rollback
         }

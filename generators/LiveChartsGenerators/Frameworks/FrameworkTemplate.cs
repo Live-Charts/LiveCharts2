@@ -62,7 +62,9 @@ public abstract class FrameworkTemplate(FrameworkTemplate.Context context)
             ? sb.Append(" = ").Append(CreateBindableProperty(propertyName, propertyType, isValueTypeProperty, initializer.BindableType, initializer.DefaultValue))
             : sb.Append(';').AppendLine();
 
-        if (XamlObjectTempaltes.TypeConverters.TryGetValue(originalPropertyType, out var typeConverter))
+        // disable type converters in avalonia, they "work" partially and when migrated to v12 properties of a LiveCharts type just throw on bindings
+        // https://github.com/AvaloniaUI/Avalonia/issues/12194
+        if (Key != "Avalonia" && XamlObjectTempaltes.TypeConverters.TryGetValue(originalPropertyType, out var typeConverter))
             _ = sb.AppendLine(@$"    [System.ComponentModel.TypeConverter(typeof({typeConverter}))]");
 
         var path = key;

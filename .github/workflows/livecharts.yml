@@ -369,19 +369,6 @@ jobs:
       - name: Checkout 
         uses: actions/checkout@v6.0.1
 
-      - name: Download all test results
-        uses: actions/download-artifact@v7.0.0
-        with:
-          path: ./artifacts
-
-      - name: Publish all test results
-        id: report
-        uses: dorny/test-reporter@v2.4.0
-        with:
-          name: all-test-results
-          path: "./artifacts/**/*.trx"
-          reporter: dotnet-trx
-
       - name: Report tests completion
         if: ${{ always() && !contains(join(needs.*.result, ' '), 'failure') && !contains(join(needs.*.result, ' '), 'cancelled') && !contains(join(needs.*.result, ' '), 'skipped') }}
         uses: ./.github/actions/comment-progress

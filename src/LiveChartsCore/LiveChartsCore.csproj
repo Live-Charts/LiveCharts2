@@ -34,14 +34,7 @@
     <PackageReference Condition="'$(TargetFramework)' == 'net462' OR '$(TargetFramework)' == 'netstandard2.0'" Include="System.Text.Json" Version="8.0.5" />
   </ItemGroup>
 
-  <ItemGroup Condition="$(UseNuGetForGenerator)">
-    <PackageReference Include="LiveChartsGenerators" Version="$(LiveChartsCodeGenVersion)">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>analyzers</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup Condition="!$(UseNuGetForGenerator)">
+  <ItemGroup>
     <ProjectReference Include="../../generators/LiveChartsGenerators/LiveChartsGenerators.csproj">
       <OutputItemType>Analyzer</OutputItemType>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>

@@ -1,8 +1,8 @@
 <Project>
   <PropertyGroup>
 
-    <LiveChartsVersionSuffix>-rc6.1</LiveChartsVersionSuffix>
-    <LiveChartsVersion>2.0.0$(LiveChartsVersionSuffix)</LiveChartsVersion>
+    <LiveChartsVersionSuffix></LiveChartsVersionSuffix>
+    <LiveChartsVersion>2.0.1</LiveChartsVersion>
     <LiveChartsCodeGenVersion>1.0.1</LiveChartsCodeGenVersion>
     <LiveChartsAuthors>BetoRodriguez</LiveChartsAuthors>
 
@@ -38,7 +38,7 @@
 
     <!-- Useful to toggle between using project references or nuget references -->
     <UseNuGetForSamples>false</UseNuGetForSamples>
-    <UseNuGetForGenerator>true</UseNuGetForGenerator>
+    <DebugCodeGeneration>false</DebugCodeGeneration>
 
   </PropertyGroup>
 
@@ -64,6 +64,10 @@
     )">
     <DefineConstants>$(DefineConstants);HAS_OS_LVC</DefineConstants>
     <HasOS>true</HasOS>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$(DebugCodeGeneration)">
+    <DefineConstants>$(DefineConstants);DEBUG_CODE_GENERATION</DefineConstants>
   </PropertyGroup>
 
 </Project>

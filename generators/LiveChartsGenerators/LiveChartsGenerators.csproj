@@ -6,26 +6,11 @@
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
-    <IsRoslynComponent>true</IsRoslynComponent>
 
-    <PackageType>Analyzer</PackageType>
-    <IncludeBuildOutput>true</IncludeBuildOutput>
-    <IncludeAnalyzer>true</IncludeAnalyzer>
-    <Version>$(LiveChartsCodeGenVersion)</Version>
-    <Description>LiveCharts code generation.</Description>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Authors>$(LiveChartsAuthors)</Authors>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <RepositoryUrl>https://github.com/beto-rodriguez/LiveCharts2</RepositoryUrl>
-
-    <Deterministic>true</Deterministic>
-    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <PathToPackAssets>../../</PathToPackAssets>
   </PropertyGroup>
+
+  <Import Project="../../nuget.props" />
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.13.0" PrivateAssets="all" />
