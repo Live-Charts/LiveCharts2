@@ -77,7 +77,7 @@ jobs:
           content: |
             #### Benchmark delta
 
-            Base: `${{ github.base_ref }}` — Head: `${{ github.event.pull_request.head.sha }}`
+            Base: **${{ github.base_ref }}** — Head: **${{ github.event.pull_request.head.sha }}**
             Thresholds: 🔴 > +10% slower, 🟢 > -10% faster. Numbers on GitHub-hosted runners are noisy — treat double-digit deltas on non-trivial benchmarks as signal, single-digit as noise.
 
             ${{ env.DELTA_TABLE }}

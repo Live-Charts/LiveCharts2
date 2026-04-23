@@ -99,7 +99,9 @@ internal static class ResultsCompare
             var delta = DeltaCell(@base, head);
             var baseAlloc = @base?.Allocated is null ? "—" : FormatBytes(@base.Allocated.Value);
             var headAlloc = head?.Allocated is null ? "—" : FormatBytes(head.Allocated.Value);
-            _ = sb.AppendLine(CultureInfo.InvariantCulture, $"| `{Short(row.Key)}` | {baseMs} | {headMs} | {delta} | {baseAlloc} | {headAlloc} |");
+            // No backticks around the name — comment-progress injects this table into a JS
+            // template literal and backticks would close it, producing a syntax error.
+            _ = sb.AppendLine(CultureInfo.InvariantCulture, $"| {Short(row.Key)} | {baseMs} | {headMs} | {delta} | {baseAlloc} | {headAlloc} |");
         }
         return sb.ToString();
     }
