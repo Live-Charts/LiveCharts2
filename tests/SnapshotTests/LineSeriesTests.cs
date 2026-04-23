@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using LiveChartsCore.Defaults;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
 using LiveChartsCore.SkiaSharpView.SKCharts;
@@ -342,5 +343,33 @@ public sealed class LineSeriesTests
         Push();
 
         chart.AssertSnapshotMatches($"{nameof(LineSeriesTests)}_{nameof(Gaps)}");
+    }
+
+    // Regression guard for https://github.com/Live-Charts/LiveCharts2/issues/2132.
+    // Four ObservablePoints on an XY chart, no nulls, rendered cold. PhBrb reported
+    // that an earlier fix attempt left the last point's geometry visible but the
+    // line didn't reach it — the TrimTail cleanup evicted the bezier segment for the
+    // final point because AddConsecutiveSegment's AddLast branch didn't advance
+    // _currentNode past the just-appended node. This snapshot is the "all points
+    // connected" shape; a regression breaks its pixels.
+    [TestMethod]
+    public void Issue2132_LastPointStaysConnected()
+    {
+        var chart = new SKCartesianChart
+        {
+            Series = [
+                new LineSeries<ObservablePoint>
+                {
+                    Values = [
+                        new(0, 1), new(1, 2), new(2, 3), new(3, 4)
+                    ],
+                    Fill = null
+                }
+            ],
+            Width = 600,
+            Height = 600
+        };
+
+        chart.AssertSnapshotMatches($"{nameof(LineSeriesTests)}_{nameof(Issue2132_LastPointStaysConnected)}");
     }
 }
