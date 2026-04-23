@@ -37,15 +37,52 @@ internal static class ResultsCompare
 
         rows.Sort((a, b) => string.CompareOrdinal(a.Key, b.Key));
 
+        var (hasInteresting, hasRegression) = Classify(rows);
+
         var md = RenderMarkdown(rows);
         if (outPath is not null)
             File.WriteAllText(outPath, md);
         else
             Console.Write(md);
 
-        // Return 0 — we report but don't fail the build on regressions. Callers can wrap
-        // this in a gating step later once the signal is trusted.
+        // Expose flags to the workflow so it can decide whether to post a comment
+        // (any row outside ±Threshold) and whether to fail (any row slower by more
+        // than Threshold).
+        var githubOutput = Environment.GetEnvironmentVariable("GITHUB_OUTPUT");
+        if (!string.IsNullOrEmpty(githubOutput))
+        {
+            File.AppendAllLines(githubOutput,
+            [
+                "has_interesting=" + (hasInteresting ? "true" : "false"),
+                "has_regression=" + (hasRegression ? "true" : "false"),
+            ]);
+        }
+
+        Console.WriteLine($"has_interesting={hasInteresting}");
+        Console.WriteLine($"has_regression={hasRegression}");
+
         return 0;
+    }
+
+    private static (bool hasInteresting, bool hasRegression) Classify(List<Row> rows)
+    {
+        var interesting = false;
+        var regression = false;
+        foreach (var row in rows)
+        {
+            if (row.Base is null || row.Head is null) continue;
+            var pct = (row.Head.MeanNs - row.Base.MeanNs) / row.Base.MeanNs;
+            if (pct > Threshold)
+            {
+                regression = true;
+                interesting = true;
+            }
+            else if (pct < -Threshold)
+            {
+                interesting = true;
+            }
+        }
+        return (interesting, regression);
     }
 
     private static Dictionary<string, BenchmarkStats> LoadAll(string dir)

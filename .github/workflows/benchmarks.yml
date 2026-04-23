@@ -56,6 +56,7 @@ jobs:
           echo "has_base=true" >> "$GITHUB_OUTPUT"
 
       - name: Compare results
+        id: compare
         run: |
           dotnet run -c Release --project tests/Benchmarks/Benchmarks.csproj --no-build -- \
             compare bench-base-results bench-head-results delta.md
@@ -63,6 +64,7 @@ jobs:
           cat delta.md
 
       - name: Load delta into env
+        if: steps.compare.outputs.has_interesting == 'true'
         run: |
           {
             echo 'DELTA_TABLE<<BENCHEOF'
@@ -71,6 +73,7 @@ jobs:
           } >> "$GITHUB_ENV"
 
       - name: Post benchmark delta on PR
+        if: steps.compare.outputs.has_interesting == 'true'
         uses: ./.github/actions/comment-progress
         with:
           marker: perf-${{ github.event.pull_request.number }}
@@ -92,3 +95,9 @@ jobs:
             bench-base/
             delta.md
           retention-days: 30
+
+      - name: Fail job if a benchmark regressed by more than 10%
+        if: steps.compare.outputs.has_regression == 'true'
+        run: |
+          echo "::error::One or more benchmarks regressed by more than 10%. See the PR comment for details."
+          exit 1
