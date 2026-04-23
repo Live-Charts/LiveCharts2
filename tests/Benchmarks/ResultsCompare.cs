@@ -60,11 +60,21 @@ internal static class ResultsCompare
             foreach (var b in benchmarks.EnumerateArray())
             {
                 var fullName = b.GetProperty("FullName").GetString() ?? "";
-                var stats = b.GetProperty("Statistics");
+
+                // If the benchmark errored out (worker crash, no results), Statistics
+                // is serialised as null. Skip it so one bad row doesn't kill the diff.
+                if (!b.TryGetProperty("Statistics", out var stats)
+                    || stats.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+                {
+                    Console.Error.WriteLine($"warn: no statistics for '{fullName}', skipping.");
+                    continue;
+                }
+
                 var mean = stats.GetProperty("Mean").GetDouble();
                 var stdErr = stats.GetProperty("StandardError").GetDouble();
                 double? allocated = null;
                 if (b.TryGetProperty("Memory", out var mem)
+                    && mem.ValueKind is JsonValueKind.Object
                     && mem.TryGetProperty("BytesAllocatedPerOperation", out var alloc))
                 {
                     allocated = alloc.GetDouble();

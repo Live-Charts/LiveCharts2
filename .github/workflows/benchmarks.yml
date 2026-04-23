@@ -15,8 +15,13 @@ on:
 
 jobs:
   benchmarks:
-    runs-on: ubuntu-24.04
+    # Windows to match the rest of the repo's SkiaSharp testing (test-core, test-snapshot)
+    # and avoid the libSkiaSharp native-dependency minefield on Linux.
+    runs-on: windows-2025
     timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
     steps:
       - name: Checkout PR HEAD
         uses: actions/checkout@v6.0.1
