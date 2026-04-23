@@ -1,9 +1,10 @@
-﻿using System;
-using System.Collections;
-using System.Collections.ObjectModel;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using CoreTests.CoreObjectsTests;
 using LiveChartsCore;
 using LiveChartsCore.Defaults;
+using LiveChartsCore.Kernel;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.SKCharts;
 using LiveChartsGeneratedCode;
@@ -11,416 +12,163 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CoreTests.SeriesTests;
 
+// Leak detection for series point instances.
+//
+// The old version of these tests stressed each series with ~150,000 operations and asserted
+// on a fuzzy GC.GetTotalMemory() threshold. That caught leaks but was slow (~3 min per test
+// method) and imprecise. This version uses WeakReference: create N points, wire them into a
+// chart, detach, force GC, assert nothing survives. Deterministic, precise, and runs in
+// seconds. See https://github.com/Live-Charts/LiveCharts2/pull/2160 for the benchmarks that
+// separately track allocation-per-operation regressions.
 [TestClass]
 public class _MemoryTests
 {
-    private static readonly int s_repeatCount;
-    private static readonly double s_treshold;
+    // Small enough to keep the test fast, large enough that a leak is obvious.
+    private const int PointCount = 20;
 
-    static _MemoryTests()
-    {
-        s_repeatCount = 1500; // originally 5000, reduced for faster test runs
-        var threshold = 2 * 1024 * 1024 * (s_repeatCount / 5000d); // 2MB each 5000 repeats
-        s_treshold = threshold < 1 * 1024 * 1024
-            ? 1 * 1024 * 1024
-            : threshold; // ensure at least 1MB threshold
-    }
+    // --- Cartesian series ------------------------------------------------------------
 
+    [TestMethod] public void BoxSeries_Releases() => AssertCartesianReleases(() => new BoxSeries<ObservableValue>());
+    [TestMethod] public void CandlesticksSeries_Releases() => AssertCartesianReleases(() => new CandlesticksSeries<ObservableValue>());
+    [TestMethod] public void ColumnSeries_Releases() => AssertCartesianReleases(() => new ColumnSeries<ObservableValue>());
+    [TestMethod] public void HeatSeries_Releases() => AssertCartesianReleases(() => new HeatSeries<ObservableValue>());
+    [TestMethod] public void LineSeries_Releases() => AssertCartesianReleases(() => new LineSeries<ObservableValue>());
+    [TestMethod] public void RowSeries_Releases() => AssertCartesianReleases(() => new RowSeries<ObservableValue>());
+    [TestMethod] public void ScatterSeries_Releases() => AssertCartesianReleases(() => new ScatterSeries<ObservableValue>());
+    [TestMethod] public void StepLineSeries_Releases() => AssertCartesianReleases(() => new StepLineSeries<ObservableValue>());
+    [TestMethod] public void StackedAreaSeries_Releases() => AssertCartesianReleases(() => new StackedAreaSeries<ObservableValue>());
+    [TestMethod] public void StackedColumnSeries_Releases() => AssertCartesianReleases(() => new StackedColumnSeries<ObservableValue>());
+
+    [TestMethod] public void PieSeries_Releases() => AssertPieReleases();
+    [TestMethod] public void PolarLineSeries_Releases() => AssertPolarReleases();
+
+    // --- Indexed-values path ---------------------------------------------------------
+
+    // Exercises DataFactory.EnumerateIndexedEntities and its _chartIndexEntityMap — the
+    // path taken when Values is a collection of a reference type that does NOT implement
+    // IChartEntity. The model instances are referenced via ChartPoint.Context.DataSource;
+    // the test asserts they are released once Values is detached.
     [TestMethod]
-    public void ObservableValuesChangingTest()
+    public void MappedModel_Releases_OnIndexedPath()
     {
-        // here series.values is of type ObservableCollection<ObservableValue>
-        // we add, remove, clear, and change the visibility of the series multiple times
-        // the memory and geometries count should not increase significantly.
-
-        TestObservablesChanging(new CartesianSut(new BoxSeries<ObservableValue>(), "box"));
-        TestObservablesChanging(new CartesianSut(new ColumnSeries<ObservableValue>(), "colum"));
-        TestObservablesChanging(new CartesianSut(new CandlesticksSeries<ObservableValue>(), "candle"));
-        TestObservablesChanging(new CartesianSut(new HeatSeries<ObservableValue>(), "heat"));
-        TestObservablesChanging(new CartesianSut(new LineSeries<ObservableValue>(), "line"));
-        TestObservablesChanging(new CartesianSut(new RowSeries<ObservableValue>(), "row"));
-        TestObservablesChanging(new CartesianSut(new ScatterSeries<ObservableValue>(), "scatter"));
-        TestObservablesChanging(new CartesianSut(new StepLineSeries<ObservableValue>(), "step line"));
-        TestObservablesChanging(new PieSut(new PieSeries<ObservableValue>(), "pie"));
-        //TestObservablesChanging(new PolarSut(new PolarLineSeries<ObservableValue>(), "polar"));
-
-        // stacked series are irrelevant for this test because they inherit from some type above.
-    }
-
-    [TestMethod]
-    public void PrimitiveValuesInstanceChangedTest()
-    {
-        // here series.values is of type int[]
-        // we change the instance of the values array multiple times
-        // the memory and geometries count should not increase significantly.
-
-        TestValuesInstanceChangedPrimitiveMapped(new CartesianSutInt(new BoxSeries<int>(), "box"));
-        TestValuesInstanceChangedPrimitiveMapped(new CartesianSutInt(new ColumnSeries<int>(), "colum"));
-        TestValuesInstanceChangedPrimitiveMapped(new CartesianSutInt(new CandlesticksSeries<int>(), "candle"));
-        TestValuesInstanceChangedPrimitiveMapped(new CartesianSutInt(new HeatSeries<int>(), "heat"));
-        TestValuesInstanceChangedPrimitiveMapped(new CartesianSutInt(new LineSeries<int>(), "line"));
-        TestValuesInstanceChangedPrimitiveMapped(new CartesianSutInt(new RowSeries<int>(), "row"));
-        TestValuesInstanceChangedPrimitiveMapped(new CartesianSutInt(new ScatterSeries<int>(), "scatter"));
-        TestValuesInstanceChangedPrimitiveMapped(new CartesianSutInt(new StepLineSeries<int>(), "step line"));
-        TestValuesInstanceChangedPrimitiveMapped(new PieSutInt(new PieSeries<int>(), "pie"));
-        TestValuesInstanceChangedPrimitiveMapped(new PolarSutInt(new PolarLineSeries<int>(), "polar"));
-
-        // stacked series are irrelevant for this test because they inherit from some type above.
-    }
-
-    [TestMethod]
-    public void ObservableValuesInstanceChangedTest()
-    {
-        // here series.values is of type ObservableCollection<ObservableValue>
-        // we change the instance of the values array multiple times
-        // the memory and geometries count should not increase significantly.
-
-        TestValuesInstanceChangedObservableIChartEntities(new CartesianSut(new BoxSeries<ObservableValue>(), "box"));
-        TestValuesInstanceChangedObservableIChartEntities(new CartesianSut(new ColumnSeries<ObservableValue>(), "colum"));
-        TestValuesInstanceChangedObservableIChartEntities(new CartesianSut(new CandlesticksSeries<ObservableValue>(), "candle"));
-        TestValuesInstanceChangedObservableIChartEntities(new CartesianSut(new HeatSeries<ObservableValue>(), "heat"));
-        TestValuesInstanceChangedObservableIChartEntities(new CartesianSut(new LineSeries<ObservableValue>(), "line"));
-        TestValuesInstanceChangedObservableIChartEntities(new CartesianSut(new RowSeries<ObservableValue>(), "row"));
-        TestValuesInstanceChangedObservableIChartEntities(new CartesianSut(new ScatterSeries<ObservableValue>(), "scatter"));
-        TestValuesInstanceChangedObservableIChartEntities(new CartesianSut(new StepLineSeries<ObservableValue>(), "step line"));
-        TestValuesInstanceChangedObservableIChartEntities(new PieSut(new PieSeries<ObservableValue>(), "pie"));
-        TestValuesInstanceChangedObservableIChartEntities(new PolarSut(new PolarLineSeries<ObservableValue>(), "polar"));
-
-        // stacked series are irrelevant for this test because they inherit from some type above.
-    }
-
-    private static void TestObservablesChanging<T>(ChartSut<T> sut)
-        where T : IList
-    {
-        // this test replaces the values of the series with a new collection of 5,000 elements
-        // values is of type ObservableCollection<ObservableValue>
-
-        GC.Collect();
-        GC.WaitForPendingFinalizers();
-        GC.Collect();
-
-        var initialMemory = GC.GetTotalMemory(true);
-
-        _ = ChangingPaintTasks.DrawChart(sut.Chart, true);
-
-        var canvas = sut.Chart.CoreCanvas;
-        var geometries = canvas.CountGeometries();
-        var deltas = 0;
-        var totalFramesDrawn = 0;
-
-        for (var i = 0; i < 100; i++)
+        var series = new LineSeries<MappedModel>
         {
-            sut.Series.IsVisible = false;
-            totalFramesDrawn += ChangingPaintTasks.DrawChart(sut.Chart, true);
-
-            sut.Series.IsVisible = true;
-            totalFramesDrawn += ChangingPaintTasks.DrawChart(sut.Chart, true);
-
-            for (var j = 0; j < s_repeatCount; j++)
-                _ = sut.Values.Add(new ObservableValue(2));
-            totalFramesDrawn += ChangingPaintTasks.DrawChart(sut.Chart, true);
-
-            sut.Values.RemoveAt(0);
-            sut.Values.RemoveAt(0);
-            sut.Values.RemoveAt(0);
-            sut.Values.RemoveAt(0);
-            totalFramesDrawn += ChangingPaintTasks.DrawChart(sut.Chart, true);
-
-            sut.Values.Clear();
-            totalFramesDrawn += ChangingPaintTasks.DrawChart(sut.Chart, true);
-
-            var newCount = canvas.CountGeometries();
-            if (newCount > geometries)
-            {
-                deltas++;
-                geometries = newCount;
-            }
-        }
-
-        Assert.IsTrue(deltas <= 1);
-
-        GC.Collect();
-        GC.WaitForPendingFinalizers();
-        GC.Collect();
-
-        // Assert that there is no significant increase in memory usage
-        var finalMemory = GC.GetTotalMemory(true);
-
-        // 2MB is a reasonable threshold for this test
-        // it adds 5,000 points 100 times, which is 500,000 points
-        // removes 4 points 100 times, which is 400 points
-        // clears the collection and changes visibility 100 times
-
-        // this test also simulates the chart animation, it makes a change,
-        // then enters a loop until animations finish.
-
-        Assert.IsTrue(
-            finalMemory - initialMemory < s_treshold,
-            $"[{sut.Series.Name} series] Potential memory leak detected {(finalMemory - initialMemory) / (1024d * 1024):N2}MB, " +
-            $"{totalFramesDrawn} frames drawn.");
-    }
-
-    private void TestValuesInstanceChangedPrimitiveMapped<T>(ChartSut<T> sut)
-        where T : IEnumerable
-    {
-        // this test replaces the values of the series with a new array of 5,000 elements
-        // values is of type int[]
-
-        GC.Collect();
-        GC.WaitForPendingFinalizers();
-        GC.Collect();
-
-        var initialMemory = 0L;
-
-        _ = ChangingPaintTasks.DrawChart(sut.Chart, true);
-
-        var canvas = sut.Chart.CoreCanvas;
-        var geometries = canvas.CountGeometries();
-        var deltas = 0;
-        var totalFramesDrawn = 0;
-
-        int[] values;
-
-        for (var i = 0; i < 100; i++)
+            Mapping = (model, index) => new Coordinate(index, model.Value)
+        };
+        var chart = new SKCartesianChart
         {
-            values = new int[s_repeatCount];
-            for (var j = 0; j < s_repeatCount; j++)
-                values[j] = 2;
-
-            sut.Series.Values = values;
-            totalFramesDrawn += ChangingPaintTasks.DrawChart(sut.Chart, true);
-
-            // we wait for the first frame to be drawn to measure the initial memory
-            // not sure why, but the first draw consumes about 12mb in this case
-            // but no matter the number or runs, it stays at those 12 mb all the time.
-            // so if we ignore the first call, we satisfy the 2mb threashold.
-            // in this test, it only happens in the HeatSeries.
-            if (i == 0) initialMemory = GC.GetTotalMemory(true);
-
-            var newCount = canvas.CountGeometries();
-            if (newCount > geometries)
-            {
-                deltas++;
-                geometries = newCount;
-            }
-
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
-        }
-
-        sut.Series.Values = Array.Empty<int>();
-        totalFramesDrawn += ChangingPaintTasks.DrawChart(sut.Chart, true);
-
-        values = null;
-
-        Assert.IsTrue(deltas <= 1);
-
-        GC.Collect();
-        GC.WaitForPendingFinalizers();
-        GC.Collect();
-
-        // Assert that there is no significant increase in memory usage
-        var finalMemory = GC.GetTotalMemory(true);
-
-        // 2MB is a reasonable threshold for this test
-        // it changes 100 times, the instance of the values array to a new array of 5,000 elements
-
-        Assert.IsTrue(
-            finalMemory - initialMemory < s_treshold,
-            $"[{sut.Series.Name} series] Potential memory leak detected {(finalMemory - initialMemory) / (1024d * 1024):N2}MB, " +
-            $"{totalFramesDrawn} frames drawn.");
+            Series = [series],
+            Width = 300,
+            Height = 200
+        };
+        var refs = WireAndDetachMapped(series, chart);
+        AssertAllDead(refs, "mapped");
     }
 
-    private void TestValuesInstanceChangedObservableIChartEntities<T>(ChartSut<T> sut)
-        where T : IEnumerable
+    private sealed class MappedModel
     {
-        GC.Collect();
-        GC.WaitForPendingFinalizers();
-        GC.Collect();
-
-        var initialMemory = 0L;
-
-        _ = ChangingPaintTasks.DrawChart(sut.Chart, true);
-
-        var canvas = sut.Chart.CoreCanvas;
-        var geometries = canvas.CountGeometries();
-        var deltas = 0;
-        var totalFramesDrawn = 0;
-
-        ObservableCollection<ObservableValue> values;
-
-        for (var i = 0; i < 100; i++)
-        {
-            var newValues = new ObservableValue[s_repeatCount];
-            for (var j = 0; j < s_repeatCount; j++)
-                newValues[j] = new(2);
-
-            values = new(newValues);
-
-            sut.Series.Values = values;
-            totalFramesDrawn += ChangingPaintTasks.DrawChart(sut.Chart, true);
-
-            // we wait for the first frame to be drawn to measure the initial memory
-            // not sure why, but the first draw consumes about 12mb in this case
-            // but no matter the number or runs, it stays at those 12 mb all the time.
-            // so if we ignore the first call, we satisfy the 2mb threashold.
-            if (i == 0) initialMemory = GC.GetTotalMemory(true);
-
-            var newCount = canvas.CountGeometries();
-            if (newCount > geometries)
-            {
-                deltas++;
-                geometries = newCount;
-            }
-
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
-        }
-
-        sut.Series.Values = null;
-        totalFramesDrawn += ChangingPaintTasks.DrawChart(sut.Chart, true);
-
-        values = null;
-
-        Assert.IsTrue(deltas <= 1);
-
-        GC.Collect();
-        GC.WaitForPendingFinalizers();
-        GC.Collect();
-
-        // Assert that there is no significant increase in memory usage
-        var finalMemory = GC.GetTotalMemory(true);
-
-        // 2MB is a reasonable threshold for this test
-        // it changes 100 times, the instance of the values array to a new array of 5,000 elements
-
-        var mb = (finalMemory - initialMemory) / (1024d * 1024);
-
-        Assert.IsTrue(
-            finalMemory - initialMemory < s_treshold,
-            $"[{sut.Series.Name} series] Potential memory leak detected {mb:N2}MB, " +
-            $"{totalFramesDrawn} frames drawn.");
+        public double Value { get; set; }
     }
 
-    #region helper classes
-
-    private abstract class ChartSut<T>
-        where T : IEnumerable
+    private static List<WeakReference> WireAndDetachMapped(
+        LineSeries<MappedModel> series, SourceGenSKChart chart)
     {
-        public SourceGenSKChart Chart { get; set; }
-        public ISeries Series { get; set; }
-        public T Values { get; set; }
-
-        protected ChartSut(
-            SourceGenSKChart chart,
-            ISeries series,
-            string name,
-            T initialValues)
+        var refs = new List<WeakReference>(PointCount);
+        var values = new MappedModel[PointCount];
+        for (var i = 0; i < PointCount; i++)
         {
-            series.Name = name;
-            series.Values = Values = initialValues;
-            Series = series;
-            Chart = chart;
+            values[i] = new MappedModel { Value = i + 1 };
+            refs.Add(new WeakReference(values[i]));
         }
+        series.Values = values;
+
+        _ = ChangingPaintTasks.DrawChart(chart, animated: false);
+
+        series.Values = Array.Empty<MappedModel>();
+
+        _ = ChangingPaintTasks.DrawChart(chart, animated: false);
+
+        return refs;
     }
 
-    private class CartesianSut(
-        ISeries series,
-        string name)
-            : ChartSut<ObservableCollection<ObservableValue>>(new SKCartesianChart
-            {
-                Series = [series],
-                AnimationsSpeed = TimeSpan.FromMilliseconds(10),
-                EasingFunction = EasingFunctions.Lineal,
-                Width = 1000,
-                Height = 1000
-            },
-            series,
-            name,
-            [])
-    { }
+    // --- Assertion helpers -----------------------------------------------------------
 
-    private class PieSut(
-        ISeries series,
-        string name)
-            : ChartSut<ObservableCollection<ObservableValue>>(new SKPieChart
-            {
-                Series = [series],
-                AnimationsSpeed = TimeSpan.FromMilliseconds(10),
-                EasingFunction = EasingFunctions.Lineal,
-                Width = 1000,
-                Height = 1000
-            },
-            series,
-            name,
-            [])
-    { }
+    private static void AssertCartesianReleases(Func<ISeries> factory)
+    {
+        var series = factory();
+        var chart = new SKCartesianChart
+        {
+            Series = [series],
+            Width = 300,
+            Height = 200
+        };
+        var refs = WireAndDetach(series, chart);
+        AssertAllDead(refs, series.Name ?? series.GetType().Name);
+    }
 
-    private class PolarSut(
-        ISeries series,
-        string name)
-            : ChartSut<ObservableCollection<ObservableValue>>(new SKPolarChart
-            {
-                Series = [series],
-                AnimationsSpeed = TimeSpan.FromMilliseconds(10),
-                EasingFunction = EasingFunctions.Lineal,
-                Width = 1000,
-                Height = 1000
-            },
-            series,
-            name,
-            [])
-    { }
+    private static void AssertPieReleases()
+    {
+        var series = new PieSeries<ObservableValue>();
+        var chart = new SKPieChart
+        {
+            Series = [series],
+            Width = 300,
+            Height = 200
+        };
+        var refs = WireAndDetach(series, chart);
+        AssertAllDead(refs, "pie");
+    }
 
-    private class CartesianSutInt(
-        ISeries series,
-        string name)
-            : ChartSut<int[]>(new SKCartesianChart
-            {
-                Series = [series],
-                AnimationsSpeed = TimeSpan.FromMilliseconds(10),
-                EasingFunction = EasingFunctions.Lineal,
-                Width = 1000,
-                Height = 1000
-            },
-            series,
-            name,
-            [])
-    { }
+    private static void AssertPolarReleases()
+    {
+        var series = new PolarLineSeries<ObservableValue>();
+        var chart = new SKPolarChart
+        {
+            Series = [series],
+            Width = 300,
+            Height = 200
+        };
+        var refs = WireAndDetach(series, chart);
+        AssertAllDead(refs, "polar");
+    }
 
-    private class PieSutInt(
-        ISeries series,
-        string name)
-            : ChartSut<int[]>(new SKPieChart
-            {
-                Series = [series],
-                AnimationsSpeed = TimeSpan.FromMilliseconds(10),
-                EasingFunction = EasingFunctions.Lineal,
-                Width = 1000,
-                Height = 1000
-            },
-            series,
-            name,
-            [])
-    { }
+    // Create N observables, render once so they become ChartPoints, then replace Values
+    // with an empty collection and render again so the cleanup pass runs. Returns weak
+    // references that should be dead after the caller forces GC. The local `values`
+    // array is on the stack of this method and goes away when the method returns.
+    private static List<WeakReference> WireAndDetach(ISeries series, SourceGenSKChart chart)
+    {
+        var refs = new List<WeakReference>(PointCount);
+        var values = new ObservableValue[PointCount];
+        for (var i = 0; i < PointCount; i++)
+        {
+            values[i] = new ObservableValue(i + 1);
+            refs.Add(new WeakReference(values[i]));
+        }
+        series.Values = values;
 
-    private class PolarSutInt(
-        ISeries series,
-        string name)
-            : ChartSut<int[]>(new SKPolarChart
-            {
-                Series = [series],
-                AnimationsSpeed = TimeSpan.FromMilliseconds(10),
-                EasingFunction = EasingFunctions.Lineal,
-                Width = 1000,
-                Height = 1000
-            },
-            series,
-            name,
-            [])
-    { }
+        // First draw: points get materialized into the chart's everFetched set.
+        _ = ChangingPaintTasks.DrawChart(chart, animated: false);
 
-    #endregion
+        // Detach — a fresh empty array so no hidden alias to the original.
+        series.Values = Array.Empty<ObservableValue>();
+
+        // Second draw: CollectPoints runs during Invalidate and prunes stale ChartPoints,
+        // releasing their entity references.
+        _ = ChangingPaintTasks.DrawChart(chart, animated: false);
+
+        return refs;
+    }
+
+    private static void AssertAllDead(List<WeakReference> refs, string label)
+    {
+        GC.Collect(2, GCCollectionMode.Forced, blocking: true, compacting: true);
+        GC.WaitForPendingFinalizers();
+        GC.Collect(2, GCCollectionMode.Forced, blocking: true, compacting: true);
+
+        var alive = refs.Count(r => r.IsAlive);
+        Assert.AreEqual(
+            0, alive,
+            $"[{label}] {alive}/{refs.Count} point instances were not released after Values were replaced.");
+    }
 }
