@@ -206,11 +206,24 @@ public class RectangleHoverArea : HoverArea
     public override bool IsPointerOver(LvcPoint pointerLocation, FindingStrategy strategy)
     {
         // at least one pixel to fire the tooltip.
-        var w = Width < 1 ? 1 : Width;
-        var h = Height < 1 ? 1 : Height;
+        var w = Width switch
+        {
+            > 1 => Width,
+            >= 0 => 1,
+            > -1 => -1,
+            _ => Width
+        };
 
-        var isInX = pointerLocation.X > X && pointerLocation.X < X + w;
-        var isInY = pointerLocation.Y > Y && pointerLocation.Y < Y + h;
+        var h = Height switch
+        {
+            > 1 => Height,
+            >= 0 => 1,
+            > -1 => -1,
+            _ => Height
+        };
+
+        var isInX = IsBetween(pointerLocation.X, X, X + w);
+        var isInY = IsBetween(pointerLocation.Y, Y, Y + h);
 
         return strategy switch
         {
@@ -226,6 +239,10 @@ public class RectangleHoverArea : HoverArea
             _ => throw new NotImplementedException()
         };
     }
+
+    private static bool IsBetween(float value, float firstBound, float secondBound) => firstBound > secondBound
+        ? value > secondBound && value < firstBound
+        : value > firstBound && value < secondBound;
 
     /// <inheritdoc cref="HoverArea.SuggestTooltipPlacement(TooltipPlacementContext, LvcSize)"/>
     public override void SuggestTooltipPlacement(TooltipPlacementContext ctx, LvcSize tooltipSize)
