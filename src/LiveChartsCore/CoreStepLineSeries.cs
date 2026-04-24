@@ -163,23 +163,7 @@ public abstract class CoreStepLineSeries<TModel, TVisual, TLabel, TPathGeometry,
                     var fillLookup = GetSegmentVisual(segmentI, fillPathHelperContainer, VectorClosingMethod.CloseToPivot);
                     var strokeLookup = GetSegmentVisual(segmentI, strokePathHelperContainer, VectorClosingMethod.NotClosed);
 
-                    if (fillLookup.Path.Commands.Count == 1)
-                    {
-                        Fill?.RemoveGeometryFromPaintTask(cartesianChart.Canvas, fillLookup.Path);
-                        fillLookup.Path.Commands.Clear();
-                        fillPathHelperContainer.RemoveAt(segmentI);
-
-                        fillLookup = GetSegmentVisual(segmentI, fillPathHelperContainer, VectorClosingMethod.CloseToPivot);
-                    }
-
-                    if (strokeLookup.Path.Commands.Count == 1)
-                    {
-                        Stroke?.RemoveGeometryFromPaintTask(cartesianChart.Canvas, strokeLookup.Path);
-                        strokeLookup.Path.Commands.Clear();
-                        strokePathHelperContainer.RemoveAt(segmentI);
-
-                        strokeLookup = GetSegmentVisual(segmentI, strokePathHelperContainer, VectorClosingMethod.NotClosed);
-                    }
+                    // See CoreLineSeries for why the old Count==1 cleanup is gone.
 
                     var isNew = fillLookup.IsNew || strokeLookup.IsNew;
                     var fillPath = fillLookup.Path;
@@ -225,6 +209,9 @@ public abstract class CoreStepLineSeries<TModel, TVisual, TLabel, TPathGeometry,
                         : stacker.GetStack(point).NegativeStart;
 
                 var visual = (SegmentVisualPoint?)point.Context.AdditionalVisuals;
+                // See CoreLineSeries for the rationale — drives AddConsecutiveSegment's
+                // Follows/Copy decision.
+                var isVisualNew = visual is null;
                 var dp = coordinate.PrimaryValue + s - previousPrimary;
                 var ds = coordinate.SecondaryValue - previousSecondary;
 
@@ -268,18 +255,19 @@ public abstract class CoreStepLineSeries<TModel, TVisual, TLabel, TPathGeometry,
                     var v = new SegmentVisualPoint(new TVisual());
                     visual = v;
 
-                    if (isFirstDraw)
-                    {
-                        v.Geometry.X = secondaryScale.ToPixels(coordinate.SecondaryValue);
-                        v.Geometry.Y = p;
-                        v.Geometry.Width = 0;
-                        v.Geometry.Height = 0;
+                    // See CoreLineSeries for the rationale — seed motion state for every
+                    // new visual, not just isFirstDraw, so a mid-life new visual that
+                    // becomes the first point of a brand-new sub-segment path doesn't
+                    // swoop in from (0, 0).
+                    v.Geometry.X = secondaryScale.ToPixels(coordinate.SecondaryValue);
+                    v.Geometry.Y = p;
+                    v.Geometry.Width = 0;
+                    v.Geometry.Height = 0;
 
-                        v.Segment.Xi = secondaryScale.ToPixels(coordinate.SecondaryValue - ds);
-                        v.Segment.Xj = secondaryScale.ToPixels(coordinate.SecondaryValue);
-                        v.Segment.Yi = p;
-                        v.Segment.Yj = p;
-                    }
+                    v.Segment.Xi = secondaryScale.ToPixels(coordinate.SecondaryValue - ds);
+                    v.Segment.Xj = secondaryScale.ToPixels(coordinate.SecondaryValue);
+                    v.Segment.Yi = p;
+                    v.Segment.Yj = p;
 
                     point.Context.Visual = v.Geometry;
                     point.Context.AdditionalVisuals = v;
@@ -305,9 +293,9 @@ public abstract class CoreStepLineSeries<TModel, TVisual, TLabel, TPathGeometry,
                 visual.Segment.Id = point.Context.Entity.MetaData!.EntityIndex;
 
                 if (Fill is not null && Fill != Paint.Default)
-                    fillVector!.AddConsecutiveSegment(visual.Segment, !isFirstDraw);
+                    fillVector!.AddConsecutiveSegment(visual.Segment, isVisualNew && !isFirstDraw);
                 if (Stroke is not null && Stroke != Paint.Default)
-                    strokeVector!.AddConsecutiveSegment(visual.Segment, !isFirstDraw);
+                    strokeVector!.AddConsecutiveSegment(visual.Segment, isVisualNew && !isFirstDraw);
 
                 visual.Segment.Xi = secondaryScale.ToPixels(coordinate.SecondaryValue - ds);
                 visual.Segment.Xj = secondaryScale.ToPixels(coordinate.SecondaryValue);
@@ -401,6 +389,9 @@ public abstract class CoreStepLineSeries<TModel, TVisual, TLabel, TPathGeometry,
             }
 
             if (!isSegmentEmpty) segmentI++;
+
+            fillVector?.TrimTail();
+            strokeVector?.TrimTail();
         }
 
         var maxSegment = fillPathHelperContainer.Count > strokePathHelperContainer.Count

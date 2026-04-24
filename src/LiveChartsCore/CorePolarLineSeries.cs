@@ -253,25 +253,7 @@ public abstract class CorePolarLineSeries<TModel, TVisual, TLabel, TPathGeometry
                     var fillLookup = GetSegmentVisual(segmentI, fillPathHelperContainer, VectorClosingMethod.NotClosed);
                     var strokeLookup = GetSegmentVisual(segmentI, strokePathHelperContainer, VectorClosingMethod.NotClosed);
 
-                    if (fillLookup.Path.Commands.Count == 1 && !data.IsNextEmpty)
-                    {
-                        if (Fill is not null && Fill != Paint.Default)
-                            Fill.RemoveGeometryFromPaintTask(polarChart.Canvas, fillLookup.Path);
-                        fillLookup.Path.Commands.Clear();
-                        fillPathHelperContainer.RemoveAt(segmentI);
-
-                        fillLookup = GetSegmentVisual(segmentI, fillPathHelperContainer, VectorClosingMethod.NotClosed);
-                    }
-
-                    if (strokeLookup.Path.Commands.Count == 1 && !data.IsNextEmpty)
-                    {
-                        if (Stroke is not null && Stroke != Paint.Default)
-                            Stroke.RemoveGeometryFromPaintTask(polarChart.Canvas, strokeLookup.Path);
-                        strokeLookup.Path.Commands.Clear();
-                        strokePathHelperContainer.RemoveAt(segmentI);
-
-                        strokeLookup = GetSegmentVisual(segmentI, strokePathHelperContainer, VectorClosingMethod.NotClosed);
-                    }
+                    // See CoreLineSeries for why the old Count==1 cleanup is gone.
 
                     var isNew = fillLookup.IsNew || strokeLookup.IsNew;
                     var fillPath = fillLookup.Path;
@@ -317,6 +299,8 @@ public abstract class CorePolarLineSeries<TModel, TVisual, TLabel, TPathGeometry
                 var cp = scaler.ToPixels(coordinate.SecondaryValue, coordinate.PrimaryValue + s);
 
                 var visual = (CubicSegmentVisualPoint?)data.TargetPoint.Context.AdditionalVisuals;
+                // See CoreLineSeries — drives AddConsecutiveSegment's Follows/Copy decision.
+                var isVisualNew = visual is null;
 
                 if (visual is null)
                 {
@@ -365,9 +349,9 @@ public abstract class CorePolarLineSeries<TModel, TVisual, TLabel, TPathGeometry
                 visual.Segment.Id = data.TargetPoint.Context.Entity.MetaData!.EntityIndex;
 
                 if (Fill is not null && Fill != Paint.Default)
-                    fillVector!.AddConsecutiveSegment(visual.Segment, !isFirstDraw);
+                    fillVector!.AddConsecutiveSegment(visual.Segment, isVisualNew && !isFirstDraw);
                 if (Stroke is not null && Stroke != Paint.Default)
-                    strokeVector!.AddConsecutiveSegment(visual.Segment, !isFirstDraw);
+                    strokeVector!.AddConsecutiveSegment(visual.Segment, isVisualNew && !isFirstDraw);
 
                 visual.Segment.Xi = (float)data.X0;
                 visual.Segment.Yi = (float)data.Y0;
@@ -454,6 +438,9 @@ public abstract class CorePolarLineSeries<TModel, TVisual, TLabel, TPathGeometry
             }
 
             if (!isSegmentEmpty) segmentI++;
+
+            fillVector?.TrimTail();
+            strokeVector?.TrimTail();
         }
 
         var maxSegment = fillPathHelperContainer.Count > strokePathHelperContainer.Count

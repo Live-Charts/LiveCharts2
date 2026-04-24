@@ -202,23 +202,14 @@ public abstract class CoreLineSeries<TModel, TVisual, TLabel, TPathGeometry, TEr
                     var fillLookup = GetSegmentVisual(segmentI, fillPathHelperContainer, VectorClosingMethod.CloseToPivot);
                     var strokeLookup = GetSegmentVisual(segmentI, strokePathHelperContainer, VectorClosingMethod.NotClosed);
 
-                    if (fillLookup.Path.Commands.Count == 1 && !data.IsNextEmpty)
-                    {
-                        Fill?.RemoveGeometryFromPaintTask(cartesianChart.Canvas, fillLookup.Path);
-                        fillLookup.Path.Commands.Clear();
-                        fillPathHelperContainer.RemoveAt(segmentI);
-
-                        fillLookup = GetSegmentVisual(segmentI, fillPathHelperContainer, VectorClosingMethod.CloseToPivot);
-                    }
-
-                    if (strokeLookup.Path.Commands.Count == 1 && !data.IsNextEmpty)
-                    {
-                        Stroke?.RemoveGeometryFromPaintTask(cartesianChart.Canvas, strokeLookup.Path);
-                        strokeLookup.Path.Commands.Clear();
-                        strokePathHelperContainer.RemoveAt(segmentI);
-
-                        strokeLookup = GetSegmentVisual(segmentI, strokePathHelperContainer, VectorClosingMethod.NotClosed);
-                    }
+                    // The previous "Count == 1 && !IsNextEmpty" branch tried to discard a
+                    // stale single-segment path left behind when this slot used to host a
+                    // one-point sub-segment. Its implementation called
+                    // container.RemoveAt(segmentI) and then re-fetched the path, which
+                    // shifted every subsequent sub-segment onto the WRONG path in the
+                    // container — the root of #2132's resize/yellow-region regression.
+                    // VectorManager.TrimTail now drops stale remnants without touching
+                    // the container, so this cleanup is no longer necessary.
 
                     var isNew = fillLookup.IsNew || strokeLookup.IsNew;
                     var fillPath = fillLookup.Path;
@@ -264,6 +255,10 @@ public abstract class CoreLineSeries<TModel, TVisual, TLabel, TPathGeometry, TEr
                         : stacker.GetStack(data.TargetPoint).NegativeStart;
 
                 var visual = (CubicSegmentVisualPoint?)data.TargetPoint.Context.AdditionalVisuals;
+                // Captured before the null check reassigns. Drives AddConsecutiveSegment's
+                // decision to Follows/Copy — only new visuals need a motion-state seed;
+                // preserved visuals already carry live state from last frame.
+                var isVisualNew = visual is null;
 
                 if (!IsVisible)
                 {
@@ -324,20 +319,26 @@ public abstract class CoreLineSeries<TModel, TVisual, TLabel, TPathGeometry, TEr
 
                     visual = v;
 
-                    if (isFirstDraw)
-                    {
-                        v.Geometry.X = secondaryScale.ToPixels(coordinate.SecondaryValue);
-                        v.Geometry.Y = p;
-                        v.Geometry.Width = 0;
-                        v.Geometry.Height = 0;
+                    // Seed motion state so the real-value setter below animates from a
+                    // sensible place instead of the default (0, 0). Runs for every new
+                    // visual — not just isFirstDraw — because a mid-life new visual that
+                    // happens to be the first point of a brand-new sub-segment path will
+                    // skip Follows() in AddConsecutiveSegment (list.Last is null), and
+                    // without this init the segment would swoop in from the top-left
+                    // corner (#2132). For non-first points in a sub-segment, Follows()
+                    // overrides these values with the previous tail, so the "grow from
+                    // previous" animation is preserved.
+                    v.Geometry.X = secondaryScale.ToPixels(coordinate.SecondaryValue);
+                    v.Geometry.Y = p;
+                    v.Geometry.Width = 0;
+                    v.Geometry.Height = 0;
 
-                        v.Segment.Xi = secondaryScale.ToPixels(data.X0);
-                        v.Segment.Xm = secondaryScale.ToPixels(data.X1);
-                        v.Segment.Xj = secondaryScale.ToPixels(data.X2);
-                        v.Segment.Yi = p;
-                        v.Segment.Ym = p;
-                        v.Segment.Yj = p;
-                    }
+                    v.Segment.Xi = secondaryScale.ToPixels(data.X0);
+                    v.Segment.Xm = secondaryScale.ToPixels(data.X1);
+                    v.Segment.Xj = secondaryScale.ToPixels(data.X2);
+                    v.Segment.Yi = p;
+                    v.Segment.Ym = p;
+                    v.Segment.Yj = p;
 
                     data.TargetPoint.Context.Visual = v.Geometry;
                     data.TargetPoint.Context.AdditionalVisuals = v;
@@ -367,8 +368,8 @@ public abstract class CoreLineSeries<TModel, TVisual, TLabel, TPathGeometry, TEr
 
                 visual.Segment.Id = data.TargetPoint.Context.Entity.MetaData!.EntityIndex;
 
-                if (Fill is not null) fillVector!.AddConsecutiveSegment(visual.Segment, !isFirstDraw);
-                if (Stroke is not null) strokeVector!.AddConsecutiveSegment(visual.Segment, !isFirstDraw);
+                if (Fill is not null) fillVector!.AddConsecutiveSegment(visual.Segment, isVisualNew && !isFirstDraw);
+                if (Stroke is not null) strokeVector!.AddConsecutiveSegment(visual.Segment, isVisualNew && !isFirstDraw);
 
                 visual.Segment.Xi = secondaryScale.ToPixels(data.X0);
                 visual.Segment.Xm = secondaryScale.ToPixels(data.X1);
@@ -478,6 +479,9 @@ public abstract class CoreLineSeries<TModel, TVisual, TLabel, TPathGeometry, TEr
             }
 
             if (!isSegmentEmpty) segmentI++;
+
+            fillVector?.TrimTail();
+            strokeVector?.TrimTail();
         }
 
         var maxSegment = fillPathHelperContainer.Count > strokePathHelperContainer.Count
