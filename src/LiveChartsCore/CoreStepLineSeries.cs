@@ -204,9 +204,7 @@ public abstract class CoreStepLineSeries<TModel, TVisual, TLabel, TPathGeometry,
                 isSegmentEmpty = false;
                 var s = 0d;
                 if (stacker is not null)
-                    s = coordinate.PrimaryValue > 0
-                        ? stacker.GetStack(point).Start
-                        : stacker.GetStack(point).NegativeStart;
+                    s = stacker.GetStack(point).CumulativeStart;
 
                 var visual = (SegmentVisualPoint?)point.Context.AdditionalVisuals;
                 // See CoreLineSeries for the rationale — drives AddConsecutiveSegment's

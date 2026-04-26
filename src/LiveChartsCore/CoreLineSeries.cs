@@ -250,9 +250,7 @@ public abstract class CoreLineSeries<TModel, TVisual, TLabel, TPathGeometry, TEr
                 isSegmentEmpty = false;
                 var s = 0d;
                 if (stacker is not null)
-                    s = coordinate.PrimaryValue > 0
-                        ? stacker.GetStack(data.TargetPoint).Start
-                        : stacker.GetStack(data.TargetPoint).NegativeStart;
+                    s = stacker.GetStack(data.TargetPoint).CumulativeStart;
 
                 var visual = (CubicSegmentVisualPoint?)data.TargetPoint.Context.AdditionalVisuals;
                 // Captured before the null check reassigns. Drives AddConsecutiveSegment's
@@ -655,9 +653,7 @@ public abstract class CoreLineSeries<TModel, TVisual, TLabel, TPathGeometry, TEr
             {
                 var c = item.Current.Coordinate;
 
-                var sc = (c.PrimaryValue >= 0
-                    ? stacker?.GetStack(item.Current).Start
-                    : stacker?.GetStack(item.Current).NegativeStart) ?? 0;
+                var sc = stacker?.GetStack(item.Current).CumulativeStart ?? 0;
 
                 yield return new BezierData(item.Next)
                 {
@@ -685,20 +681,10 @@ public abstract class CoreLineSeries<TModel, TVisual, TLabel, TPathGeometry, TEr
 
             if (stacker is not null)
             {
-                var isPositive = current.PrimaryValue >= 0;
-
-                pys = isPositive
-                    ? stacker.GetStack(item.Previous).Start
-                    : stacker.GetStack(item.Previous).NegativeStart;
-                cys = isPositive
-                    ? stacker.GetStack(item.Current).Start
-                    : stacker.GetStack(item.Current).NegativeStart;
-                nys = isPositive
-                    ? stacker.GetStack(item.Next).Start
-                    : stacker.GetStack(item.Next).NegativeStart;
-                nnys = isPositive
-                    ? stacker.GetStack(item.AfterNext).Start
-                    : stacker.GetStack(item.AfterNext).NegativeStart;
+                pys = stacker.GetStack(item.Previous).CumulativeStart;
+                cys = stacker.GetStack(item.Current).CumulativeStart;
+                nys = stacker.GetStack(item.Next).CumulativeStart;
+                nnys = stacker.GetStack(item.AfterNext).CumulativeStart;
             }
 
             var xc1 = (previous.SecondaryValue + current.SecondaryValue) / 2.0f;

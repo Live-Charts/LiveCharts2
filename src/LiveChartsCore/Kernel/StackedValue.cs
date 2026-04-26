@@ -77,6 +77,18 @@ public class StackedValue
     public double NegativeTotal { get; set; }
 
     /// <summary>
+    /// Gets or sets the cumulative start. Unlike <see cref="Start"/> and <see cref="NegativeStart"/>,
+    /// this value accumulates every point regardless of its sign and is the offset stacked
+    /// area/line series use to keep a continuous baseline across mixed-sign values.
+    /// </summary>
+    public double CumulativeStart { get; set; }
+
+    /// <summary>
+    /// Gets or sets the cumulative end. See <see cref="CumulativeStart"/>.
+    /// </summary>
+    public double CumulativeEnd { get; set; }
+
+    /// <summary>
     /// Gets the share in the total stack.
     /// </summary>
     public double Share => IsNegative

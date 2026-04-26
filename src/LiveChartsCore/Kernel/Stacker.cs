@@ -83,6 +83,7 @@ public class Stacker
         var value = coordinate.PrimaryValue;
         var positiveStart = 0d;
         var negativeStart = 0d;
+        var cumulativeStart = 0d;
 
         if (seriesStackPosition > 0)
         {
@@ -97,6 +98,7 @@ public class Stacker
                 {
                     positiveStart = previousActiveStack.End;
                     negativeStart = previousActiveStack.NegativeEnd;
+                    cumulativeStart = previousActiveStack.CumulativeEnd;
                     found = true;
                 }
                 else
@@ -115,32 +117,35 @@ public class Stacker
                 Start = positiveStart,
                 End = positiveStart,
                 NegativeStart = negativeStart,
-                NegativeEnd = negativeStart
+                NegativeEnd = negativeStart,
+                CumulativeStart = cumulativeStart,
+                CumulativeEnd = cumulativeStart
             };
             si.Add(index, currentStack);
             if (!_totals.TryGetValue(index, out var _)) _totals.Add(index, new());
             _knownMaxLenght++;
         }
 
+        // CumulativeEnd accumulates every point regardless of sign so stacked
+        // area/line series can render a continuous baseline across mixed signs
+        // (issue #2073). Positive/Negative tracks stay sign-segregated so stacked
+        // column/row bars still grow from 0 in their respective direction
+        // (issue #2152).
+        currentStack.CumulativeEnd += value;
+
         if (value >= 0)
         {
             currentStack.End += value;
-            currentStack.NegativeEnd += value;
             var positiveTotal = _totals[index].Positive + value;
             _totals[index].Positive = positiveTotal;
-            var negativeTotal = _totals[index].Negative + value;
-            _totals[index].Negative = negativeTotal;
 
             return positiveTotal;
         }
         else
         {
-            currentStack.End += value;
             currentStack.NegativeEnd += value;
             var negativeTotal = _totals[index].Negative + value;
             _totals[index].Negative = negativeTotal;
-            var positiveTotal = _totals[index].Positive + value;
-            _totals[index].Positive = positiveTotal;
 
             return negativeTotal;
         }
@@ -164,6 +169,8 @@ public class Stacker
                 End = 0,
                 NegativeStart = 0,
                 NegativeEnd = 0,
+                CumulativeStart = 0,
+                CumulativeEnd = 0,
             };
         }
 
@@ -179,7 +186,9 @@ public class Stacker
             Total = total.Positive,
             NegativeStart = p.NegativeStart,
             NegativeEnd = p.NegativeEnd,
-            NegativeTotal = total.Negative
+            NegativeTotal = total.Negative,
+            CumulativeStart = p.CumulativeStart,
+            CumulativeEnd = p.CumulativeEnd
         };
     }
 }

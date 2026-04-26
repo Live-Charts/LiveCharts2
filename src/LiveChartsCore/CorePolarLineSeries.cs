@@ -293,7 +293,7 @@ public abstract class CorePolarLineSeries<TModel, TVisual, TLabel, TPathGeometry
                 var s = 0d;
                 if (stacker is not null)
                 {
-                    s = stacker.GetStack(data.TargetPoint).Start;
+                    s = stacker.GetStack(data.TargetPoint).CumulativeStart;
                 }
 
                 var cp = scaler.ToPixels(coordinate.SecondaryValue, coordinate.PrimaryValue + s);
@@ -669,10 +669,10 @@ public abstract class CorePolarLineSeries<TModel, TVisual, TLabel, TPathGeometry
 
             if (stacker is not null)
             {
-                pys = scaler.ToPixels(0, stacker.GetStack(p0).Start).Y;
-                cys = scaler.ToPixels(0, stacker.GetStack(p1).Start).Y;
-                nys = scaler.ToPixels(0, stacker.GetStack(p2).Start).Y;
-                nnys = scaler.ToPixels(0, stacker.GetStack(p3).Start).Y;
+                pys = scaler.ToPixels(0, stacker.GetStack(p0).CumulativeStart).Y;
+                cys = scaler.ToPixels(0, stacker.GetStack(p1).CumulativeStart).Y;
+                nys = scaler.ToPixels(0, stacker.GetStack(p2).CumulativeStart).Y;
+                nnys = scaler.ToPixels(0, stacker.GetStack(p3).CumulativeStart).Y;
             }
 
             var xc1 = (previous.X + current.X) / 2.0f;
