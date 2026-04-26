@@ -1,0 +1,82 @@
+<UserControl
+    x:Class="AvaloniaSample.VisualTest.Issue1986Repro.View"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
+    xmlns:vm="using:AvaloniaSample.VisualTest.Issue1986Repro"
+    x:DataType="vm:ViewModel">
+
+    <!--
+        Reproducer for https://github.com/Live-Charts/LiveCharts2/issues/1986
+
+        Steps to reproduce (busitech):
+        1. Wait ~1s for async data to load (simulates server fetch).
+        2. Switch to "Tab 2", then back to "Tab 1".
+        3. Open "Tab 2" again and scroll down — the bottom charts may render as
+           white space (with non-zero size) or have zero size and never render.
+        4. Resize the window to force a redraw.
+    -->
+
+    <DockPanel>
+        <TextBlock
+            DockPanel.Dock="Top"
+            Margin="8"
+            FontSize="13"
+            Text="Issue #1986 reproducer — switch between tabs and scroll. Charts at the bottom of each tab may stay blank until the window is resized." />
+
+        <TabControl x:Name="tabs">
+            <TabItem Header="Tab 1">
+                <ScrollViewer>
+                    <StackPanel Spacing="12" Margin="8">
+                        <TextBlock Text="Cartesian A (visible at top of tab)" FontWeight="Bold" />
+                        <lvc:CartesianChart Height="260" Series="{Binding CartesianA}" />
+
+                        <Border Height="500" Background="#1E88E5" CornerRadius="4">
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Center"
+                                Foreground="White"
+                                Text="Spacer — scroll down to see more charts" />
+                        </Border>
+
+                        <TextBlock Text="Cartesian B (off-screen until you scroll)" FontWeight="Bold" />
+                        <lvc:CartesianChart Height="260" Series="{Binding CartesianB}" />
+
+                        <TextBlock Text="Pie A (off-screen until you scroll)" FontWeight="Bold" />
+                        <lvc:PieChart Height="260" Series="{Binding PieA}" />
+
+                        <TextBlock Text="Cartesian C (off-screen until you scroll)" FontWeight="Bold" />
+                        <lvc:CartesianChart x:Name="chart1" Height="260" Series="{Binding CartesianC}" />
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Tab 2">
+                <ScrollViewer>
+                    <StackPanel Spacing="12" Margin="8">
+                        <TextBlock Text="Cartesian A copy (visible at top of tab)" FontWeight="Bold" />
+                        <lvc:CartesianChart Height="260" Series="{Binding CartesianA}" />
+
+                        <Border Height="500" Background="#43A047" CornerRadius="4">
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Center"
+                                Foreground="White"
+                                Text="Spacer — scroll down to see more charts" />
+                        </Border>
+
+                        <TextBlock Text="Cartesian B copy (off-screen until you scroll)" FontWeight="Bold" />
+                        <lvc:CartesianChart Height="260" Series="{Binding CartesianB}" />
+
+                        <TextBlock Text="Pie B (off-screen until you scroll)" FontWeight="Bold" />
+                        <lvc:PieChart Height="260" Series="{Binding PieB}" />
+
+                        <TextBlock Text="Cartesian C copy (off-screen until you scroll)" FontWeight="Bold" />
+                        <lvc:CartesianChart x:Name="chart2" Height="260" Series="{Binding CartesianC}" />
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+    </DockPanel>
+
+</UserControl>

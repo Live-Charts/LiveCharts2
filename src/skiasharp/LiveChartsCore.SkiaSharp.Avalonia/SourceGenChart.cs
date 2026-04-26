@@ -24,6 +24,7 @@ using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Layout;
 using Avalonia.LogicalTree;
 using Avalonia.Media;
 using Avalonia.Rendering;
@@ -51,6 +52,7 @@ public abstract partial class SourceGenChart : UserControl, IChartView, ICustomH
 {
     private DateTime _lastPresed;
     private readonly int _tolearance = 50;
+    private bool _wasInViewport;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SourceGenChart"/> class.
@@ -61,6 +63,7 @@ public abstract partial class SourceGenChart : UserControl, IChartView, ICustomH
 
         AttachedToVisualTree += OnAttachedToVisualTree;
         DetachedFromVisualTree += OnDetachedFromVisualTree;
+        EffectiveViewportChanged += OnEffectiveViewportChanged;
 
         PointerPressed += OnPointerPressed;
         PointerMoved += OnPointerMoved;
@@ -97,6 +100,33 @@ public abstract partial class SourceGenChart : UserControl, IChartView, ICustomH
     {
         StopObserving();
         CoreChart?.Unload();
+        _wasInViewport = false;
+    }
+
+    private void OnEffectiveViewportChanged(object? sender, EffectiveViewportChangedEventArgs e)
+    {
+        // Fix for https://github.com/Live-Charts/LiveCharts2/issues/1986
+        // EffectiveViewport reports the ancestor scroll viewport in this control's
+        // local coordinates, NOT whether the chart is in view. To detect "in view"
+        // we have to check whether the viewport intersects the chart's local bounds
+        // (which are 0,0..Bounds.Width,Bounds.Height in local coords).
+        var vp = e.EffectiveViewport;
+        var nowInViewport =
+            vp.Width > 0 && vp.Height > 0 &&
+            vp.X < Bounds.Width && vp.X + vp.Width > 0 &&
+            vp.Y < Bounds.Height && vp.Y + vp.Height > 0;
+
+        if (nowInViewport && !_wasInViewport && CoreChart is not null)
+        {
+            // When a chart is off-screen (scrolled out of a ScrollViewer or in an inactive
+            // tab) Avalonia stops painting the canvas; Chart.IsRendering() then blocks the
+            // measure to avoid wasted work (see Chart.cs:787). On the transition back into
+            // the viewport, mark the canvas as visible so IsRendering() will allow the next
+            // measure, and request an Update.
+            CoreCanvas.NotifyPlatformVisible();
+            CoreChart.Update();
+        }
+        _wasInViewport = nowInViewport;
     }
 
     void IChartView.InvokeOnUIThread(Action action) =>

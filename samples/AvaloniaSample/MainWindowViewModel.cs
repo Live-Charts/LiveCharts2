@@ -6,7 +6,10 @@ public class MainWindowViewModel : INotifyPropertyChanged
 {
     public MainWindowViewModel()
     {
-        Samples = ViewModelsSamples.Index.Samples;
+        Samples = [..
+            ViewModelsSamples.Index.Samples,
+            "VisualTest/Issue1986Repro"
+        ];
     }
 
     public string[] Samples { get; set; }

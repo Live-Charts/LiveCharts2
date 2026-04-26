@@ -2,13 +2,18 @@ using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using LiveChartsCore.SkiaSharpView.Avalonia;
 
-namespace AvaloniaSample.VisualTest.VirtualizationTest;
+namespace AvaloniaSample.VisualTest.Issue1986Repro;
 
 public partial class View : UserControl
 {
+    private readonly ViewModel _vm;
+
     public View()
     {
+        _vm = new ViewModel();
+        DataContext = _vm;
         InitializeComponent();
+        _ = _vm.LoadDataAsync(1000);
     }
 
     public CartesianChart Chart1 => this.Find<CartesianChart>("chart1")!;
