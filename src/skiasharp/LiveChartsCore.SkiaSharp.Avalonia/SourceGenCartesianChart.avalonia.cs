@@ -53,6 +53,11 @@ public partial class SourceGenCartesianChart : SourceGenChart, ICartesianChartVi
 
     private void OnPointerWheelChanged(object? sender, PointerWheelEventArgs e)
     {
+        // Only mark the event as handled when zoom is enabled; otherwise let it bubble
+        // so parent ScrollViewers still scroll and external subscribers still fire
+        // (Avalonia routed events skip subsequent handlers once Handled = true).
+        // See https://github.com/Live-Charts/LiveCharts2/issues/1864.
+        if (ZoomMode == ZoomAndPanMode.None) return;
         e.Handled = true;
 
         var c = (CartesianChartEngine)CoreChart;
