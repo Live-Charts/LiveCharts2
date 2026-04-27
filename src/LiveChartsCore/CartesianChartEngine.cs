@@ -540,12 +540,14 @@ public class CartesianChartEngine(
 
                     // X Bottom
                     axis.NameDesiredSize = new LvcRectangle(
-                        new LvcPoint(0, ControlSize.Height - h), new LvcSize(ns.Width, h));
+                        new LvcPoint(0, ControlSize.Height - bs - h), new LvcSize(ns.Width, h));
                     axis.LabelsDesiredSize = new LvcRectangle(
                         new LvcPoint(0, axis.NameDesiredSize.Y - h), new LvcSize(ControlSize.Width, s.Height));
 
                     axis.Yo = m.Bottom + h * 0.5f;
-                    bs = h;
+
+                    // Update bs so subsequent axes names are displayed properly
+                    bs += s.Height + ns.Height;
                     m.Bottom = bs;
                     m.Left = ns.Width;
                 }
@@ -572,12 +574,14 @@ public class CartesianChartEngine(
 
                     // X Bottom
                     axis.NameDesiredSize = new LvcRectangle(
-                        new LvcPoint(0, 0), new LvcSize(ns.Width, h));
+                        new LvcPoint(0, ts), new LvcSize(ns.Width, h));
                     axis.LabelsDesiredSize = new LvcRectangle(
                         new LvcPoint(0, axis.NameDesiredSize.Y - h), new LvcSize(ControlSize.Width, s.Height));
 
                     axis.Yo = m.Top + h * 0.5f;
-                    ts = h;
+
+                    // Update ts so subsequent axes names are displayed properly
+                    ts += s.Height + ns.Height;
                     m.Top = ts;
                     m.Left = ns.Width;
                 }
