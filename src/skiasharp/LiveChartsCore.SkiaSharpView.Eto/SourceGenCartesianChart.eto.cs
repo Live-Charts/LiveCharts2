@@ -45,6 +45,10 @@ public partial class SourceGenCartesianChart : SourceGenChart, ICartesianChartVi
 
     private void OnMouseWheel(object? sender, MouseEventArgs e)
     {
+        // Don't swallow the wheel when zoom is not enabled — pan-only modes
+        // (PanX/PanY) and None must let the event bubble so containers can scroll.
+        if ((ZoomMode & (ZoomAndPanMode.ZoomX | ZoomAndPanMode.ZoomY)) == 0) return;
+
         var c = (CartesianChartEngine)CoreChart;
         var p = e.Location;
         c.Zoom(ZoomMode, new LvcPoint(p.X, p.Y), e.Delta.Height > 0 ? ZoomDirection.ZoomIn : ZoomDirection.ZoomOut);

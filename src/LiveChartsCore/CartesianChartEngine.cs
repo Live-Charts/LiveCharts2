@@ -144,7 +144,7 @@ public class CartesianChartEngine(
     /// Zooms at the specified pivot.
     /// </summary>
     /// <param name="flags">
-    /// The flags, for example ZoomAndPanMode.X | ZoomAndPanMode.NoFit, will zoom only in the x axis
+    /// The flags, for example ZoomAndPanMode.ZoomX | ZoomAndPanMode.NoFit, will zoom only in the x axis
     /// and will ignore the fit to bounds feature.
     /// </param>
     /// <param name="pivot">The pivot, is the reference point, the center where the zoom operation is calculated.</param>
@@ -164,11 +164,11 @@ public class CartesianChartEngine(
                 $"When the scale factor is defined, the zoom direction must be {nameof(ZoomDirection.DefinedByScaleFactor)}... " +
                 $"it just makes sense.");
 
-        if (flags.HasFlag(ZoomAndPanMode.X))
+        if (flags.HasFlag(ZoomAndPanMode.ZoomX))
             foreach (var axis in XAxes)
                 ZoomAxis(axis, flags, pivot.X, direction, scaleFactor);
 
-        if (flags.HasFlag(ZoomAndPanMode.Y))
+        if (flags.HasFlag(ZoomAndPanMode.ZoomY))
             foreach (var axis in YAxes)
                 ZoomAxis(axis, flags, pivot.Y, direction, scaleFactor);
 
@@ -179,17 +179,17 @@ public class CartesianChartEngine(
     /// Pans with the specified delta.
     /// </summary>
     /// <param name="flags">
-    /// The flags, for example ZoomAndPanMode.X | ZoomAndPanMode.NoFit, will pan only in the x axis
+    /// The flags, for example ZoomAndPanMode.PanX | ZoomAndPanMode.NoFit, will pan only in the x axis
     /// and will ignore the fit to bounds feature.
     /// </param>
     /// <param name="delta">The delta.</param>
     public void Pan(ZoomAndPanMode flags, LvcPoint delta)
     {
-        if (flags.HasFlag(ZoomAndPanMode.X))
+        if (flags.HasFlag(ZoomAndPanMode.PanX))
             foreach (var axis in XAxes)
                 PanAxis(axis, flags, delta.X, true);
 
-        if (flags.HasFlag(ZoomAndPanMode.Y))
+        if (flags.HasFlag(ZoomAndPanMode.PanY))
             foreach (var axis in YAxes)
                 PanAxis(axis, flags, delta.Y, true);
     }
@@ -198,14 +198,14 @@ public class CartesianChartEngine(
     /// Starts a zooming section operation at the specified point.
     /// </summary>
     /// <param name="flags">
-    /// The flags, for example ZoomAndPanMode.X | ZoomAndPanMode.NoFit, will zoom only in the x axis
+    /// The flags, for example ZoomAndPanMode.ZoomX | ZoomAndPanMode.NoFit, will zoom only in the x axis
     /// and will ignore the fit to bounds feature.
     /// </param>
-    /// <param name="point">The point to start the panning operation.</param>
+    /// <param name="point">The point where the zooming section operation starts.</param>
     public void StartZoomingSection(ZoomAndPanMode flags, LvcPoint point)
     {
-        var xMode = (flags & ZoomAndPanMode.X) == ZoomAndPanMode.X;
-        var yMode = (flags & ZoomAndPanMode.Y) == ZoomAndPanMode.Y;
+        var xMode = flags.HasFlag(ZoomAndPanMode.ZoomX);
+        var yMode = flags.HasFlag(ZoomAndPanMode.ZoomY);
 
         if (flags.HasFlag(ZoomAndPanMode.NoZoomBySection) || (!xMode && !yMode))
             return;
@@ -249,7 +249,7 @@ public class CartesianChartEngine(
     /// in the UI, it does not apply the zoom yet.
     /// </summary>
     /// <param name="flags">
-    /// The flags, for example ZoomAndPanMode.X | ZoomAndPanMode.NoFit, will zoom only in the x axis
+    /// The flags, for example ZoomAndPanMode.ZoomX | ZoomAndPanMode.NoFit, will zoom only in the x axis
     /// and will ignore the fit to bounds feature.
     /// </param>
     /// <param name="point">The point.</param>
@@ -257,8 +257,8 @@ public class CartesianChartEngine(
     {
         if (_zoomingSection is null || _sectionZoomingStart is null) return;
 
-        var xMode = (flags & ZoomAndPanMode.X) == ZoomAndPanMode.X;
-        var yMode = (flags & ZoomAndPanMode.Y) == ZoomAndPanMode.Y;
+        var xMode = flags.HasFlag(ZoomAndPanMode.ZoomX);
+        var yMode = flags.HasFlag(ZoomAndPanMode.ZoomY);
 
         var x = point.X;
         var y = point.Y;
@@ -279,7 +279,7 @@ public class CartesianChartEngine(
     /// End the zooming section operation at the specified point, and applies the zoom.
     /// </summary>
     /// <param name="flags">
-    /// The flags, for example ZoomAndPanMode.X | ZoomAndPanMode.NoFit, will zoom only in the x axis
+    /// The flags, for example ZoomAndPanMode.ZoomX | ZoomAndPanMode.NoFit, will zoom only in the x axis
     /// and will ignore the fit to bounds feature.
     /// </param>
     /// <param name="point">The point.</param>
@@ -301,11 +301,11 @@ public class CartesianChartEngine(
             return;
         }
 
-        if ((flags & ZoomAndPanMode.X) == ZoomAndPanMode.X)
+        if (flags.HasFlag(ZoomAndPanMode.ZoomX))
             foreach (var axis in XAxes)
                 ZoomAxisBySection(axis, point.X);
 
-        if ((flags & ZoomAndPanMode.Y) == ZoomAndPanMode.Y)
+        if (flags.HasFlag(ZoomAndPanMode.ZoomY))
             foreach (var axis in YAxes)
                 ZoomAxisBySection(axis, point.Y);
 
@@ -944,10 +944,10 @@ public class CartesianChartEngine(
         var fits = !flags.HasFlag(ZoomAndPanMode.NoFit);
         if (fits)
         {
-            if (flags.HasFlag(ZoomAndPanMode.X))
+            if (flags.HasFlag(ZoomAndPanMode.PanX))
                 foreach (var axis in XAxes)
                     PanAxis(axis, flags, 0, false);
-            if (flags.HasFlag(ZoomAndPanMode.Y))
+            if (flags.HasFlag(ZoomAndPanMode.PanY))
                 foreach (var axis in YAxes)
                     PanAxis(axis, flags, 0, false);
         }
@@ -986,7 +986,10 @@ public class CartesianChartEngine(
 
     private void FitAllOnZoom(ZoomAndPanMode flags)
     {
-        if (_chartView.ZoomMode.HasFlag(ZoomAndPanMode.NoFit))
+        // Honor the flags passed to the public Zoom(...) call rather than the view's
+        // ZoomMode. Manual callers (e.g. a button-driven zoom) need NoFit to take
+        // effect even when the view's ZoomMode does not include it.
+        if (flags.HasFlag(ZoomAndPanMode.NoFit))
             return;
 
         void Fit(ICartesianAxis axis)
@@ -1009,11 +1012,11 @@ public class CartesianChartEngine(
             axis.SetLimits(min, max);
         }
 
-        if (flags.HasFlag(ZoomAndPanMode.X))
+        if (flags.HasFlag(ZoomAndPanMode.ZoomX))
             foreach (var axis in XAxes)
                 Fit(axis);
 
-        if (flags.HasFlag(ZoomAndPanMode.Y))
+        if (flags.HasFlag(ZoomAndPanMode.ZoomY))
             foreach (var axis in YAxes)
                 Fit(axis);
     }
