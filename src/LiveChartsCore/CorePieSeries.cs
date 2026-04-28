@@ -304,22 +304,30 @@ public abstract class CorePieSeries<TModel, TVisual, TLabel, TMiniatureGeometry>
             }
             else
             {
+                // Clamp the stack so a value greater than the chart's effective range
+                // cannot produce a sweep larger than the chart's complete angle, which
+                // renders as a broken arc (issue #2131). The cap differs per branch
+                // because each one uses a different denominator for the angle math.
                 if (IsRelativeToMinValue)
                 {
                     // when the series is relative to min value,
                     // the start value is always the PieChart.MinValue
                     // this is normally used on angular gauge series.
                     var h = total - startValue;
-                    var h1 = stackedValue + coordinate.PrimaryValue;
-                    start = stackedValue / (total - startValue) * completeAngle;
+                    var clampedStackedValue = Math.Min(stackedValue, h);
+                    var clampedTop = Math.Min(stackedValue + coordinate.PrimaryValue, h);
+                    var h1 = clampedTop;
+                    start = clampedStackedValue / h * completeAngle;
                     sweep = h1 / h * completeAngle - start;
                     if (!isClockWise) start = completeAngle - start - sweep;
                 }
                 else
                 {
+                    var clampedStackedValue = Math.Min(stackedValue, total);
+                    var clampedTop = Math.Min(stackedValue + coordinate.PrimaryValue, total);
                     var h = total - startValue;
-                    var h1 = stackedValue + coordinate.PrimaryValue - startValue;
-                    start = stackedValue / total * completeAngle;
+                    var h1 = clampedTop - startValue;
+                    start = clampedStackedValue / total * completeAngle;
                     sweep = h1 / h * completeAngle - start;
                     if (!isClockWise) start = completeAngle - start - sweep;
                 }
