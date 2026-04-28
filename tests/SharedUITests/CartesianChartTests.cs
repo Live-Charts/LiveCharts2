@@ -84,7 +84,10 @@ public class CartesianChartTests
     [AppTestMethod]
     public async Task TabControlScrollViewerRendersAfterTabSwitch()
     {
-        var sut = await App.NavigateTo<Samples.VisualTest.VirtualizationTest.View>();
+        var sut = await App.NavigateTo<Samples.VisualTest.Issue1986Repro.View>();
+
+        // wait for the async data load (~1s, simulates a server fetch).
+        await Task.Delay(1500);
 
         // open the second tab, scroll to end and ensure the chart is loaded.
         sut.OpenTab2();

@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using LiveChartsCore.Defaults;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
 using LiveChartsCore.SkiaSharpView.SKCharts;
@@ -342,5 +343,70 @@ public sealed class LineSeriesTests
         Push();
 
         chart.AssertSnapshotMatches($"{nameof(LineSeriesTests)}_{nameof(Gaps)}");
+    }
+
+    // Regression guard for https://github.com/Live-Charts/LiveCharts2/issues/2132.
+    // Deterministic replay of the AutoUpdateGaps sample that triggered the bug:
+    // starting from four ObservablePoints, repeatedly insert midpoints between
+    // every consecutive pair, pulling Y values from a pre-baked sequence where
+    // values > 6 become null. Each click is rendered between insertions. Through
+    // the third pass we hit:
+    //   - A sub-segment whose path slot held a single stale segment from the
+    //     previous pass, which the now-removed "Count==1" branch would have
+    //     discarded by RemoveAt(segmentI), shifting every subsequent sub-segment
+    //     onto the wrong path in the container.
+    //   - A preserved visual that crossed sub-segment boundaries between passes,
+    //     previously subject to the cursor rewind + just-added eviction bug.
+    //   - The first point of a brand-new sub-segment whose initial motion state
+    //     would, without the unconditional pivot-init, default to (0, 0) and
+    //     animate in from the top-left corner.
+    // Both classes of regression show up as missing, duplicated, or misplaced
+    // line segments in the final static render — pixel-comparing catches them.
+    [TestMethod]
+    public void Issue2132_InterpolatedInsertsWithGaps()
+    {
+        double?[] ySequence = [
+            6, 1, 1, 5, 1, 2, null, 5, 1, null, 2, 2, 5, 3, 3, 2, 5, 0, null, 5, 3, 1
+        ];
+        var cursor = 0;
+
+        var values = new ObservableCollection<ObservablePoint>
+        {
+            new(0, 1), new(1, 2), new(2, 3), new(3, 4)
+        };
+
+        var chart = new SKCartesianChart
+        {
+            Series = [
+                new LineSeries<ObservablePoint>
+                {
+                    Values = values,
+                    Fill = null
+                }
+            ],
+            Width = 600,
+            Height = 600
+        };
+
+        // Cold first draw.
+        _ = chart.GetImage();
+
+        // Three passes of interpolated inserts, each re-rendered. After pass 3 the
+        // series is 25 points across four sub-segments — enough topology churn to
+        // exercise the regressions listed above.
+        for (var pass = 0; pass < 3; pass++)
+        {
+            for (var i = values.Count - 1; i > 0; i--)
+            {
+                values.Insert(i, new ObservablePoint
+                {
+                    X = (values[i - 1].X + values[i].X) / 2,
+                    Y = ySequence[cursor++ % ySequence.Length]
+                });
+            }
+            _ = chart.GetImage();
+        }
+
+        chart.AssertSnapshotMatches($"{nameof(LineSeriesTests)}_{nameof(Issue2132_InterpolatedInsertsWithGaps)}");
     }
 }

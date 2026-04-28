@@ -1,4 +1,4 @@
-﻿// The MIT License(MIT)
+// The MIT License(MIT)
 //
 // Copyright(c) 2021 Alberto Rodriguez Orozco & LiveCharts Contributors
 //
@@ -26,80 +26,85 @@ namespace LiveChartsCore.Measure;
 
 internal class VectorManager(LinkedList<Segment> list)
 {
-    private LinkedListNode<Segment>? _currentNode = list.First;
+    // The last node this pass inserted, advanced-past, or matched. All subsequent work
+    // starts from _lastTouched.Next — so the walk never revisits nodes we've already
+    // handled (which is how a buggy rewind used to evict segments we had just added in
+    // the same pass, the root of #2132 "yellow region swoops on resize"). TrimTail uses
+    // it to drop only the tail after our last activity.
+    private LinkedListNode<Segment>? _lastTouched;
 
-    public void AddConsecutiveSegment(Segment segment, bool followsPrevious)
+    // Adds `segment` into the list, preserving ascending-Id order. `isNewSegment` says
+    // whether the caller considers this segment freshly instantiated — i.e. with no
+    // meaningful motion state yet. When true we seed the segment from a same-Id stale
+    // predecessor if one exists (Copy) or from the previous tail (Follows), so the line
+    // animates into place smoothly. When false the segment already carries live motion
+    // state from a prior frame; we leave it alone and let the subsequent setter drive a
+    // smooth transition from its current animated position to the new target.
+    public void AddConsecutiveSegment(Segment segment, bool isNewSegment)
     {
-        LinkedListNode<Segment>? replaceCandidate = null;
-        List<LinkedListNode<Segment>>? deleteCandidates = null;
+        // Walk from just past our last activity. Segments arrive in ascending Id order,
+        // so anything we see here with Id < segment.Id is stale content from a previous
+        // frame and must be evicted. A node whose Id >= segment.Id (or the end of the
+        // list) marks the insertion point.
+        var current = _lastTouched is null ? list.First : _lastTouched.Next;
 
-        if (_currentNode is not null && segment.Id < _currentNode.Value.Id)
+        while (current is not null)
         {
-            // this is a special case, normally caused because the gaps changed (null points).
-            // restart from the beginning to keep the linked list in sync.
-            _currentNode = list.First;
+            if (ReferenceEquals(current.Value, segment))
+            {
+                // Already in place — nothing to do but record it for TrimTail.
+                _lastTouched = current;
+                return;
+            }
+            if (current.Value.Id >= segment.Id) break;
+
+            // current.Id < segment.Id and not our ref → stale tail-between-matches.
+            var next = current.Next;
+            list.Remove(current);
+            current = next;
         }
 
-        // look for the segment in the list
-        while (_currentNode is not null && _currentNode.Value != segment)
+        // Same-Id, different ref: the slot this Id used to occupy belongs to a freshly
+        // instantiated entity now. If the caller says this segment is new, copy the old
+        // node's motion state so the animation slides smoothly to the new position;
+        // then evict.
+        var didCopy = false;
+        if (current is not null && current.Value.Id == segment.Id)
         {
-            if (_currentNode.Value.Id == segment.Id)
+            if (isNewSegment)
             {
-                // save this node, if we can not find the segment
-                // but we found a node with the same id,
-                // we have a candidate to do a replace.
-                replaceCandidate = _currentNode;
+                segment.Copy(current.Value);
+                didCopy = true;
             }
-
-            deleteCandidates ??= [];
-            deleteCandidates.Add(_currentNode);
-
-            _currentNode = _currentNode?.Next;
+            var next = current.Next;
+            list.Remove(current);
+            current = next;
         }
 
-        if (_currentNode is null)
+        if (current is null)
         {
-            // if we did not find the segment
-            // we have to options
-            //   1. add it to the end of the list
-            //   2. replace the node with the same id
-
-            if (segment.Id <= list.Last?.Value.Id)
-            {
-                // at this point we know that the path contains this segment
-                // but the instance changed, so we replace the node
-
-                if (replaceCandidate is not null)
-                {
-                    if (followsPrevious)
-                        segment.Copy(replaceCandidate.Value);
-
-                    replaceCandidate.Value = segment;
-                }
-
-                _currentNode = replaceCandidate?.Next;
-            }
-            else
-            {
-                // this is a new segment
-
-                if (followsPrevious && list.Last is not null)
-                    segment.Follows(list.Last.Value);
-
-                _currentNode = list.AddLast(segment);
-            }
+            // Appending at the tail. Only seed from the previous tail when this segment
+            // is fresh and we didn't already inherit state via Copy.
+            if (isNewSegment && !didCopy && list.Last is not null)
+                segment.Follows(list.Last.Value);
+            _lastTouched = list.AddLast(segment);
         }
         else
         {
-            // we found the segment
-
-            // lets clean any outdated segments
-            // the deleteCandidates list contains all the segments
-            // that are not used before the current segment
-            foreach (var node in deleteCandidates ?? [])
-                list.Remove(node);
-
-            _currentNode = _currentNode.Next;
+            if (isNewSegment && !didCopy && current.Previous is not null)
+                segment.Follows(current.Previous.Value);
+            _lastTouched = list.AddBefore(current, segment);
         }
+    }
+
+    // Removes every node strictly after _lastTouched. Drops stale trailing entries from
+    // an earlier render (e.g. segments that used to be in this sub-segment but no longer
+    // belong here) without ever dropping a node we added or matched in this pass.
+    public void TrimTail()
+    {
+        if (_lastTouched is null) return;
+        while (_lastTouched.Next is not null)
+            list.Remove(_lastTouched.Next);
+        _lastTouched = null;
     }
 }

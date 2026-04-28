@@ -92,6 +92,14 @@ public class CoreMotionCanvas : IDisposable
     internal static long DebugElapsedMilliseconds { get; set; } = -1;
     internal static bool IsTesting { get; set; }
 
+    // Lets a platform view announce that the chart is visible again after a period
+    // off-screen (e.g., scrolled into view, tab activated). Bumping the frame
+    // timestamp prevents Chart.IsRendering() from suppressing the next measure
+    // request that would otherwise be blocked because the canvas has not painted.
+    // Used by the Avalonia view; see https://github.com/Live-Charts/LiveCharts2/issues/1986
+    internal void NotifyPlatformVisible() =>
+        _lastFrameTimestamp = s_clock.ElapsedTicks;
+
     internal bool DisableAnimations { get; set; }
 
     /// <summary>
