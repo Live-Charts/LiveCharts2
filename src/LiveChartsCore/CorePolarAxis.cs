@@ -95,6 +95,9 @@ public abstract class CorePolarAxis<TTextGeometry, TLineGeometry, TCircleGeometr
     /// <inheritdoc cref="IPlane.ForceStepToMin"/>
     public bool ForceStepToMin { get; set => SetProperty(ref field, value); }
 
+    /// <inheritdoc cref="IPlane.MinSeparators"/>
+    public int MinSeparators { get; set => SetProperty(ref field, value); } = 3;
+
     /// <inheritdoc cref="IPlane.MinLimit"/>
     public double? MinLimit { get; set => SetProperty(ref field, value); } = null;
 

@@ -123,6 +123,9 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
     /// <inheritdoc cref="IPlane.ForceStepToMin"/>
     public bool ForceStepToMin { get => _forceStepToMin; set => SetProperty(ref _forceStepToMin, value); }
 
+    /// <inheritdoc cref="IPlane.MinSeparators"/>
+    public int MinSeparators { get; set => SetProperty(ref field, value); } = 3;
+
     /// <inheritdoc cref="IPlane.MinLimit"/>
     public double? MinLimit
     {

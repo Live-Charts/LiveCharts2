@@ -245,6 +245,8 @@ public static class Extensions
         var residual = minimum / magnitude;
         var tick = residual > 5 ? 10 * magnitude : residual > 2 ? 5 * magnitude : residual > 1 ? 2 * magnitude : magnitude;
 
+        EnsureMinSeparators(axis.MinSeparators, axis.ForceStepToMin, range, ref tick, ref magnitude);
+
         return new AxisTick { Value = tick * unit, Magnitude = magnitude * unit };
     }
 
@@ -277,7 +279,41 @@ public static class Extensions
 
         var residual = minimum / magnitude;
         var tick = residual > 5 ? 10 * magnitude : residual > 2 ? 5 * magnitude : residual > 1 ? 2 * magnitude : magnitude;
+
+        EnsureMinSeparators(axis.MinSeparators, axis.ForceStepToMin, range, ref tick, ref magnitude);
+
         return new AxisTick { Value = tick, Magnitude = magnitude };
+    }
+
+    // Walks the nice-number ladder downward (10 → 5 → 2 → 1 → 0.5 → 0.2 → ...) until range/tick
+    // reaches the requested minimum separator count. Skipped when the user pinned the step via
+    // ForceStepToMin, when minSeparators is non-positive, or when range/tick can't be computed.
+    private static void EnsureMinSeparators(int minSeparators, bool forceStepToMin, double range, ref double tick, ref double magnitude)
+    {
+        if (forceStepToMin || minSeparators <= 0 || tick <= 0 || magnitude <= 0 || range <= 0) return;
+
+        var mul = tick / magnitude; // approximately 1, 2, 5, or 10 — fp noise can leave it just above/below
+        var safety = 0;
+
+        // each iteration at least doubles the separator count, so 32 covers any int MinSeparators with headroom.
+        // thresholds are placed at the midpoints between buckets (7.5, 3.5, 1.5) so a noisy mul like 9.9999 still
+        // snaps to "drop one tier" (5) instead of skipping straight to 2.
+        while (range / (mul * magnitude) < minSeparators && safety++ < 32)
+        {
+            if (mul > 7.5) mul = 5;
+            else if (mul > 3.5) mul = 2;
+            else if (mul > 1.5) mul = 1;
+            else
+            {
+                mul = 5;
+                magnitude /= 10;
+            }
+
+            // also breaks on NaN since any comparison with NaN is false
+            if (!(magnitude > 0)) break;
+        }
+
+        tick = mul * magnitude;
     }
 
     /// <summary>

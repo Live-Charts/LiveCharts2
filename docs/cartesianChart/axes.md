@@ -233,6 +233,24 @@ new Axis
 }
 ```
 
+## MinSeparators property
+
+The auto-step calculation snaps the computed step up to a "nice" number (1, 2, 5 or 10 × magnitude). On short charts with awkward 
+ranges that snap can leap a whole tier and leave only one or two separators on screen, which makes the axis hard to read. The 
+`MinSeparators` property is a floor on the number of separators the auto-step is allowed to produce — when the snap-up would yield 
+fewer separators than this value, the library subdivides further (10 → 5 → 2 → 1 → 0.5 → ...) until the floor is met. Default is `3`.
+
+```csharp
+new Axis
+{
+    // Make sure the axis always renders at least 5 separators when the step is calculated automatically.
+    MinSeparators = 5
+}
+```
+
+Set `MinSeparators = 0` to opt out and restore the original snap-up only behavior. The floor is also ignored when `ForceStepToMin = true`,
+since in that case you have explicitly pinned the step.
+
 ## Position property
 
 The axis position property is type `AxisPosition`, it is an `enum` containing only 2 options, `Start` and `End` 

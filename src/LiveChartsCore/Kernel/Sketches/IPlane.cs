@@ -105,6 +105,15 @@ public interface IPlane : IChartElement
     bool ForceStepToMin { get; set; }
 
     /// <summary>
+    /// Gets or sets the minimum number of separators (gridlines/labels) the axis should display when the step is calculated
+    /// automatically. The library snaps the auto-step up to a nice number (1, 2, 5, 10 × magnitude), and on small charts that
+    /// snap can leave too few separators visible; this property forces the auto-step to subdivide further until at least this
+    /// many separators fit in the visible range. Set to 0 to disable. Ignored when <see cref="ForceStepToMin"/> is true.
+    /// Default is 3.
+    /// </summary>
+    int MinSeparators { get; set; }
+
+    /// <summary>
     /// Gets or sets the unit with, it means the width of every point (if the series requires it) in the chart values scale, this value
     /// should normally be 1, unless you are plotting in a custom scale, default is 1.
     /// </summary>

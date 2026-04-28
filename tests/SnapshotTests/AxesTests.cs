@@ -391,6 +391,55 @@ public sealed class AxesTests
     }
 
     [TestMethod]
+    public void MinSeparatorsFloor()
+    {
+        // Regression for issue #2071: on short charts with awkward ranges the auto-step would
+        // snap so far up that only 1-2 separators remained. The default MinSeparators (3) should
+        // force the auto-step to subdivide further so the grid stays readable.
+
+        var chart = new SKCartesianChart
+        {
+            Series = [
+                new LineSeries<double> { Values = [0, 11] }
+            ],
+            XAxes = [
+                new Axis()
+            ],
+            YAxes = [
+                new Axis()
+            ],
+            Width = 400,
+            Height = 120
+        };
+
+        chart.AssertSnapshotMatches($"{nameof(AxesTests)}_{nameof(MinSeparatorsFloor)}");
+    }
+
+    [TestMethod]
+    public void MinSeparatorsDisabled()
+    {
+        // Same setup as MinSeparatorsFloor but with MinSeparators = 0 so the floor is opted out;
+        // the rendered grid should match the original (pre-fix) snap-up behavior.
+
+        var chart = new SKCartesianChart
+        {
+            Series = [
+                new LineSeries<double> { Values = [0, 11] }
+            ],
+            XAxes = [
+                new Axis { MinSeparators = 0 }
+            ],
+            YAxes = [
+                new Axis { MinSeparators = 0 }
+            ],
+            Width = 400,
+            Height = 120
+        };
+
+        chart.AssertSnapshotMatches($"{nameof(AxesTests)}_{nameof(MinSeparatorsDisabled)}");
+    }
+
+    [TestMethod]
     public void StyledAxes()
     {
         var values = new ObservablePoint[1001];
