@@ -56,23 +56,18 @@ internal class GPURenderMode : SKGLElement, IRenderMode
 
     private void OnPaintSurface(object? sender, SKPaintGLSurfaceEventArgs args)
     {
-        var density = GetPixelDensity();
-        if (density.dpix != 1 || density.dpiy != 1)
-            args.Surface.Canvas.Scale(density.dpix, density.dpiy);
+        // Derive scale from actual surface vs logical size so that RDP and per-monitor
+        // DPI changes are always reflected correctly, regardless of what system APIs report.
+        if (ActualWidth > 0 && ActualHeight > 0)
+        {
+            var scaleX = args.BackendRenderTarget.Width / (float)ActualWidth;
+            var scaleY = args.BackendRenderTarget.Height / (float)ActualHeight;
+            if (scaleX != 1f || scaleY != 1f)
+                args.Surface.Canvas.Scale(scaleX, scaleY);
+        }
 
         FrameRequest?.Invoke(
             new SkiaSharpDrawingContext(_canvas, args.Surface.Canvas, GetBackground()));
-    }
-
-    private ResolutionHelper GetPixelDensity()
-    {
-        var presentationSource = PresentationSource.FromVisual(this);
-        if (presentationSource is null) return new(1f, 1f);
-        var compositionTarget = presentationSource.CompositionTarget;
-        if (compositionTarget is null) return new(1f, 1f);
-
-        var matrix = compositionTarget.TransformToDevice;
-        return new((float)matrix.M11, (float)matrix.M22);
     }
 
     private SKColor GetBackground() =>

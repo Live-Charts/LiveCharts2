@@ -20,11 +20,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using System;
 using LiveChartsCore.Kernel.Sketches;
 using LiveChartsCore.Motion;
 using LiveChartsCore.SkiaSharpView.Drawing;
-using Microsoft.Maui.Devices;
 using SkiaSharp;
 using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
@@ -34,7 +32,6 @@ namespace LiveChartsCore.SkiaSharpView.Maui.Rendering;
 internal class CPURenderMode : SKCanvasView, IRenderMode
 {
     private CoreMotionCanvas _canvas = null!;
-    private float _pixelDensity = 1;
 
     public event CoreMotionCanvas.FrameRequestHandler? FrameRequest;
 
@@ -43,9 +40,6 @@ internal class CPURenderMode : SKCanvasView, IRenderMode
         _canvas = canvas;
         PaintSurface += OnPaintSurface;
 
-        _pixelDensity = (float)DeviceDisplay.MainDisplayInfo.Density;
-        DeviceDisplay.MainDisplayInfoChanged += MainDisplayInfoChanged;
-
         CoreMotionCanvas.s_rendererName = $"{nameof(CPURenderMode)} and {nameof(SKCanvasView)}";
     }
 
@@ -53,7 +47,6 @@ internal class CPURenderMode : SKCanvasView, IRenderMode
     {
         _canvas = null!;
         PaintSurface -= OnPaintSurface;
-        DeviceDisplay.MainDisplayInfoChanged -= MainDisplayInfoChanged;
     }
 
     public void InvalidateRenderer() =>
@@ -61,15 +54,19 @@ internal class CPURenderMode : SKCanvasView, IRenderMode
 
     private void OnPaintSurface(object? sender, SKPaintSurfaceEventArgs args)
     {
-        if (_pixelDensity != 1)
-            args.Surface.Canvas.Scale(_pixelDensity, _pixelDensity);
+        // Derive scale from actual surface vs logical size so that per-display DPI
+        // changes are always reflected correctly, regardless of what system APIs report.
+        if (Width > 0 && Height > 0)
+        {
+            var scaleX = args.Info.Width / (float)Width;
+            var scaleY = args.Info.Height / (float)Height;
+            if (scaleX != 1f || scaleY != 1f)
+                args.Surface.Canvas.Scale(scaleX, scaleY);
+        }
 
         FrameRequest?.Invoke(
             new SkiaSharpDrawingContext(_canvas, args.Surface.Canvas, GetBackground()));
     }
-
-    private void MainDisplayInfoChanged(object? sender, EventArgs e) =>
-        _pixelDensity = (float)DeviceDisplay.MainDisplayInfo.Density;
 
     private SKColor GetBackground() =>
         (Parent?.Parent as IChartView)?.BackColor.AsSKColor() ?? SKColor.Empty;
