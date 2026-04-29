@@ -70,6 +70,8 @@ public abstract partial class SourceGenChart : UserControl, IChartView
         c.MouseDown += OnMouseDown;
         c.MouseMove += OnMouseMove;
         c.MouseUp += OnMouseUp;
+        c.MouseClick += OnMouseClick;
+        c.MouseDoubleClick += OnMouseDoubleClick;
         c.MouseLeave += OnMouseLeave;
     }
 
@@ -137,6 +139,12 @@ public abstract partial class SourceGenChart : UserControl, IChartView
         base.OnMouseUp(e);
         CoreChart?.InvokePointerUp(new LvcPoint(e.Location.X, e.Location.Y), e.Button == MouseButtons.Right);
     }
+
+    private void OnMouseClick(object? sender, MouseEventArgs e) =>
+        base.OnMouseClick(e);
+
+    private void OnMouseDoubleClick(object? sender, MouseEventArgs e) =>
+        base.OnMouseDoubleClick(e);
 
     private void OnMouseLeave(object? sender, EventArgs e)
     {
