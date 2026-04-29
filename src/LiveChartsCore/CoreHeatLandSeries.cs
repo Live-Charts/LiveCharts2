@@ -24,6 +24,9 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+#if NET462
+using System.Linq;
+#endif
 using LiveChartsCore.Drawing;
 using LiveChartsCore.Geo;
 using LiveChartsCore.Kernel.Observers;
@@ -149,7 +152,14 @@ public abstract class CoreHeatLandSeries<TModel> : IGeoSeries, INotifyPropertyCh
     /// <inheritdoc cref="IGeoSeries.Delete(MapContext)"/>
     public void Delete(MapContext context)
     {
+        // ClearHeat removes each item from _everUsed during iteration; passing
+        // _everUsed directly throws "Collection was modified" on .NET Framework's
+        // HashSet enumerator, so snapshot it there (matches CollectionDeepObserver).
+#if NET462
+        ClearHeat(_everUsed.ToArray());
+#else
         ClearHeat(_everUsed);
+#endif
         _ = _subscribedTo.Remove(context.CoreMap);
     }
 

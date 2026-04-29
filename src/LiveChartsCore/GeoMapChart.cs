@@ -231,18 +231,23 @@ public class GeoMapChart
 
         _mapFactory.GenerateLands(context);
 
-        var toDeleteSeries = new HashSet<IGeoSeries>(_everMeasuredSeries);
-        foreach (var series in View.Series?.Cast<IGeoSeries>() ?? [])
+        // Departed series must be deleted BEFORE measuring the new series.
+        // Otherwise CoreHeatLandSeries.Delete -> ClearHeat would null the Shape.Fill
+        // on lands shared with the new series AFTER the new series painted them,
+        // making shared lands appear blank on series swap (issue #962).
+        var currentSeries = View.Series?.Cast<IGeoSeries>().ToArray() ?? [];
+        var currentSet = new HashSet<IGeoSeries>(currentSeries);
+        foreach (var series in _everMeasuredSeries)
+        {
+            if (currentSet.Contains(series)) continue;
+            series.Delete(context);
+        }
+        _everMeasuredSeries.RemoveWhere(s => !currentSet.Contains(s));
+
+        foreach (var series in currentSeries)
         {
             series.Measure(context);
             _ = _everMeasuredSeries.Add(series);
-            _ = toDeleteSeries.Remove(series);
-        }
-
-        foreach (var series in toDeleteSeries)
-        {
-            series.Delete(context);
-            _ = _everMeasuredSeries.Remove(series);
         }
 
         View.CoreCanvas.Invalidate();

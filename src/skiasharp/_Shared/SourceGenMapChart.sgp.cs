@@ -98,6 +98,7 @@ public partial class SourceGenMapChart
 #endif
         chart._seriesObserver?.Dispose();
         chart._seriesObserver?.Initialize((IEnumerable<IGeoSeries>)newValue);
+        chart.CoreChart.Update();
     }
 
     static Action<SGChart, object, object> OnPaintPropertyChanged(
