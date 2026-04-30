@@ -1,0 +1,38 @@
+<UserControl
+    x:Class="AvaloniaSample.VisualTest.Issue1417Repro.View"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
+    xmlns:vms="using:ViewModelsSamples.Maps.World"
+    x:DataType="vms:ViewModel">
+
+    <UserControl.DataContext>
+        <vms:ViewModel/>
+    </UserControl.DataContext>
+
+    <!--
+        Reproducer for https://github.com/Live-Charts/LiveCharts2/issues/1417
+
+        Steps to reproduce:
+        1. Tab 1 hosts a GeoMap, Tab 2 hosts plain content.
+        2. Switching to Tab 2 detaches the GeoMap from the visual tree (Unload).
+        3. Switching back to Tab 1 re-attaches it (must Load); before the fix the
+           chart came back blank, and any further detach NRE'd at
+           _mapFactory.Dispose() because Unload was not idempotent.
+    -->
+
+    <TabControl x:Name="tabs">
+        <TabItem Header="Tab 1 (GeoMap)">
+            <lvc:GeoMap
+                x:Name="geoMap"
+                Series="{Binding Series}"
+                MapProjection="Mercator"/>
+        </TabItem>
+        <TabItem Header="Tab 2 (no chart)">
+            <TextBlock
+                Margin="16"
+                Text="Switching here detaches the GeoMap from the visual tree."/>
+        </TabItem>
+    </TabControl>
+
+</UserControl>
