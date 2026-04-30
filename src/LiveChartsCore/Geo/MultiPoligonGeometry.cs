@@ -1,4 +1,4 @@
-﻿// The MIT License(MIT)
+// The MIT License(MIT)
 //
 // Copyright(c) 2021 Alberto Rodriguez Orozco & LiveCharts Contributors
 //
@@ -20,10 +20,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+using System.Text.Json;
+
 namespace LiveChartsCore.Geo;
 
 /// <summary>
-/// The multi-polygon feature class.
+/// Defines a GeoJson geometry. The shape of <see cref="Coordinates"/> depends on
+/// <see cref="Type"/>: "Polygon" is 3-deep, "MultiPolygon" is 4-deep. Other types
+/// (Point, LineString, MultiPoint, MultiLineString, GeometryCollection) are skipped
+/// by the importer.
 /// </summary>
 public class MultiPoligonGeometry
 {
@@ -36,10 +41,10 @@ public class MultiPoligonGeometry
     public string? Type { get; set; }
 
     /// <summary>
-    /// Gets or sets the coordinates.
+    /// Gets or sets the raw coordinates element. Interpreted according to <see cref="Type"/>.
     /// </summary>
     /// <value>
     /// The coordinates.
     /// </value>
-    public double[][][][]? Coordinates { get; set; }
+    public JsonElement? Coordinates { get; set; }
 }

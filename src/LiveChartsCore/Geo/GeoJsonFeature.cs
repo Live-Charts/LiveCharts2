@@ -1,4 +1,4 @@
-﻿// The MIT License(MIT)
+// The MIT License(MIT)
 //
 // Copyright(c) 2021 Alberto Rodriguez Orozco & LiveCharts Contributors
 //
@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 using System.Collections.Generic;
+using System.Text.Json;
 
 namespace LiveChartsCore.Geo;
 
@@ -38,12 +39,14 @@ public class GeoJsonFeature
     public string? Type { get; set; }
 
     /// <summary>
-    /// Gets or sets the properties.
+    /// Gets or sets the properties. Values are kept as <see cref="JsonElement"/> so
+    /// any GeoJson property value kind (string, number, boolean, null, object, array)
+    /// deserializes.
     /// </summary>
     /// <value>
     /// The properties.
     /// </value>
-    public Dictionary<string, string>? Properties { get; set; }
+    public Dictionary<string, JsonElement>? Properties { get; set; }
 
     /// <summary>
     /// Gets or sets the geometry.
