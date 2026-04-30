@@ -49,6 +49,7 @@ public abstract partial class SourceGenMapChart : ChartView, IGeoMapView
 
         InitializeChartControl();
 
+        Loaded += OnLoaded;
         Unloaded += OnUnloaded;
     }
 
@@ -59,6 +60,9 @@ public abstract partial class SourceGenMapChart : ChartView, IGeoMapView
 
     bool IGeoMapView.DesignerMode => false;
     LvcSize IDrawnView.ControlSize => new() { Width = (float)Width, Height = (float)Height };
+
+    private void OnLoaded(object? sender, EventArgs e) =>
+        CoreChart?.Load();
 
     private void OnUnloaded(object? sender, EventArgs e) =>
         CoreChart?.Unload();
