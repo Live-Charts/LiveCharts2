@@ -82,7 +82,13 @@ internal partial class PointerController : INativePointerController
     public PointerController()
     {
 #if MACCATALYST
-        _hoverGestureRecognizer = new UIHoverGestureRecognizer(OnHover);
+        _hoverGestureRecognizer = new UIHoverGestureRecognizer(OnHover)
+        {
+            // hover must coexist with the long-press recognizer used for clicks;
+            // otherwise a click forces hover into Cancelled/Failed and tooltips
+            // stop appearing afterwards. See issue #1436.
+            ShouldRecognizeSimultaneously = (g1, g2) => true
+        };
 #endif
         _longPressGestureRecognizer = new UILongPressGestureRecognizer(OnLongPress)
         {
@@ -109,6 +115,7 @@ internal partial class PointerController : INativePointerController
         var view = e.View;
         switch (e.State)
         {
+            case UIGestureRecognizerState.Began:
             case UIGestureRecognizerState.Changed:
                 var p = e.LocationInView(view);
                 Moved?.Invoke(view, new(new(p.X, p.Y), e));
@@ -119,7 +126,6 @@ internal partial class PointerController : INativePointerController
                 Exited?.Invoke(view, new(e));
                 break;
             case UIGestureRecognizerState.Possible:
-            case UIGestureRecognizerState.Began:
             default:
                 break;
         }
