@@ -520,6 +520,388 @@ public sealed class AxesTests
         chart.AssertSnapshotMatches($"{nameof(AxesTests)}_{nameof(StyledAxes)}");
     }
 
+    // Snapshot matrix for issue #1419 — exercises axis name/label placement
+    // when InLineNamePlacement is true, plus non-inline control samples for
+    // multi-axis and mixed Start+End configurations on both X and Y. Two
+    // corner combos at the end cover both axes inline simultaneously.
+    // (Single-axis non-inline cases are exercised by the basic tests above.)
+    // Each axis has a Name and a colored LabelsPaint so overlap between
+    // names and labels is visually detectable.
+
+    [TestMethod]
+    public void XAxis_Start_InLine()
+    {
+        var chart = new SKCartesianChart
+        {
+            Series = [new ColumnSeries<double> { Values = [2, 5, 4, 8, 6] }],
+            XAxes = [
+                new Axis
+                {
+                    Name = "X axis (Start, InLine)",
+                    Position = AxisPosition.Start,
+                    InLineNamePlacement = true,
+                    NamePaint = new SolidColorPaint(SKColors.Crimson),
+                    LabelsPaint = new SolidColorPaint(SKColors.Black)
+                }
+            ],
+            YAxes = [new Axis()],
+            Width = 600,
+            Height = 600
+        };
+        chart.AssertSnapshotMatches($"{nameof(AxesTests)}_{nameof(XAxis_Start_InLine)}");
+    }
+
+    [TestMethod]
+    public void XAxis_End_InLine()
+    {
+        var chart = new SKCartesianChart
+        {
+            Series = [new ColumnSeries<double> { Values = [2, 5, 4, 8, 6] }],
+            XAxes = [
+                new Axis
+                {
+                    Name = "X axis (End, InLine)",
+                    Position = AxisPosition.End,
+                    InLineNamePlacement = true,
+                    NamePaint = new SolidColorPaint(SKColors.Crimson),
+                    LabelsPaint = new SolidColorPaint(SKColors.Black)
+                }
+            ],
+            YAxes = [new Axis()],
+            Width = 600,
+            Height = 600
+        };
+        chart.AssertSnapshotMatches($"{nameof(AxesTests)}_{nameof(XAxis_End_InLine)}");
+    }
+
+    [TestMethod]
+    public void MultipleXAxes_Start_InLine()
+    {
+        // The #1419 bug: three X axes at Start with InLineNamePlacement = true; their
+        // names rendered on top of each other because bs was assigned (= h) instead of
+        // accumulated each iteration.
+
+        var chart = new SKCartesianChart
+        {
+            Series = [
+                new ColumnSeries<double> { Values = [2, 5, 4, 8, 6], ScalesXAt = 0 },
+                new ColumnSeries<double> { Values = [20, 50, 40, 80, 60], ScalesXAt = 1 },
+                new ColumnSeries<double> { Values = [200, 500, 400, 800, 600], ScalesXAt = 2 }
+            ],
+            XAxes = [
+                new Axis { Name = "X-0 Start InLine", Position = AxisPosition.Start, InLineNamePlacement = true,
+                    NamePaint = new SolidColorPaint(SKColors.Crimson), LabelsPaint = new SolidColorPaint(SKColors.Crimson) },
+                new Axis { Name = "X-1 Start InLine", Position = AxisPosition.Start, InLineNamePlacement = true,
+                    NamePaint = new SolidColorPaint(SKColors.SeaGreen), LabelsPaint = new SolidColorPaint(SKColors.SeaGreen) },
+                new Axis { Name = "X-2 Start InLine", Position = AxisPosition.Start, InLineNamePlacement = true,
+                    NamePaint = new SolidColorPaint(SKColors.RoyalBlue), LabelsPaint = new SolidColorPaint(SKColors.RoyalBlue) }
+            ],
+            YAxes = [new Axis()],
+            Width = 600,
+            Height = 600
+        };
+        chart.AssertSnapshotMatches($"{nameof(AxesTests)}_{nameof(MultipleXAxes_Start_InLine)}");
+    }
+
+    [TestMethod]
+    public void MultipleXAxes_End()
+    {
+        var chart = new SKCartesianChart
+        {
+            Series = [
+                new ColumnSeries<double> { Values = [2, 5, 4, 8, 6], ScalesXAt = 0 },
+                new ColumnSeries<double> { Values = [20, 50, 40, 80, 60], ScalesXAt = 1 },
+                new ColumnSeries<double> { Values = [200, 500, 400, 800, 600], ScalesXAt = 2 }
+            ],
+            XAxes = [
+                new Axis { Name = "X-0 End", Position = AxisPosition.End,
+                    NamePaint = new SolidColorPaint(SKColors.Crimson), LabelsPaint = new SolidColorPaint(SKColors.Crimson) },
+                new Axis { Name = "X-1 End", Position = AxisPosition.End,
+                    NamePaint = new SolidColorPaint(SKColors.SeaGreen), LabelsPaint = new SolidColorPaint(SKColors.SeaGreen) },
+                new Axis { Name = "X-2 End", Position = AxisPosition.End,
+                    NamePaint = new SolidColorPaint(SKColors.RoyalBlue), LabelsPaint = new SolidColorPaint(SKColors.RoyalBlue) }
+            ],
+            YAxes = [new Axis()],
+            Width = 600,
+            Height = 600
+        };
+        chart.AssertSnapshotMatches($"{nameof(AxesTests)}_{nameof(MultipleXAxes_End)}");
+    }
+
+    [TestMethod]
+    public void MultipleXAxes_End_InLine()
+    {
+        var chart = new SKCartesianChart
+        {
+            Series = [
+                new ColumnSeries<double> { Values = [2, 5, 4, 8, 6], ScalesXAt = 0 },
+                new ColumnSeries<double> { Values = [20, 50, 40, 80, 60], ScalesXAt = 1 },
+                new ColumnSeries<double> { Values = [200, 500, 400, 800, 600], ScalesXAt = 2 }
+            ],
+            XAxes = [
+                new Axis { Name = "X-0 End InLine", Position = AxisPosition.End, InLineNamePlacement = true,
+                    NamePaint = new SolidColorPaint(SKColors.Crimson), LabelsPaint = new SolidColorPaint(SKColors.Crimson) },
+                new Axis { Name = "X-1 End InLine", Position = AxisPosition.End, InLineNamePlacement = true,
+                    NamePaint = new SolidColorPaint(SKColors.SeaGreen), LabelsPaint = new SolidColorPaint(SKColors.SeaGreen) },
+                new Axis { Name = "X-2 End InLine", Position = AxisPosition.End, InLineNamePlacement = true,
+                    NamePaint = new SolidColorPaint(SKColors.RoyalBlue), LabelsPaint = new SolidColorPaint(SKColors.RoyalBlue) }
+            ],
+            YAxes = [new Axis()],
+            Width = 600,
+            Height = 600
+        };
+        chart.AssertSnapshotMatches($"{nameof(AxesTests)}_{nameof(MultipleXAxes_End_InLine)}");
+    }
+
+    [TestMethod]
+    public void MultipleXAxes_StartEnd_Mixed()
+    {
+        var chart = new SKCartesianChart
+        {
+            Series = [
+                new ColumnSeries<double> { Values = [2, 5, 4, 8, 6], ScalesXAt = 0 },
+                new ColumnSeries<double> { Values = [20, 50, 40, 80, 60], ScalesXAt = 1 }
+            ],
+            XAxes = [
+                new Axis { Name = "X-0 Start", Position = AxisPosition.Start,
+                    NamePaint = new SolidColorPaint(SKColors.Crimson), LabelsPaint = new SolidColorPaint(SKColors.Crimson) },
+                new Axis { Name = "X-1 End", Position = AxisPosition.End,
+                    NamePaint = new SolidColorPaint(SKColors.SeaGreen), LabelsPaint = new SolidColorPaint(SKColors.SeaGreen) }
+            ],
+            YAxes = [new Axis()],
+            Width = 600,
+            Height = 600
+        };
+        chart.AssertSnapshotMatches($"{nameof(AxesTests)}_{nameof(MultipleXAxes_StartEnd_Mixed)}");
+    }
+
+    [TestMethod]
+    public void MultipleXAxes_StartEnd_Mixed_InLine()
+    {
+        var chart = new SKCartesianChart
+        {
+            Series = [
+                new ColumnSeries<double> { Values = [2, 5, 4, 8, 6], ScalesXAt = 0 },
+                new ColumnSeries<double> { Values = [20, 50, 40, 80, 60], ScalesXAt = 1 }
+            ],
+            XAxes = [
+                new Axis { Name = "X-0 Start InLine", Position = AxisPosition.Start, InLineNamePlacement = true,
+                    NamePaint = new SolidColorPaint(SKColors.Crimson), LabelsPaint = new SolidColorPaint(SKColors.Crimson) },
+                new Axis { Name = "X-1 End InLine", Position = AxisPosition.End, InLineNamePlacement = true,
+                    NamePaint = new SolidColorPaint(SKColors.SeaGreen), LabelsPaint = new SolidColorPaint(SKColors.SeaGreen) }
+            ],
+            YAxes = [new Axis()],
+            Width = 600,
+            Height = 600
+        };
+        chart.AssertSnapshotMatches($"{nameof(AxesTests)}_{nameof(MultipleXAxes_StartEnd_Mixed_InLine)}");
+    }
+
+    [TestMethod]
+    public void YAxis_Start_InLine()
+    {
+        var chart = new SKCartesianChart
+        {
+            Series = [new ColumnSeries<double> { Values = [2, 5, 4, 8, 6] }],
+            XAxes = [new Axis()],
+            YAxes = [
+                new Axis
+                {
+                    Name = "Y axis (Start, InLine)",
+                    Position = AxisPosition.Start,
+                    InLineNamePlacement = true,
+                    NamePaint = new SolidColorPaint(SKColors.Crimson),
+                    LabelsPaint = new SolidColorPaint(SKColors.Black)
+                }
+            ],
+            Width = 600,
+            Height = 600
+        };
+        chart.AssertSnapshotMatches($"{nameof(AxesTests)}_{nameof(YAxis_Start_InLine)}");
+    }
+
+    [TestMethod]
+    public void YAxis_End_InLine()
+    {
+        var chart = new SKCartesianChart
+        {
+            Series = [new ColumnSeries<double> { Values = [2, 5, 4, 8, 6] }],
+            XAxes = [new Axis()],
+            YAxes = [
+                new Axis
+                {
+                    Name = "Y axis (End, InLine)",
+                    Position = AxisPosition.End,
+                    InLineNamePlacement = true,
+                    NamePaint = new SolidColorPaint(SKColors.Crimson),
+                    LabelsPaint = new SolidColorPaint(SKColors.Black)
+                }
+            ],
+            Width = 600,
+            Height = 600
+        };
+        chart.AssertSnapshotMatches($"{nameof(AxesTests)}_{nameof(YAxis_End_InLine)}");
+    }
+
+    [TestMethod]
+    public void MultipleYAxes_Start_InLine()
+    {
+        var chart = new SKCartesianChart
+        {
+            Series = [
+                new LineSeries<double> { Values = [1, 2, 3], ScalesYAt = 0 },
+                new ColumnSeries<double> { Values = [10, 20, 30], ScalesYAt = 1 },
+                new ScatterSeries<double> { Values = [100, 200, 300], ScalesYAt = 2 }
+            ],
+            XAxes = [new Axis()],
+            YAxes = [
+                new Axis { Name = "Y-0 Start InLine", Position = AxisPosition.Start, InLineNamePlacement = true,
+                    NamePaint = new SolidColorPaint(SKColors.Crimson), LabelsPaint = new SolidColorPaint(SKColors.Crimson) },
+                new Axis { Name = "Y-1 Start InLine", Position = AxisPosition.Start, InLineNamePlacement = true,
+                    NamePaint = new SolidColorPaint(SKColors.SeaGreen), LabelsPaint = new SolidColorPaint(SKColors.SeaGreen) },
+                new Axis { Name = "Y-2 Start InLine", Position = AxisPosition.Start, InLineNamePlacement = true,
+                    NamePaint = new SolidColorPaint(SKColors.RoyalBlue), LabelsPaint = new SolidColorPaint(SKColors.RoyalBlue) }
+            ],
+            Width = 600,
+            Height = 600
+        };
+        chart.AssertSnapshotMatches($"{nameof(AxesTests)}_{nameof(MultipleYAxes_Start_InLine)}");
+    }
+
+    [TestMethod]
+    public void MultipleYAxes_End()
+    {
+        var chart = new SKCartesianChart
+        {
+            Series = [
+                new LineSeries<double> { Values = [1, 2, 3], ScalesYAt = 0 },
+                new ColumnSeries<double> { Values = [10, 20, 30], ScalesYAt = 1 },
+                new ScatterSeries<double> { Values = [100, 200, 300], ScalesYAt = 2 }
+            ],
+            XAxes = [new Axis()],
+            YAxes = [
+                new Axis { Name = "Y-0 End", Position = AxisPosition.End,
+                    NamePaint = new SolidColorPaint(SKColors.Crimson), LabelsPaint = new SolidColorPaint(SKColors.Crimson) },
+                new Axis { Name = "Y-1 End", Position = AxisPosition.End,
+                    NamePaint = new SolidColorPaint(SKColors.SeaGreen), LabelsPaint = new SolidColorPaint(SKColors.SeaGreen) },
+                new Axis { Name = "Y-2 End", Position = AxisPosition.End,
+                    NamePaint = new SolidColorPaint(SKColors.RoyalBlue), LabelsPaint = new SolidColorPaint(SKColors.RoyalBlue) }
+            ],
+            Width = 600,
+            Height = 600
+        };
+        chart.AssertSnapshotMatches($"{nameof(AxesTests)}_{nameof(MultipleYAxes_End)}");
+    }
+
+    [TestMethod]
+    public void MultipleYAxes_End_InLine()
+    {
+        var chart = new SKCartesianChart
+        {
+            Series = [
+                new LineSeries<double> { Values = [1, 2, 3], ScalesYAt = 0 },
+                new ColumnSeries<double> { Values = [10, 20, 30], ScalesYAt = 1 },
+                new ScatterSeries<double> { Values = [100, 200, 300], ScalesYAt = 2 }
+            ],
+            XAxes = [new Axis()],
+            YAxes = [
+                new Axis { Name = "Y-0 End InLine", Position = AxisPosition.End, InLineNamePlacement = true,
+                    NamePaint = new SolidColorPaint(SKColors.Crimson), LabelsPaint = new SolidColorPaint(SKColors.Crimson) },
+                new Axis { Name = "Y-1 End InLine", Position = AxisPosition.End, InLineNamePlacement = true,
+                    NamePaint = new SolidColorPaint(SKColors.SeaGreen), LabelsPaint = new SolidColorPaint(SKColors.SeaGreen) },
+                new Axis { Name = "Y-2 End InLine", Position = AxisPosition.End, InLineNamePlacement = true,
+                    NamePaint = new SolidColorPaint(SKColors.RoyalBlue), LabelsPaint = new SolidColorPaint(SKColors.RoyalBlue) }
+            ],
+            Width = 600,
+            Height = 600
+        };
+        chart.AssertSnapshotMatches($"{nameof(AxesTests)}_{nameof(MultipleYAxes_End_InLine)}");
+    }
+
+    [TestMethod]
+    public void MultipleYAxes_StartEnd_Mixed()
+    {
+        var chart = new SKCartesianChart
+        {
+            Series = [
+                new LineSeries<double> { Values = [1, 2, 3], ScalesYAt = 0 },
+                new ColumnSeries<double> { Values = [10, 20, 30], ScalesYAt = 1 }
+            ],
+            XAxes = [new Axis()],
+            YAxes = [
+                new Axis { Name = "Y-0 Start", Position = AxisPosition.Start,
+                    NamePaint = new SolidColorPaint(SKColors.Crimson), LabelsPaint = new SolidColorPaint(SKColors.Crimson) },
+                new Axis { Name = "Y-1 End", Position = AxisPosition.End,
+                    NamePaint = new SolidColorPaint(SKColors.SeaGreen), LabelsPaint = new SolidColorPaint(SKColors.SeaGreen) }
+            ],
+            Width = 600,
+            Height = 600
+        };
+        chart.AssertSnapshotMatches($"{nameof(AxesTests)}_{nameof(MultipleYAxes_StartEnd_Mixed)}");
+    }
+
+    [TestMethod]
+    public void MultipleYAxes_StartEnd_Mixed_InLine()
+    {
+        var chart = new SKCartesianChart
+        {
+            Series = [
+                new LineSeries<double> { Values = [1, 2, 3], ScalesYAt = 0 },
+                new ColumnSeries<double> { Values = [10, 20, 30], ScalesYAt = 1 }
+            ],
+            XAxes = [new Axis()],
+            YAxes = [
+                new Axis { Name = "Y-0 Start InLine", Position = AxisPosition.Start, InLineNamePlacement = true,
+                    NamePaint = new SolidColorPaint(SKColors.Crimson), LabelsPaint = new SolidColorPaint(SKColors.Crimson) },
+                new Axis { Name = "Y-1 End InLine", Position = AxisPosition.End, InLineNamePlacement = true,
+                    NamePaint = new SolidColorPaint(SKColors.SeaGreen), LabelsPaint = new SolidColorPaint(SKColors.SeaGreen) }
+            ],
+            Width = 600,
+            Height = 600
+        };
+        chart.AssertSnapshotMatches($"{nameof(AxesTests)}_{nameof(MultipleYAxes_StartEnd_Mixed_InLine)}");
+    }
+
+    [TestMethod]
+    public void BothAxesInLine_StartCorner()
+    {
+        var chart = new SKCartesianChart
+        {
+            Series = [new ColumnSeries<double> { Values = [2, 5, 4, 8, 6] }],
+            XAxes = [
+                new Axis { Name = "X Start InLine", Position = AxisPosition.Start, InLineNamePlacement = true,
+                    NamePaint = new SolidColorPaint(SKColors.Crimson), LabelsPaint = new SolidColorPaint(SKColors.Black) }
+            ],
+            YAxes = [
+                new Axis { Name = "Y Start InLine", Position = AxisPosition.Start, InLineNamePlacement = true,
+                    NamePaint = new SolidColorPaint(SKColors.Crimson), LabelsPaint = new SolidColorPaint(SKColors.Black) }
+            ],
+            Width = 600,
+            Height = 600
+        };
+        chart.AssertSnapshotMatches($"{nameof(AxesTests)}_{nameof(BothAxesInLine_StartCorner)}");
+    }
+
+    [TestMethod]
+    public void BothAxesInLine_EndCorner()
+    {
+        var chart = new SKCartesianChart
+        {
+            Series = [new ColumnSeries<double> { Values = [2, 5, 4, 8, 6] }],
+            XAxes = [
+                new Axis { Name = "X End InLine", Position = AxisPosition.End, InLineNamePlacement = true,
+                    NamePaint = new SolidColorPaint(SKColors.Crimson), LabelsPaint = new SolidColorPaint(SKColors.Black) }
+            ],
+            YAxes = [
+                new Axis { Name = "Y End InLine", Position = AxisPosition.End, InLineNamePlacement = true,
+                    NamePaint = new SolidColorPaint(SKColors.Crimson), LabelsPaint = new SolidColorPaint(SKColors.Black) }
+            ],
+            Width = 600,
+            Height = 600
+        };
+        chart.AssertSnapshotMatches($"{nameof(AxesTests)}_{nameof(BothAxesInLine_EndCorner)}");
+    }
+
     private class LogarithmicPoint(double x, double y) : IChartEntity
     {
         public double X { get; set; } = x;
