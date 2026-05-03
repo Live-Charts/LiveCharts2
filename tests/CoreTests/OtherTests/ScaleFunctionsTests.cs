@@ -268,4 +268,38 @@ public class ScaleFunctionsTests
             Math.Abs(d33.X - 2) < 0.01 &&
             Math.Abs(d33.Y - 2) < 0.01);
     }
+
+    // Regression for issue #1533: when the draw margin collapses (here, the
+    // explicit DrawMargin's left + right equal the chart width, so the scaler's
+    // pixel delta is 0), ScalePixelsToData must still return finite values.
+    // Otherwise the user-side range math (e.g. positionInData.X - range/2 in
+    // the scrollbar/sections sample) propagates ±Infinity into the section's
+    // Xi/Xj, which then turns into NaN on the next tick (Inf - Inf) and the
+    // section freezes.
+    [TestMethod]
+    public void CartesianScale_ZeroWidthDrawMargin_ReturnsFiniteValues()
+    {
+        var chart = new SKCartesianChart
+        {
+            Width = 150,
+            Height = 100,
+            DrawMargin = new Margin(100, Margin.Auto, 50, Margin.Auto),
+            XAxes = [new Axis { MinLimit = 0, MaxLimit = 100 }],
+            Series = [new LineSeries<double> { Values = [1d, 2d, 3d] }]
+        };
+
+        _ = chart.GetImage();
+
+        var loc = chart.CoreChart.DrawMarginLocation;
+
+        var atMinPx = chart.ScalePixelsToData(new LvcPointD(loc.X, loc.Y));
+        var awayFromMinPx = chart.ScalePixelsToData(new LvcPointD(loc.X + 50, loc.Y));
+
+        Assert.IsTrue(IsFinite(atMinPx.X) && IsFinite(atMinPx.Y),
+            $"ScalePixelsToData at _minPx returned ({atMinPx.X}, {atMinPx.Y})");
+        Assert.IsTrue(IsFinite(awayFromMinPx.X) && IsFinite(awayFromMinPx.Y),
+            $"ScalePixelsToData away from _minPx returned ({awayFromMinPx.X}, {awayFromMinPx.Y})");
+
+        static bool IsFinite(double v) => !double.IsNaN(v) && !double.IsInfinity(v);
+    }
 }
