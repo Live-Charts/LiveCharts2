@@ -46,6 +46,8 @@ namespace LiveChartsGeneratedCode;
 /// <inheritdoc cref="IChartView" />
 public abstract partial class SourceGenChart : UserControl, IChartView
 {
+    private bool _isPointerDown;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="Chart"/> class.
     /// </summary>
@@ -64,6 +66,7 @@ public abstract partial class SourceGenChart : UserControl, IChartView
         MouseMove += OnMouseMove;
         MouseUp += Chart_MouseUp;
         MouseLeave += OnMouseLeave;
+        LostMouseCapture += OnLostMouseCapture;
 
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
@@ -111,6 +114,13 @@ public abstract partial class SourceGenChart : UserControl, IChartView
         if (Keyboard.Modifiers > 0) return;
         _ = CaptureMouse();
 
+        // Arm _isPointerDown BEFORE invoking the user's command. If the command
+        // synchronously transfers capture (e.g. focuses or captures another
+        // element) WPF raises LostMouseCapture immediately, and the recovery
+        // handler must observe the flag set so it can synthesize a pointer-up.
+        // Otherwise the chart is left in the same stuck-drag state #1576 fixes.
+        _isPointerDown = true;
+
         var p = e.GetPosition(this);
         var cArgs = new PointerCommandArgs(this, new(p.X, p.Y), e);
         if (PointerPressedCommand?.CanExecute(cArgs) == true)
@@ -137,12 +147,33 @@ public abstract partial class SourceGenChart : UserControl, IChartView
     {
         var p = e.GetPosition(this);
 
+        // Clear _isPointerDown BEFORE invoking the user's command. If the command
+        // synchronously changes capture (e.g. focuses or captures another element)
+        // WPF raises LostMouseCapture immediately; with the flag still set the
+        // recovery handler would then synthesize a redundant pointer-up after the
+        // real release. Clearing first keeps the release path single-shot.
+        _isPointerDown = false;
+
         var cArgs = new PointerCommandArgs(this, new(p.X, p.Y), e);
         if (PointerReleasedCommand?.CanExecute(cArgs) == true)
             PointerReleasedCommand.Execute(cArgs);
 
         CoreChart?.InvokePointerUp(new(p.X, p.Y), e.ChangedButton == MouseButton.Right);
         ReleaseMouseCapture();
+    }
+
+    // When an ancestor (e.g. a ToggleButton wrapping the chart, see #1576) calls
+    // CaptureMouse() during the same mouse-down burst, capture is transferred away
+    // from the chart and the chart never receives MouseUp; pan/drag state then stays
+    // armed and any subsequent MouseMove keeps panning. Treat capture loss as a
+    // synthetic pointer-up so the drag state always releases.
+    private void OnLostMouseCapture(object sender, MouseEventArgs e)
+    {
+        if (!_isPointerDown) return;
+        _isPointerDown = false;
+
+        var p = Mouse.GetPosition(this);
+        CoreChart?.InvokePointerUp(new(p.X, p.Y), false);
     }
 
     private void OnMouseLeave(object sender, MouseEventArgs e) =>

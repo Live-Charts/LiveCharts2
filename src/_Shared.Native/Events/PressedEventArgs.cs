@@ -35,9 +35,36 @@ namespace LiveChartsCore.Native.Events;
 /// <param name="originalEvent">The original event.</param>
 public class PressedEventArgs(LvcPoint location, bool isSecondaryPress, object originalEvent) : ScreenEventArgs(location, originalEvent)
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PressedEventArgs"/> class with
+    /// an explicit <paramref name="isSyntheticRelease"/> flag.
+    /// </summary>
+    /// <param name="location">The pointer location.</param>
+    /// <param name="isSecondaryPress">Indicates whether the action is secondary.</param>
+    /// <param name="isSyntheticRelease">
+    /// True when the release is not produced by a real user gesture but synthesized
+    /// by the chart (e.g. when an ancestor steals pointer capture mid-drag and the
+    /// chart needs to release its internal pan/drag state). Public release commands
+    /// (PointerReleasedCommand) should ignore synthetic releases since the user has
+    /// not actually lifted the pointer.
+    /// </param>
+    /// <param name="originalEvent">The original event.</param>
+    public PressedEventArgs(LvcPoint location, bool isSecondaryPress, bool isSyntheticRelease, object originalEvent)
+        : this(location, isSecondaryPress, originalEvent)
+    {
+        IsSyntheticRelease = isSyntheticRelease;
+    }
 
     /// <summary>
     /// Gets a value indicating whether the action is a secondary press.
     /// </summary>
     public bool IsSecondaryPress { get; } = isSecondaryPress;
+
+    /// <summary>
+    /// Gets a value indicating whether this release was synthesized by the chart
+    /// rather than produced by a real user gesture (e.g. raised on pointer capture
+    /// loss so internal pan/drag state can be released). Consumers of public release
+    /// hooks such as PointerReleasedCommand should skip synthetic releases.
+    /// </summary>
+    public bool IsSyntheticRelease { get; }
 }

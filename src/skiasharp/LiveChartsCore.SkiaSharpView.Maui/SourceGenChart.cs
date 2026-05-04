@@ -144,9 +144,17 @@ public abstract partial class SourceGenChart : ChartView, IChartView
 
     internal override void OnReleased(object? sender, LiveChartsCore.Native.Events.PressedEventArgs args)
     {
-        var cArgs = new PointerCommandArgs(this, new(args.Location.X, args.Location.Y), args);
-        if (ReleasedCommand?.CanExecute(cArgs) == true)
-            ReleasedCommand.Execute(cArgs);
+        // Synthetic releases are raised by the shared PointerController on
+        // PointerCaptureLost (see #1576). The user has not actually lifted the
+        // pointer, so we must not invoke the public ReleasedCommand — only forward
+        // to the core chart so internal pan/drag state can be released. WinUI/Uno
+        // and WPF/Avalonia follow the same rule from their own platform paths.
+        if (!args.IsSyntheticRelease)
+        {
+            var cArgs = new PointerCommandArgs(this, new(args.Location.X, args.Location.Y), args);
+            if (ReleasedCommand?.CanExecute(cArgs) == true)
+                ReleasedCommand.Execute(cArgs);
+        }
 
         CoreChart.InvokePointerUp(args.Location, args.IsSecondaryPress);
     }
