@@ -22,6 +22,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using LiveChartsCore.Drawing;
@@ -506,9 +507,21 @@ public abstract class Chart
         {
             View.InvokeOnUIThread(() =>
             {
-                lock (Canvas.Sync)
+                try
                 {
-                    Measure();
+                    lock (Canvas.Sync)
+                    {
+                        Measure();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // The measure runs inside a fire-and-forget Task.Run, so an unhandled
+                    // exception here disappears into the unobserved-task pipeline. Surface
+                    // it via Trace so users with a TraceListener attached (Visual Studio's
+                    // Output window, file/EventLog listeners in production) get a signal
+                    // instead of a silently blank chart. See issue #1826.
+                    Trace.WriteLine($"[LiveCharts] chart update failed: {ex}");
                 }
             });
         });
