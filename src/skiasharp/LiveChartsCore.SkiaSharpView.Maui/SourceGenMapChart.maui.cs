@@ -64,8 +64,14 @@ public abstract partial class SourceGenMapChart : ChartView, IGeoMapView
     private void OnLoaded(object? sender, EventArgs e) =>
         CoreChart?.Load();
 
-    private void OnUnloaded(object? sender, EventArgs e) =>
+    private void OnUnloaded(object? sender, EventArgs e)
+    {
         CoreChart?.Unload();
+#if IOS || MACCATALYST
+        // See SourceGenChart.OnUnloaded for the rationale (#1725).
+        Handler?.DisconnectHandler();
+#endif
+    }
 
     void IGeoMapView.InvokeOnUIThread(Action action) =>
         MainThread.BeginInvokeOnMainThread(action);
