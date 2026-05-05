@@ -27,13 +27,38 @@ namespace LiveChartsCore.Kernel;
 /// </summary>
 public class RenderingSettings
 {
+    private bool _useGPU;
+    private bool _useGPUExplicit;
+
     /// <summary>
     /// Indicates whether hardware acceleration is used, this will only work
     /// if the platform and device support it.
     /// This is ignored in Avalonia and Uno-Desktop because in those platforms
     /// the frame rate and rendering cadence is determined by them.
+    /// Default is false, except on Blazor where the default is true (WebGL
+    /// renders desktop-quality charts; raster mode is uglier and only worth
+    /// opting into when WebGL is unavailable).
     /// </summary>
-    public bool UseGPU { get; set; } = false;
+    public bool UseGPU
+    {
+        get => _useGPU;
+        set
+        {
+            _useGPU = value;
+            _useGPUExplicit = true;
+        }
+    }
+
+    /// <summary>
+    /// Sets the default value for <see cref="UseGPU"/> from a view-platform
+    /// initializer. No-op if the consumer has already assigned <see cref="UseGPU"/>
+    /// explicitly, so user configuration always wins over platform defaults.
+    /// </summary>
+    internal void SetPlatformDefaultUseGPU(bool value)
+    {
+        if (_useGPUExplicit) return;
+        _useGPU = value;
+    }
 
     /// Indicates whether the rendering cadence should be aligned with the display refresh rate,
     /// GPU acceleration is required for this to work.

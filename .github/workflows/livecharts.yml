@@ -263,9 +263,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # ToDo: find why not running.
-          # - id: blazor
-          #   workloads: wasm-tools
+          - id: blazor
+            workloads: wasm-tools
           - id: avalonia-browser
             workloads: wasm-tools
           # ToDo: find why not running.
