@@ -81,4 +81,86 @@ public class VisualElementsTests
             chart.CoreCanvas.CountGeometries() == g &&
             chart.CoreCanvas.CountPaintTasks() == p);
     }
+
+    [TestMethod]
+    public void VisualElement_ZIndexPropagatesToPaints_RendersAboveSeries()
+    {
+        // Regression for #1856: VisualElement paints used to default to ZIndex=0
+        // while a default-ZIndex ColumnSeries puts its Fill at SeriesId+0.1, so
+        // visuals were drawn behind the series. Setting VisualElement.ZIndex must
+        // push every paint produced by the visual to that z-index.
+        var visual = new GeometryVisual<RectangleGeometry>
+        {
+            X = 10,
+            Y = 10,
+            Width = 50,
+            Height = 50,
+            Fill = new SolidColorPaint(SKColors.Blue),
+            Stroke = new SolidColorPaint(SKColors.Red),
+            Label = "x",
+            LabelPaint = new SolidColorPaint(SKColors.Black),
+            LabelSize = 12,
+            ZIndex = 1000,
+            LocationUnit = MeasureUnit.Pixels,
+            SizeUnit = MeasureUnit.Pixels
+        };
+
+        var chart = new SKCartesianChart
+        {
+            Width = 400,
+            Height = 400,
+            Series = [
+                new ColumnSeries<double> { Values = [1d, 2d, 3d] }
+            ],
+            VisualElements = [visual]
+        };
+
+        using var image = chart.GetImage();
+
+        Assert.AreEqual(1000d, visual.Fill!.ZIndex);
+        Assert.AreEqual(1000d, visual.Stroke!.ZIndex);
+        Assert.AreEqual(1000d, visual.LabelPaint!.ZIndex);
+    }
+
+#if !NET462 // covariant returns on TestRectangleVisual.DrawnElement need .NET 5+
+    [TestMethod]
+    public void Visual_ZIndexPropagatesToDrawnTask_RendersAboveSeries()
+    {
+        // Same regression as above (#1856) but for the Visual base class, used
+        // by the canonical docs samples (RectangleVisual et al.).
+        var visual = new TestRectangleVisual { ZIndex = 1000 };
+
+        var chart = new SKCartesianChart
+        {
+            Width = 400,
+            Height = 400,
+            Series = [
+                new ColumnSeries<double> { Values = [1d, 2d, 3d] }
+            ],
+            VisualElements = [visual]
+        };
+
+        using var image = chart.GetImage();
+
+        var drawnTask = visual.GetPaintTasksForTest()[0];
+        Assert.IsNotNull(drawnTask);
+        Assert.AreEqual(1000d, drawnTask!.ZIndex);
+    }
+
+    private sealed class TestRectangleVisual : Visual
+    {
+        protected internal override RectangleGeometry DrawnElement { get; } =
+            new RectangleGeometry { Fill = new SolidColorPaint(SKColors.Red) };
+
+        protected override void Measure(LiveChartsCore.Chart chart)
+        {
+            DrawnElement.X = 10;
+            DrawnElement.Y = 10;
+            DrawnElement.Width = 40;
+            DrawnElement.Height = 40;
+        }
+
+        public LiveChartsCore.Painting.Paint?[] GetPaintTasksForTest() => GetPaintTasks();
+    }
+#endif
 }

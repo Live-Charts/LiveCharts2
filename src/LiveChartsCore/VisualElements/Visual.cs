@@ -49,6 +49,14 @@ public abstract class Visual : ChartElement, IInternalInteractable
     public TimeSpan AnimationSpeed { get; set; } = TimeSpan.FromMilliseconds(300);
 
     /// <summary>
+    /// Gets or sets the z-index of the drawn task that hosts this visual.
+    /// When 0 (default) the visual is drawn behind series whose paints sit at
+    /// <c>SeriesId + offset</c>. Set a positive value (e.g. 1000) to render
+    /// the visual on top of series.
+    /// </summary>
+    public int ZIndex { get; set => SetProperty(ref field, value); }
+
+    /// <summary>
     /// Gets the drawn element.
     /// </summary>
     protected internal abstract IDrawnElement? DrawnElement { get; }
@@ -68,6 +76,8 @@ public abstract class Visual : ChartElement, IInternalInteractable
 
             _drawnTask = chart.Canvas.AddGeometry(DrawnElement);
         }
+
+        if (ZIndex != 0) _drawnTask.ZIndex = ZIndex;
     }
 
     /// <inheritdoc cref="IInteractable.GetHitBox"/>
