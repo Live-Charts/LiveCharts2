@@ -124,6 +124,8 @@ public abstract class CoreLineSeries<TModel, TVisual, TLabel, TPathGeometry, TEr
     public override void Invalidate(Chart chart)
     {
         var cartesianChart = (CartesianChartEngine)chart;
+        _ = GetAnimation(cartesianChart);
+
         var primaryAxis = cartesianChart.GetYAxis(this);
         var secondaryAxis = cartesianChart.GetXAxis(this);
 
@@ -227,7 +229,7 @@ public abstract class CoreLineSeries<TModel, TVisual, TLabel, TPathGeometry, TEr
                         fillPath.Pivot = p;
                         if (isNew)
                         {
-                            fillPath.Animate(EasingFunction ?? cartesianChart.ActualEasingFunction, AnimationsSpeed ?? cartesianChart.ActualAnimationsSpeed);
+                            fillPath.Animate(GetAnimation(cartesianChart));
                         }
                     }
                     if (Stroke is not null && Stroke != Paint.Default)
@@ -238,7 +240,7 @@ public abstract class CoreLineSeries<TModel, TVisual, TLabel, TPathGeometry, TEr
                         strokePath.Pivot = p;
                         if (isNew)
                         {
-                            strokePath.Animate(EasingFunction ?? cartesianChart.ActualEasingFunction, AnimationsSpeed ?? cartesianChart.ActualAnimationsSpeed);
+                            strokePath.Animate(GetAnimation(cartesianChart));
                         }
                     }
 
@@ -431,8 +433,7 @@ public abstract class CoreLineSeries<TModel, TVisual, TLabel, TPathGeometry, TEr
                     {
                         var l = new TLabel { X = x - hgs, Y = p - hgs, RotateTransform = (float)DataLabelsRotation, MaxWidth = (float)DataLabelsMaxWidth };
                         l.Animate(
-                            EasingFunction ?? cartesianChart.ActualEasingFunction,
-                            AnimationsSpeed ?? cartesianChart.ActualAnimationsSpeed,
+                            GetAnimation(cartesianChart),
                             BaseLabelGeometry.XProperty,
                             BaseLabelGeometry.YProperty);
                         label = l;
@@ -744,13 +745,12 @@ public abstract class CoreLineSeries<TModel, TVisual, TLabel, TPathGeometry, TEr
         if (chartPoint.Context.AdditionalVisuals is not CubicSegmentVisualPoint visual)
             throw new Exception("Unable to initialize the point instance.");
 
-        var easing = EasingFunction ?? chart.CoreChart.ActualEasingFunction;
-        var speed = AnimationsSpeed ?? chart.CoreChart.ActualAnimationsSpeed;
+        var animation = GetAnimation(chart.CoreChart);
 
-        visual.Geometry.Animate(easing, speed);
-        visual.Segment.Animate(easing, speed);
-        visual.YError?.Animate(easing, speed);
-        visual.XError?.Animate(easing, speed);
+        visual.Geometry.Animate(animation);
+        visual.Segment.Animate(animation);
+        visual.YError?.Animate(animation);
+        visual.XError?.Animate(animation);
     }
 
     /// <inheritdoc cref="CartesianSeries{TModel, TVisual, TLabel}.SoftDeleteOrDisposePoint(ChartPoint, Scaler, Scaler)"/>

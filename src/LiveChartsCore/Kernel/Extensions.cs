@@ -343,19 +343,24 @@ public static class Extensions
         Animate(animatable, new Animation(easingFunction, speed), properties);
 
     /// <summary>
-    /// Sets the transition of the given <paramref name="properties"/> to the animations config in the chart,
-    /// if the properties are not set, then all the animatable properties in the object will use the given animation.
+    /// Points the given <paramref name="properties"/> at the chart's shared
+    /// <see cref="Chart.Animation"/> instance. When <paramref name="properties"/> is null or
+    /// empty, every animatable property on <paramref name="animatable"/> is bound to the same
+    /// instance. Because that instance is mutated in-place when
+    /// <see cref="Chart.ActualAnimationsSpeed"/> or <see cref="Chart.ActualEasingFunction"/>
+    /// change, callers using this overload pick up chart-level animation changes without
+    /// recreating their geometries.
     /// </summary>
     /// <param name="animatable">The animatable object.</param>
     /// <param name="chart">
-    /// The chart, an animation will be built based on the <see cref="Chart.ActualAnimationsSpeed"/>
-    /// and <see cref="Chart.ActualEasingFunction"/>.
+    /// The chart whose <see cref="Chart.Animation"/> is referenced.
     /// </param>
     /// <param name="properties">
-    /// The properties, if this argument is not set then all the animatable properties in the object will use the given animation.
+    /// The properties to bind; when null or empty, every animatable property on
+    /// <paramref name="animatable"/> is bound to <see cref="Chart.Animation"/>.
     /// </param>
     public static void Animate(this Animatable animatable, Chart chart, params PropertyDefinition[]? properties) =>
-        Animate(animatable, new Animation(chart.ActualEasingFunction, chart.ActualAnimationsSpeed), properties);
+        Animate(animatable, chart.Animation, properties);
 
     /// <summary>
     /// Sets the transition of the given <paramref name="properties"/> to the animations config in the chart

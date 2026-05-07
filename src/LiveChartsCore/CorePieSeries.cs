@@ -140,6 +140,7 @@ public abstract class CorePieSeries<TModel, TVisual, TLabel, TMiniatureGeometry>
     public override void Invalidate(Chart chart)
     {
         var pieChart = (PieChartEngine)chart;
+        _ = GetAnimation(pieChart);
 
         var drawLocation = pieChart.DrawMarginLocation;
         var drawMarginSize = pieChart.DrawMarginSize;
@@ -418,8 +419,7 @@ public abstract class CorePieSeries<TModel, TVisual, TLabel, TMiniatureGeometry>
                 {
                     var l = new TLabel { X = cx, Y = cy, RotateTransform = actualRotation, MaxWidth = (float)DataLabelsMaxWidth };
                     l.Animate(
-                        EasingFunction ?? chart.ActualEasingFunction,
-                        AnimationsSpeed ?? chart.ActualAnimationsSpeed,
+                        GetAnimation(chart),
                         BaseLabelGeometry.XProperty,
                         BaseLabelGeometry.YProperty);
                     label = l;
@@ -526,12 +526,13 @@ public abstract class CorePieSeries<TModel, TVisual, TLabel, TMiniatureGeometry>
         var chart = chartPoint.Context.Chart;
         if (chartPoint.Context.Visual is not TVisual visual) throw new Exception("Unable to initialize the point instance.");
 
+        var animation = GetAnimation(chart.CoreChart);
+
         if ((SeriesProperties & SeriesProperties.Gauge) == 0)
-            visual.Animate(EasingFunction ?? chart.CoreChart.ActualEasingFunction, AnimationsSpeed ?? chart.CoreChart.ActualAnimationsSpeed);
+            visual.Animate(animation);
         else
             visual.Animate(
-                EasingFunction ?? chart.CoreChart.ActualEasingFunction,
-                AnimationsSpeed ?? chart.CoreChart.ActualAnimationsSpeed,
+                animation,
                 BaseDoughnutGeometry.StartAngleProperty,
                 BaseDoughnutGeometry.SweepAngleProperty);
     }

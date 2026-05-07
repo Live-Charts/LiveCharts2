@@ -109,6 +109,8 @@ public abstract class CoreHeatSeries<TModel, TVisual, TLabel>
         }
 
         var cartesianChart = (CartesianChartEngine)chart;
+        _ = GetAnimation(cartesianChart);
+
         var primaryAxis = cartesianChart.GetYAxis(this);
         var secondaryAxis = cartesianChart.GetXAxis(this);
 
@@ -262,8 +264,7 @@ public abstract class CoreHeatSeries<TModel, TVisual, TLabel>
                 {
                     var l = new TLabel { X = secondary - uws * 0.5f, Y = primary - uws * 0.5f, RotateTransform = (float)DataLabelsRotation, MaxWidth = (float)DataLabelsMaxWidth };
                     l.Animate(
-                        EasingFunction ?? cartesianChart.ActualEasingFunction,
-                        AnimationsSpeed ?? cartesianChart.ActualAnimationsSpeed,
+                        GetAnimation(cartesianChart),
                         BaseLabelGeometry.XProperty,
                         BaseLabelGeometry.YProperty);
                     label = l;
@@ -349,7 +350,7 @@ public abstract class CoreHeatSeries<TModel, TVisual, TLabel>
     {
         var chart = chartPoint.Context.Chart;
         if (chartPoint.Context.Visual is not TVisual visual) throw new Exception("Unable to initialize the point instance.");
-        visual.Animate(EasingFunction ?? chart.CoreChart.ActualEasingFunction, AnimationsSpeed ?? chart.CoreChart.ActualAnimationsSpeed);
+        visual.Animate(GetAnimation(chart.CoreChart));
     }
 
     /// <inheritdoc cref="CartesianSeries{TModel, TVisual, TLabel}.SoftDeleteOrDisposePoint(ChartPoint, Scaler, Scaler)"/>

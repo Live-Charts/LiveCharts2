@@ -98,6 +98,11 @@ public abstract class Series<TModel, TVisual, TLabel>
     private LvcPoint _dataPadding = new(0.5f, 0.5f);
     private bool _showDataLabels;
 
+    // Shared by every geometry this series animates. Mutated in-place on each Invalidate so
+    // AnimationsSpeed/EasingFunction changes reach already-created visuals — every MotionProperty
+    // holds a reference to this same instance, not a copy.
+    private readonly Animation _animation = new(EasingFunctions.QuadraticOut, TimeSpan.Zero);
+
     /// <summary>
     /// Initializes a new instance of the <see cref="Series{TModel, TVisual, TLabel}"/> class.
     /// </summary>
@@ -445,6 +450,25 @@ public abstract class Series<TModel, TVisual, TLabel>
 
     void ISeries.OnDataPointerDown(IChartView chart, IEnumerable<ChartPoint> points, LvcPoint pointer) =>
         OnDataPointerDown(chart, points, pointer);
+
+    /// <summary>
+    /// Returns the <see cref="Animation"/> instance that every geometry this series animates
+    /// should reference. With no per-series override, the chart's shared <see cref="Chart.Animation"/>
+    /// is returned directly so chart-level <see cref="Chart.ActualAnimationsSpeed"/> /
+    /// <see cref="Chart.ActualEasingFunction"/> changes propagate to already-created visuals.
+    /// With a per-series override, a series-owned instance is mutated in-place from the active
+    /// settings.
+    /// </summary>
+    /// <param name="chart">The chart whose <see cref="Chart.Animation"/> is used as the fallback.</param>
+    protected Animation GetAnimation(Chart chart)
+    {
+        if (AnimationsSpeed is null && EasingFunction is null)
+            return chart.Animation;
+
+        _animation.Duration = (long)(AnimationsSpeed ?? chart.ActualAnimationsSpeed).TotalMilliseconds;
+        _animation.EasingFunction = EasingFunction ?? chart.ActualEasingFunction;
+        return _animation;
+    }
 
     /// <summary>
     /// Called when a point was measured.

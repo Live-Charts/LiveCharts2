@@ -62,6 +62,8 @@ public abstract class CoreRowSeries<TModel, TVisual, TLabel, TErrorGeometry>
     public override void Invalidate(Chart chart)
     {
         var cartesianChart = (CartesianChartEngine)chart;
+        _ = GetAnimation(cartesianChart);
+
         var primaryAxis = cartesianChart.GetYAxis(this);
         var secondaryAxis = cartesianChart.GetXAxis(this);
 
@@ -305,8 +307,7 @@ public abstract class CoreRowSeries<TModel, TVisual, TLabel, TErrorGeometry>
                 {
                     var l = new TLabel { X = helper.p, Y = secondary - helper.uwm + helper.cp, RotateTransform = (float)DataLabelsRotation, MaxWidth = (float)DataLabelsMaxWidth };
                     l.Animate(
-                        EasingFunction ?? cartesianChart.ActualEasingFunction,
-                        AnimationsSpeed ?? cartesianChart.ActualAnimationsSpeed,
+                        GetAnimation(cartesianChart),
                         BaseLabelGeometry.XProperty,
                         BaseLabelGeometry.YProperty);
                     label = l;
@@ -355,16 +356,15 @@ public abstract class CoreRowSeries<TModel, TVisual, TLabel, TErrorGeometry>
         var chart = chartPoint.Context.Chart;
         if (chartPoint.Context.Visual is not TVisual visual) throw new Exception("Unable to initialize the point instance.");
 
-        var easing = EasingFunction ?? chart.CoreChart.ActualEasingFunction;
-        var speed = AnimationsSpeed ?? chart.CoreChart.ActualAnimationsSpeed;
+        var animation = GetAnimation(chart.CoreChart);
 
-        visual.Animate(easing, speed);
+        visual.Animate(animation);
 
         if (chartPoint.Context.AdditionalVisuals is not null)
         {
             var e = (ErrorVisual<TErrorGeometry>)chartPoint.Context.AdditionalVisuals;
-            e.YError.Animate(easing, speed);
-            e.XError.Animate(easing, speed);
+            e.YError.Animate(animation);
+            e.XError.Animate(animation);
         }
     }
 

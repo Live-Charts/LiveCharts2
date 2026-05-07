@@ -229,20 +229,45 @@ public abstract class Chart
     public IChartTooltip? Tooltip { get; protected set; }
 
     /// <summary>
-    /// Gets the animations speed.
+    /// Gets the animations speed. Setting this also refreshes <see cref="Animation"/> so
+    /// already-created chart-default geometries pick up the new duration without recreation.
     /// </summary>
     /// <value>
     /// The animations speed.
     /// </value>
-    public TimeSpan ActualAnimationsSpeed { get; protected set; }
+    public TimeSpan ActualAnimationsSpeed
+    {
+        get;
+        protected set
+        {
+            field = value;
+            Animation.Duration = (long)value.TotalMilliseconds;
+        }
+    }
 
     /// <summary>
-    /// Gets the easing function.
+    /// Gets the easing function. Setting this also refreshes <see cref="Animation"/> so
+    /// already-created chart-default geometries pick up the new function without recreation.
     /// </summary>
     /// <value>
     /// The easing function.
     /// </value>
-    public Func<float, float>? ActualEasingFunction { get; protected set; } = EasingFunctions.QuadraticOut;
+    public Func<float, float>? ActualEasingFunction
+    {
+        get;
+        protected set
+        {
+            field = value;
+            Animation.EasingFunction = value;
+        }
+    } = EasingFunctions.QuadraticOut;
+
+    /// <summary>
+    /// Shared animation reference used by chart-default geometries (geometries that don't
+    /// have a per-element override). Mutated in-place by <see cref="ActualAnimationsSpeed"/>
+    /// and <see cref="ActualEasingFunction"/> so existing visuals pick up new settings.
+    /// </summary>
+    internal Animation Animation { get; } = new(EasingFunctions.QuadraticOut, TimeSpan.Zero);
 
     /// <summary>
     /// Gets the visual elements.

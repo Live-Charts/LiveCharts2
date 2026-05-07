@@ -164,6 +164,8 @@ public abstract class CorePolarLineSeries<TModel, TVisual, TLabel, TPathGeometry
     public override void Invalidate(Chart chart)
     {
         var polarChart = (PolarChartEngine)chart;
+        _ = GetAnimation(polarChart);
+
         var angleAxis = polarChart.GetAngleAxis(this);
         var radiusAxis = polarChart.GetRadiusAxis(this);
 
@@ -264,7 +266,7 @@ public abstract class CorePolarLineSeries<TModel, TVisual, TLabel, TPathGeometry
                         Fill.ZIndex = actualZIndex + PaintConstants.SeriesFillZIndexOffset;
                         if (isNew)
                         {
-                            fillPath.Animate(EasingFunction ?? polarChart.ActualEasingFunction, AnimationsSpeed ?? polarChart.ActualAnimationsSpeed);
+                            fillPath.Animate(GetAnimation(polarChart));
                         }
                     }
                     if (Stroke is not null && Stroke != Paint.Default)
@@ -274,7 +276,7 @@ public abstract class CorePolarLineSeries<TModel, TVisual, TLabel, TPathGeometry
                         Stroke.ZIndex = actualZIndex + PaintConstants.SeriesStrokeZIndexOffset;
                         if (isNew)
                         {
-                            strokePath.Animate(EasingFunction ?? polarChart.ActualEasingFunction, AnimationsSpeed ?? polarChart.ActualAnimationsSpeed);
+                            strokePath.Animate(GetAnimation(polarChart));
                         }
                     }
 
@@ -386,8 +388,7 @@ public abstract class CorePolarLineSeries<TModel, TVisual, TLabel, TPathGeometry
                     {
                         var l = new TLabel { X = x - hgs, Y = scaler.CenterY - hgs, RotateTransform = (float)actualRotation, MaxWidth = (float)DataLabelsMaxWidth };
                         l.Animate(
-                            EasingFunction ?? chart.ActualEasingFunction,
-                            AnimationsSpeed ?? chart.ActualAnimationsSpeed,
+                            GetAnimation(chart),
                             BaseLabelGeometry.XProperty,
                             BaseLabelGeometry.YProperty);
                         label = l;
@@ -738,8 +739,10 @@ public abstract class CorePolarLineSeries<TModel, TVisual, TLabel, TPathGeometry
         if (chartPoint.Context.AdditionalVisuals is not CubicSegmentVisualPoint visual)
             throw new Exception("Unable to initialize the point instance.");
 
-        visual.Geometry.Animate(EasingFunction ?? chart.CoreChart.ActualEasingFunction, AnimationsSpeed ?? chart.CoreChart.ActualAnimationsSpeed);
-        visual.Segment.Animate(EasingFunction ?? chart.CoreChart.ActualEasingFunction, AnimationsSpeed ?? chart.CoreChart.ActualAnimationsSpeed);
+        var animation = GetAnimation(chart.CoreChart);
+
+        visual.Geometry.Animate(animation);
+        visual.Segment.Animate(animation);
     }
 
     /// <summary>

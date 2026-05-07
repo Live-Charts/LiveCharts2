@@ -74,6 +74,11 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
     internal DoubleMotionProperty? _animatableMin;
     internal DoubleMotionProperty? _animatableMax;
 
+    // Shared by every geometry this axis animates. Mutated in-place on each Invalidate so
+    // AnimationsSpeed/EasingFunction changes reach already-created visuals — every MotionProperty
+    // holds a reference to this same instance, not a copy.
+    private readonly Animation _animation = new(EasingFunctions.QuadraticOut, TimeSpan.Zero);
+
     #endregion
 
     #region properties
@@ -302,6 +307,7 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
     public override void Invalidate(Chart chart)
     {
         var cartesianChart = (CartesianChartEngine)chart;
+        var animation = GetAnimation(cartesianChart);
 
         var controlSize = cartesianChart.ControlSize;
         var drawLocation = cartesianChart.DrawMarginLocation;
@@ -314,18 +320,8 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
 
         if (_animatableMin is null || _animatableMax is null)
         {
-            _animatableMin = new DoubleMotionProperty(min)
-            {
-                Animation = new Animation(
-                    EasingFunction ?? cartesianChart.ActualEasingFunction,
-                    AnimationsSpeed ?? cartesianChart.ActualAnimationsSpeed)
-            };
-            _animatableMax = new DoubleMotionProperty(max)
-            {
-                Animation = new Animation(
-                    EasingFunction ?? cartesianChart.ActualEasingFunction,
-                    AnimationsSpeed ?? cartesianChart.ActualAnimationsSpeed)
-            };
+            _animatableMin = new DoubleMotionProperty(min) { Animation = animation };
+            _animatableMax = new DoubleMotionProperty(max) { Animation = animation };
         }
 
         _animatableMin.SetMovement(min, Animatable.Empty);
@@ -1035,6 +1031,16 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
         return labeler;
     }
 
+    private Animation GetAnimation(Chart chart)
+    {
+        if (AnimationsSpeed is null && EasingFunction is null)
+            return chart.Animation;
+
+        _animation.Duration = (long)(AnimationsSpeed ?? chart.ActualAnimationsSpeed).TotalMilliseconds;
+        _animation.EasingFunction = EasingFunction ?? chart.ActualEasingFunction;
+        return _animation;
+    }
+
     private LvcSize GetPossibleMaxLabelSize()
     {
         if (LabelsPaint is null) return new LvcSize();
@@ -1096,7 +1102,7 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
                 VerticalAlign = Align.Middle
             };
 
-            _nameGeometry.Animate(EasingFunction ?? cartesianChart.ActualEasingFunction, AnimationsSpeed ?? cartesianChart.ActualAnimationsSpeed);
+            _nameGeometry.Animate(GetAnimation(cartesianChart));
             isNew = true;
         }
 
@@ -1169,9 +1175,7 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
     }
 
     private void InitializeLine(BaseLineGeometry lineGeometry, CartesianChartEngine cartesianChart) =>
-        lineGeometry.Animate(
-            EasingFunction ?? cartesianChart.ActualEasingFunction,
-            AnimationsSpeed ?? cartesianChart.ActualAnimationsSpeed);
+        lineGeometry.Animate(GetAnimation(cartesianChart));
 
     private void InitializeTick(
         AxisVisualSeprator visualSeparator, CartesianChartEngine cartesianChart, TLineGeometry? subTickGeometry = null)
@@ -1188,9 +1192,7 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
             visualSeparator.Tick = tickGeometry;
         }
 
-        tickGeometry.Animate(
-            EasingFunction ?? cartesianChart.ActualEasingFunction,
-            AnimationsSpeed ?? cartesianChart.ActualAnimationsSpeed);
+        tickGeometry.Animate(GetAnimation(cartesianChart));
     }
 
     private void InitializeSubticks(
@@ -1218,8 +1220,7 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
         if (hasRotation) textGeometry.RotateTransform = r;
 
         textGeometry.Animate(
-            EasingFunction ?? cartesianChart.ActualEasingFunction,
-            AnimationsSpeed ?? cartesianChart.ActualAnimationsSpeed,
+            GetAnimation(cartesianChart),
             BaseLabelGeometry.XProperty,
             BaseLabelGeometry.YProperty,
             BaseLabelGeometry.OpacityProperty);
