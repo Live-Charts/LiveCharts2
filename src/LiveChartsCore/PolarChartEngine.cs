@@ -249,6 +249,11 @@ public class PolarChartEngine(
         {
             if (series.SeriesId == -1) series.SeriesId = GetNextSeriesId();
 
+            // #1923: see CartesianChartEngine for rationale — pre-register stack
+            // positions so Stacker.MaxSeriesId is final before any series renders.
+            if ((series.SeriesProperties & SeriesProperties.Stacked) == SeriesProperties.Stacked)
+                _ = SeriesContext.GetStackPosition(series, series.GetStackGroup());
+
             var ce = series.ChartElementSource;
             ce._isInternalSet = true;
             if (ce._theme != themeId)

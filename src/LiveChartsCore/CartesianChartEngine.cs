@@ -417,6 +417,13 @@ public class CartesianChartEngine(
         {
             if (series.SeriesId == -1) series.SeriesId = GetNextSeriesId();
 
+            // #1923: pre-register stack positions so each stacked series sees the
+            // final Stacker.MaxSeriesId (the largest SeriesId in its stack group)
+            // when computing its own actualZIndex during Invalidate. Without this,
+            // earlier-iterated series would only see partial peer registration.
+            if ((series.SeriesProperties & SeriesProperties.Stacked) == SeriesProperties.Stacked)
+                _ = SeriesContext.GetStackPosition(series, series.GetStackGroup());
+
             var ce = series.ChartElementSource;
             ce._isInternalSet = true;
             if (ce._theme != themeId)

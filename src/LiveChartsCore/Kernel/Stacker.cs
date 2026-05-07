@@ -52,12 +52,24 @@ public class Stacker
     public int MaxLength { get; } = 0;
 
     /// <summary>
+    /// Gets the largest <see cref="ISeries.SeriesId"/> among the series registered in
+    /// this stack group. Used by the stacked area / step / polar line series to
+    /// derive a z-index that anchors the whole stack at one rank while sub-ordering
+    /// by stack position so the bottom layer (position 0) draws on top of the
+    /// later, larger-fill layers. Callers must ensure all peer stacked series have
+    /// registered (via <see cref="GetSeriesStackPosition"/>) before reading this.
+    /// </summary>
+    public int MaxSeriesId { get; private set; } = -1;
+
+    /// <summary>
     /// Gets the series stack position.
     /// </summary>
     /// <param name="series">The series.</param>
     /// <returns></returns>
     public int GetSeriesStackPosition(ISeries series)
     {
+        if (series.SeriesId > MaxSeriesId) MaxSeriesId = series.SeriesId;
+
         if (!_stackPositions.TryGetValue(series, out var i))
         {
             var n = new Dictionary<double, StackedValue>(_knownMaxLenght);

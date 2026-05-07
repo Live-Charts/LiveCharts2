@@ -150,18 +150,19 @@ public abstract class CoreLineSeries<TModel, TVisual, TLabel, TPathGeometry, TEr
             ? cartesianChart.SeriesContext.GetStackPosition(this, GetStackGroup())
             : null;
 
-        var actualZIndex = ZIndex == 0 ? ((ISeries)this).SeriesId : ZIndex;
-
-        if (stacker is not null)
-        {
-            // Note# 010621
-            // easy workaround to set an automatic and valid z-index for stacked area series
-            // the problem of this solution is that the user needs to set z-indexes above 1000
-            // if the user needs to add more series to the chart.
-            actualZIndex = (int)PaintConstants.StackedSeriesBaseZIndex - stacker.Position;
-            Fill?.ZIndex = actualZIndex;
-            Stroke?.ZIndex = actualZIndex;
-        }
+        // #1923: anchor a default-ZIndex stacked area at the largest SeriesId in
+        // its stack group, then subtract Position so the bottom layer (Position 0)
+        // draws ON TOP of later, larger-fill layers. Stacked area fills extend
+        // from the line down to the pivot, so within-stack ordering is required
+        // for the layers to be individually visible. The whole stack sits as one
+        // rank against non-stacked siblings: a default-ZIndex Line added AFTER
+        // the last stacked series (SeriesId > MaxSeriesId) wins; a Line added
+        // BEFORE the first stacked series loses. User-set ZIndex always wins.
+        var actualZIndex = ZIndex != 0
+            ? ZIndex
+            : stacker is not null
+                ? stacker.Stacker.MaxSeriesId - stacker.Position
+                : ((ISeries)this).SeriesId;
 
         var dls = (float)DataLabelsSize;
         var pointsCleanup = ChartPointCleanupContext.For(everFetched);

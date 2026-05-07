@@ -189,17 +189,12 @@ public abstract class CorePolarLineSeries<TModel, TVisual, TLabel, TPathGeometry
             ? polarChart.SeriesContext.GetStackPosition(this, GetStackGroup())
             : null;
 
-        var actualZIndex = ZIndex == 0 ? ((ISeries)this).SeriesId : ZIndex;
-
-        if (stacker is not null)
-        {
-            // easy workaround to set an automatic and valid z-index for stacked area series
-            // the problem of this solution is that the user needs to set z-indexes above 1000
-            // if the user needs to add more series to the chart.
-            actualZIndex = (int)PaintConstants.StackedSeriesBaseZIndex - stacker.Position;
-            Fill?.ZIndex = actualZIndex;
-            Stroke?.ZIndex = actualZIndex;
-        }
+        // #1923: see CoreLineSeries.Invalidate for the rationale.
+        var actualZIndex = ZIndex != 0
+            ? ZIndex
+            : stacker is not null
+                ? stacker.Stacker.MaxSeriesId - stacker.Position
+                : ((ISeries)this).SeriesId;
 
         var dls = unchecked((float)DataLabelsSize);
 
