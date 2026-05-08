@@ -195,6 +195,35 @@ public sealed class SpecialCasesTests
     }
 
     [TestMethod]
+    public void DrawMarginFrameFillBehindSeries()
+    {
+        // Regression for https://github.com/Live-Charts/LiveCharts2/issues/1978
+        // Opaque DrawMarginFrame.Fill must render behind the series, not on top of it.
+        var chart = new SKCartesianChart
+        {
+            Series = [
+                new LineSeries<double>
+                {
+                    Values = [1, 6, 5, 3, 8, 2, 9],
+                    Fill = null,
+                    Stroke = new SolidColorPaint(SKColors.Black, 4),
+                    GeometryFill = new SolidColorPaint(SKColors.Black),
+                    GeometryStroke = new SolidColorPaint(SKColors.Black, 4)
+                }
+            ],
+            DrawMarginFrame = new DrawMarginFrame
+            {
+                Fill = new SolidColorPaint(SKColors.Red),
+                Stroke = new SolidColorPaint(SKColors.DarkRed, 2)
+            },
+            Width = 600,
+            Height = 600
+        };
+
+        chart.AssertSnapshotMatches($"{nameof(SpecialCasesTests)}_{nameof(DrawMarginFrameFillBehindSeries)}");
+    }
+
+    [TestMethod]
     public void Sections()
     {
         var values = new ObservablePoint[]
