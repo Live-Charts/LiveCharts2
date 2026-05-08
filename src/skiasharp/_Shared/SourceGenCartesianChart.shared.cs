@@ -86,11 +86,17 @@ public partial class SourceGenCartesianChart : SGChart, ICartesianChartView
     /// <inheritdoc cref="SGChart.InitializeObservedProperties"/>
     protected override void InitializeObservedProperties()
     {
+        SyncContext = new object();
+#if !WPF_LVC
+        // WPF lazy-inits these in the property getter via SetCurrentValue
+        // (issue #1981) so this constructor-time SetValue would block the
+        // FrameworkElementFactory binding. Other platforms pre-init here so
+        // `chart.Series.Add(...)` works pre-Loaded.
         XAxes = new ObservableCollection<ICartesianAxis>();
         YAxes = new ObservableCollection<ICartesianAxis>();
         Series = new ObservableCollection<ISeries>();
         Sections = new ObservableCollection<IChartElement>();
         VisualElements = new ObservableCollection<IChartElement>();
-        SyncContext = new object();
+#endif
     }
 }

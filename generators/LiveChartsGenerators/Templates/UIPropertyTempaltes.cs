@@ -158,6 +158,35 @@ namespace {baseTypeSymbol.ContainingNamespace};
         XamlProperty target, FrameworkTemplate template, string propertyName, string propertyType, string sanitizedPropertyType, string declaringType, string docs,
         string converter)
     {
+        // For collection-typed DPs (IEnumerable<TInterface> where TInterface != object),
+        // emit a lazy-init getter that creates an empty ObservableCollection on first
+        // access. Issue #1981: WPF's FrameworkElementFactory silently drops bindings to
+        // a DP that already has a non-default local value, so we cannot pre-init these
+        // collections in the chart constructor. Lazy init in the getter via the
+        // platform's SetCurrentValue (which doesn't clobber an attached binding)
+        // preserves `chart.Series.Add(...)` for code-only callers without breaking
+        // bindings inside DataTemplate.
+        var lazyInnerType = GetLazyInitElementType(target);
+        // Only WPF (verified) needs this — its FrameworkElementFactory drops bindings
+        // when the target DP holds a non-default local value, so we cannot pre-init
+        // collection DPs in the constructor. WPF supports SetCurrentValue, so we lazy-
+        // init in the getter without clobbering an attached binding. Other XAML
+        // platforms (Avalonia/WinUI/MAUI/Uno) do not reproduce #1981 — verified via
+        // Factos UI tests.
+        var emitLazyGetter = template.Key == "WPF";
+        var getter = (lazyInnerType is null || !emitLazyGetter)
+            ? $"get => ({propertyType})GetValue({propertyName}Property);"
+            : @$"get
+        {{
+            var __current = ({propertyType})GetValue({propertyName}Property);
+            if (__current is null)
+            {{
+                __current = new global::System.Collections.ObjectModel.ObservableCollection<{lazyInnerType}>();
+                SetCurrentValue({propertyName}Property, __current);
+            }}
+            return __current;
+        }}";
+
         return @$"
     /// <summary>
     ///    The <see cref=""{propertyName}""/> property definition.
@@ -167,9 +196,26 @@ namespace {baseTypeSymbol.ContainingNamespace};
 
     {docs}{converter}    public {propertyType} {propertyName}
     {{
-        get => ({propertyType})GetValue({propertyName}Property);
+        {getter}
         set => SetValue({propertyName}Property, value);
     }}";
+    }
+
+    private static string? GetLazyInitElementType(XamlProperty target)
+    {
+        if (target.Type is not INamedTypeSymbol named) return null;
+        if (!named.IsGenericType) return null;
+        if (named.ConstructedFrom?.ToDisplayString() != "System.Collections.Generic.IEnumerable<T>") return null;
+        if (named.TypeArguments.Length != 1) return null;
+
+        var inner = named.TypeArguments[0];
+        if (inner.SpecialType == SpecialType.System_Object) return null;
+
+        var displayFormat = new SymbolDisplayFormat(
+            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters);
+
+        return $"global::{inner.ToDisplayString(displayFormat)}";
     }
 
     private static string GetFormattedAccessibility(Accessibility accessibility)
