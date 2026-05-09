@@ -1,0 +1,92 @@
+<UserControl
+    x:Class="AvaloniaSample.VisualTest.Issue2008Repro.View"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
+    xmlns:local="using:AvaloniaSample.VisualTest.Issue2008Repro">
+
+    <UserControl.Resources>
+        <ControlTheme x:Key="{x:Type local:Gauge}" TargetType="local:Gauge">
+            <Setter Property="VerticalAlignment" Value="Top" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="Template">
+                <ControlTemplate TargetType="local:Gauge">
+                    <Grid VerticalAlignment="Top" RowDefinitions="Auto,Auto">
+                        <lvc:PieChart
+                            Width="380"
+                            Height="380"
+                            CornerRadius="0"
+                            InitialRotation="-225"
+                            MaxAngle="270"
+                            MaxValue="{TemplateBinding MaxValue}"
+                            MinValue="{TemplateBinding MinValue}">
+                            <lvc:PieChart.Series>
+                                <lvc:SeriesCollection>
+                                    <lvc:XamlGaugeSeries
+                                        CornerRadius="0"
+                                        Fill="{lvc:SolidColorPaint Color='#FF7F50'}"
+                                        GaugeValue="{TemplateBinding Value}"
+                                        InnerRadius="60"
+                                        MaxRadialColumnWidth="120"
+                                        ShowDataLabels="False" />
+                                    <lvc:XamlGaugeBackgroundSeries
+                                        Fill="{lvc:SolidColorPaint Color='#A9A9A9'}"
+                                        InnerRadius="60"
+                                        MaxRadialColumnWidth="120" />
+                                </lvc:SeriesCollection>
+                            </lvc:PieChart.Series>
+                        </lvc:PieChart>
+
+                        <TextBlock
+                            Grid.Row="1"
+                            HorizontalAlignment="Center"
+                            Text="{TemplateBinding Label}" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter>
+        </ControlTheme>
+    </UserControl.Resources>
+
+    <StackPanel
+        HorizontalAlignment="Center"
+        VerticalAlignment="Top"
+        Orientation="Horizontal"
+        Spacing="50">
+
+        <!--  Not Template Control  -->
+        <StackPanel>
+            <TextBlock Text="Not template (CornerRadius=0)" HorizontalAlignment="Center" />
+            <lvc:PieChart
+                Width="380"
+                Height="380"
+                VerticalAlignment="Top"
+                InitialRotation="-225"
+                MaxAngle="270"
+                MaxValue="250"
+                MinValue="0">
+                <lvc:PieChart.Series>
+                    <lvc:XamlGaugeSeries
+                        CornerRadius="0"
+                        Fill="{lvc:SolidColorPaint Color='#9ACD32'}"
+                        GaugeValue="90"
+                        InnerRadius="60"
+                        MaxRadialColumnWidth="120"
+                        ShowDataLabels="False" />
+                    <lvc:XamlGaugeBackgroundSeries
+                        Fill="{lvc:SolidColorPaint Color='#5A64B5F6'}"
+                        InnerRadius="60"
+                        MaxRadialColumnWidth="120" />
+                </lvc:PieChart.Series>
+            </lvc:PieChart>
+        </StackPanel>
+
+        <!--  Template Control  -->
+        <local:Gauge
+            x:Name="templatedGauge"
+            Label="Template control"
+            MaxValue="250"
+            MinValue="0"
+            Value="90" />
+
+    </StackPanel>
+</UserControl>
