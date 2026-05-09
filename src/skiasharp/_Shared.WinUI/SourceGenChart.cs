@@ -47,7 +47,6 @@ namespace LiveChartsGeneratedCode;
 public abstract partial class SourceGenChart : UserControl, IChartView
 {
     private DateTime _lastTouch;
-    private readonly ThemeListener _themeListener;
     private readonly PointerController _pointerController;
     private static readonly bool s_isWebAssembly = RuntimeInformation.IsOSPlatform(OSPlatform.Create("BROWSER"));
 
@@ -67,8 +66,6 @@ public abstract partial class SourceGenChart : UserControl, IChartView
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
 
-        _themeListener = new(CoreChart.ApplyTheme, DispatcherQueue);
-
         _pointerController = new PointerController();
 
         _pointerController.Pressed += OnPressed;
@@ -85,7 +82,12 @@ public abstract partial class SourceGenChart : UserControl, IChartView
     public CoreMotionCanvas CoreCanvas => MotionCanvas.CanvasCore;
 
     bool IChartView.DesignerMode => false;
-    bool IChartView.IsDarkMode => Application.Current?.RequestedTheme == ApplicationTheme.Dark;
+    // ActualTheme resolves the chain: this element's RequestedTheme -> any ancestor
+    // FrameworkElement.RequestedTheme -> Application.RequestedTheme -> system theme.
+    // Reading Application.RequestedTheme directly (the prior implementation) ignored
+    // both element-level overrides (the standard WinUI 3 pattern, e.g. setting
+    // RequestedTheme on a Window or page) and runtime theme toggles — see #2004.
+    bool IChartView.IsDarkMode => ActualTheme == ElementTheme.Dark;
     LvcColor IChartView.BackColor =>
         Background is not SolidColorBrush b
             ? CoreCanvas._virtualBackgroundColor
@@ -94,7 +96,7 @@ public abstract partial class SourceGenChart : UserControl, IChartView
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
-        _themeListener.Listen();
+        ActualThemeChanged += OnActualThemeChanged;
         _pointerController.InitializeController(this);
         StartObserving();
         CoreChart.Load();
@@ -102,11 +104,14 @@ public abstract partial class SourceGenChart : UserControl, IChartView
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
-        _themeListener.Dispose();
+        ActualThemeChanged -= OnActualThemeChanged;
         _pointerController.DisposeController(this);
         StopObserving();
         CoreChart.Unload();
     }
+
+    private void OnActualThemeChanged(FrameworkElement sender, object args) =>
+        CoreChart.ApplyTheme();
 
     private void AddUIElement(object item)
     {
