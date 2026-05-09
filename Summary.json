@@ -1,6 +1,6 @@
 {
   "summary": {
-    "generatedon": "2026-05-09T14:14:53Z",
+    "generatedon": "2026-05-09T15:25:35Z",
     "parser": "DynamicCodeCoverage",
     "assemblies": 2,
     "classes": 293,
@@ -19,8 +19,8 @@
     "fullmethodcoverage": 66.9
  },
   "metrics": [
-    { "name": "Blocks covered", "value": 28359 },
-    { "name": "Blocks not covered", "value": 6135 } ],
+    { "name": "Blocks covered", "value": 28370 },
+    { "name": "Blocks not covered", "value": 6130 } ],
   "coverage": {
     "assemblies": [
       { "name": "LiveChartsCore.dll", "classes": 191, "coverage": 81.3, "coveredlines": 13055, "coverablelines": 16049, "totallines": 43873, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 80.6, "fullmethodcoverage": 69.2, "coveredmethods": 1580, "fullcoveredmethods": 1358, "totalmethods": 1960, "classesinassembly": [
