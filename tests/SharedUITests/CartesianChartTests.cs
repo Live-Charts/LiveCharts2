@@ -136,6 +136,28 @@ public class CartesianChartTests
     }
 #endif
 
+#if BLAZOR_UI_TESTING
+    // based on:
+    // https://github.com/Live-Charts/LiveCharts2/issues/1993
+    // a chart wrapped in a fixed-height container should size to that container,
+    // not paint past it. regressed when the MotionCanvas wrapper div was left at
+    // height: auto, breaking the percentage chain down to the canvas element.
+
+    [AppTestMethod]
+    public async Task ShouldHonorFixedContainerHeight()
+    {
+        var sut = await App.NavigateTo<Samples.Test.AspectRatio.View>();
+        await sut.Chart.WaitUntilChartRenders();
+
+        // the sample wraps the chart in <div style="height: 150px; width: 100%;">.
+        // with the fix, the MotionCanvas wrapper div passes that 150px down to the
+        // canvas element, so ControlSize.Height matches the container (within a
+        // pixel of layout rounding). without the fix the canvas overflows past
+        // the wrapper and ControlSize.Height is much larger than 150.
+        Assert.InRange(sut.Chart.CoreChart.ControlSize.Height, 149, 151);
+    }
+#endif
+
 #if (WPF_UI_TESTING && TEST_HA_VIEWS) || MAUI_UI_TESTING || WINUI_UI_TESTING || (UNO_UI_TESTING && HAS_OS_LVC)
     // native platforms where gpu is supported
 
