@@ -61,8 +61,18 @@
        Version="$(LatestSkiaSharpVersion)" />
   </ItemGroup>
 
-  <!-- Include Uno skia renderer if needed -->
-  <PropertyGroup Condition="'$(HasOS)' != 'true'">
+  <!--
+    Enable SkiaRenderer for every non-Windows TFM. This makes the chart library
+    compile against the Skia variant of Uno.UI (UIElement → DependencyObject) on
+    Android/iOS/macCatalyst, matching what apps using <UnoFeatures>SkiaRenderer
+    </UnoFeatures> ship at runtime. The prior condition '$(HasOS)' != 'true'
+    excluded -android / -ios, so the library compiled against the Native Android
+    Uno.UI (UIElement → BindableView) and ended up with typerefs to
+    Uno.UI.Controls.BindableView in every GetValue/SetValue call. Loading any
+    chart-hosting UserControl under an Uno-Skia Android app then threw
+    TypeLoadException because the Skia Uno.UI assembly has no BindableView.
+  -->
+  <PropertyGroup Condition="!$(TargetFramework.Contains('-windows'))">
     <UnoFeatures>$(UnoFeatures);SkiaRenderer</UnoFeatures>
   </PropertyGroup>
 
