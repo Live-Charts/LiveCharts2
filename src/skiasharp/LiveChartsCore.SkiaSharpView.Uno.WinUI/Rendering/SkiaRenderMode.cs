@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#if !HAS_OS_LVC
+#if !HAS_OS_LVC || LVC_UNO_SKIA
 
 using System.Diagnostics;
 using LiveChartsCore.Kernel.Sketches;
@@ -92,11 +92,9 @@ internal partial class SkiaRenderMode : Grid, IRenderMode
         public void InvalidateRenderer() =>
             Invalidate();
 
-        protected override void RenderOverride(SKCanvas canvas, Size area)
-        {
+        protected override void RenderOverride(SKCanvas canvas, Size area) =>
             FrameRequest?.Invoke(
                 new SkiaSharpDrawingContext(_canvas, canvas, GetBackground()));
-        }
 
         private SKColor GetBackground() =>
             ((Parent as FrameworkElement)?.Parent as IChartView)?.BackColor.AsSKColor() ?? SKColor.Empty;

@@ -20,9 +20,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#if MACCATALYST || IOS
+#if (MACCATALYST || IOS) && !LVC_UNO_SKIA
 
 // reachable on maui ios/catalys or uno ios/catalyst (without skia renderer)
+// LVC_UNO_SKIA excludes the Uno-Skia chart library build.
 
 using System;
 using CoreGraphics;

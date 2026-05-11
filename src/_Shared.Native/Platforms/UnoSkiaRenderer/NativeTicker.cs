@@ -20,9 +20,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#if !HAS_OS_LVC && UNO_LVC
+#if (!HAS_OS_LVC && UNO_LVC) || LVC_UNO_SKIA
 
-// reachable on uno skia renderer
+// reachable on uno skia renderer (desktop and Uno.WinUI chart lib mobile)
 // HAS_OS_LVC is true when the target framework contains any of the following:
 // -windows, -android, -ios, -maccatalyst, -tizen
 // currently this is the the same file as WinUI, because uno makes this work across platforms

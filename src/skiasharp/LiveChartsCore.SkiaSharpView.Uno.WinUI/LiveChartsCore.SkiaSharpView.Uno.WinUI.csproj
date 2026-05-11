@@ -76,6 +76,23 @@
     <UnoFeatures>$(UnoFeatures);SkiaRenderer</UnoFeatures>
   </PropertyGroup>
 
+  <!--
+    On -android / -ios / -maccatalyst we ship Uno-Skia, not Uno-Native, so the
+    rendering must go through SkiaRenderMode2 (SKCanvasElement) and the
+    Uno-Skia pointer/ticker code. LVC_UNO_SKIA is the toggle: shared code that
+    guards `#if ANDROID` / `#if IOS || MACCATALYST` (the Maui+Uno-Native Android
+    paths) excludes itself when LVC_UNO_SKIA is set, and the Uno-Skia
+    pointer/ticker partials accept LVC_UNO_SKIA as an opt-in alongside their
+    desktop `!HAS_OS_LVC && UNO_LVC` condition. Same for MotionCanvas's
+    `#if !HAS_OS_LVC` render-mode factory.
+  -->
+  <PropertyGroup Condition="
+      $(TargetFramework.Contains('-android'))    or
+      $(TargetFramework.Contains('-ios'))        or
+      $(TargetFramework.Contains('-maccatalyst'))">
+    <DefineConstants>$(DefineConstants);LVC_UNO_SKIA</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="../../../generators/LiveChartsGenerators/LiveChartsGenerators.csproj">
       <OutputItemType>Analyzer</OutputItemType>

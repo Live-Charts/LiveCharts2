@@ -20,9 +20,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#if ANDROID
+#if ANDROID && !LVC_UNO_SKIA
 
 // reachable on maui android or uno android (without skia renderer)
+// LVC_UNO_SKIA excludes the Uno-Skia chart library build.
 
 using System;
 using LiveChartsCore.Motion;

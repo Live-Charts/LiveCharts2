@@ -46,7 +46,7 @@ public partial class MotionCanvas : Canvas
                 {
                     IFrameTicker ticker;
 
-#if !HAS_OS_LVC
+#if !HAS_OS_LVC || LVC_UNO_SKIA
                     var renderMode = new SkiaRenderMode();
 
                     ticker = settings.TryUseVSync
