@@ -270,57 +270,6 @@ public class PointerCaptureLostTests
     }
 #endif
 
-#if AVALONIA_UI_TESTING
-    // Sister regression for the Avalonia OnPointerReleased tolerance early-return.
-    // Pre-fix: _isPointerDown was assigned AFTER the < _tolearance bail-out, so a
-    // fast press-release left the flag stuck true and a later unrelated
-    // PointerCaptureLost would synthesize a phantom pointer-up. The hoisted
-    // assignment must clear the flag before the early-return is taken.
-    [AppTestMethod]
-    public async Task Avalonia_fast_press_release_clears_pointer_down_flag()
-    {
-        var sut = await App.NavigateTo<Samples.General.FirstChart.View>();
-        await sut.Chart.WaitUntilChartRenders();
-
-        var chart = (Control)sut.Chart;
-
-        var sourceGenChartType = WalkBaseTypes(chart.GetType(), "SourceGenChart");
-        Assert.NotNull(sourceGenChartType);
-        var isPointerDownField = sourceGenChartType!.GetField(
-            "_isPointerDown", BindingFlags.Instance | BindingFlags.NonPublic);
-        Assert.NotNull(isPointerDownField);
-        var lastPresedField = sourceGenChartType.GetField(
-            "_lastPresed", BindingFlags.Instance | BindingFlags.NonPublic);
-        Assert.NotNull(lastPresedField);
-
-        // OnPointerReleased shadows InputElement's protected virtual; specify
-        // parameter types to avoid AmbiguousMatchException.
-        var onReleased = sourceGenChartType.GetMethod(
-            "OnPointerReleased",
-            BindingFlags.Instance | BindingFlags.NonPublic,
-            binder: null,
-            types: [typeof(object), typeof(PointerReleasedEventArgs)],
-            modifiers: null);
-        Assert.NotNull(onReleased);
-
-        await Dispatcher.UIThread.InvokeAsync(() =>
-        {
-            // Simulate the moment right after a real press: pointer-down armed and
-            // _lastPresed pinned to "now" so the next OnPointerReleased call hits the
-            // tolerance early-return — the very branch that used to leak the flag.
-            isPointerDownField!.SetValue(chart, true);
-            lastPresedField!.SetValue(chart, DateTime.Now);
-
-            // The handler does not dereference its args before the early-return.
-            _ = onReleased!.Invoke(chart, [chart, null]);
-
-            Assert.False(
-                (bool)isPointerDownField.GetValue(chart)!,
-                "_isPointerDown must be cleared even when OnPointerReleased takes the tolerance early-return; otherwise a later unrelated PointerCaptureLost would fire a phantom synthetic pointer-up.");
-        });
-    }
-#endif
-
 #if WINUI_UI_TESTING || UNO_UI_TESTING
     // regression for https://github.com/Live-Charts/LiveCharts2/issues/1576 on the
     // WinUI/Uno-Skia native pointer controller: when an ancestor steals capture

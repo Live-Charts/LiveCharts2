@@ -27,6 +27,7 @@
 using System;
 using CoreGraphics;
 using LiveChartsCore.Drawing;
+using LiveChartsCore.Kernel;
 using UIKit;
 
 namespace LiveChartsCore.Native;
@@ -34,6 +35,7 @@ namespace LiveChartsCore.Native;
 internal partial class PointerController : INativePointerController
 {
     private DateTime _previousPress = DateTime.MinValue;
+    private LvcPoint _previousPressPosition;
     private float _previousScale = 1;
     private UILongPressGestureRecognizer _longPressGestureRecognizer;
     private UIPinchGestureRecognizer _pinchGestureRecognizer;
@@ -137,7 +139,7 @@ internal partial class PointerController : INativePointerController
         var view = e.View;
         var location = e.LocationInView(view);
         var p = new LvcPoint((float)location.X, (float)location.Y);
-        var isRightClick = (DateTime.Now - _previousPress).TotalMilliseconds < 500;
+        var isRightClick = GestureHelpers.IsDoubleTap(p, _previousPressPosition, DateTime.Now - _previousPress);
         var isPinch = e.NumberOfTouches > 1;
 
         switch (e.State)
@@ -145,6 +147,7 @@ internal partial class PointerController : INativePointerController
             case UIGestureRecognizerState.Began:
                 Pressed?.Invoke(view, new(p, isRightClick, e));
                 _previousPress = DateTime.Now;
+                _previousPressPosition = p;
                 break;
             case UIGestureRecognizerState.Changed:
                 Moved?.Invoke(view, new(p, e));

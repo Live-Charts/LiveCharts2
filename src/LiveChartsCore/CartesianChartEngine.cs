@@ -1002,8 +1002,12 @@ public class CartesianChartEngine(
     internal void ClearPointerDown()
     {
         _isPanning = false;
+        _isPointerDown = false;
         _sectionZoomingStart = null;
     }
+
+    internal override bool IsPanEnabled =>
+        (_chartView.ZoomMode & (ZoomAndPanMode.PanX | ZoomAndPanMode.PanY)) != 0;
 
     internal void SubscribeSharedEvents(HashSet<CartesianChartEngine> instance)
     {

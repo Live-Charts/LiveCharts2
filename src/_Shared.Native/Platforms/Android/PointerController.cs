@@ -27,6 +27,7 @@
 using System;
 using Android.Views;
 using LiveChartsCore.Drawing;
+using LiveChartsCore.Kernel;
 
 namespace LiveChartsCore.Native;
 
@@ -40,6 +41,7 @@ internal partial class PointerController : INativePointerController
     private ScaleGestureDetector? _scaleDetector;
     private CustomScaleListener _customScaleListener = null!;
     private DateTime _previousPress = DateTime.MinValue;
+    private LvcPoint _previousPressPosition;
 
     private float Density
     {
@@ -86,7 +88,7 @@ internal partial class PointerController : INativePointerController
         if (e.Event is null || viewGroup is null) return;
 
         var p = new LvcPoint(e.Event.GetX() / Density, e.Event.GetY() / Density);
-        var isRightClick = (DateTime.Now - _previousPress).TotalMilliseconds < 500;
+        var isRightClick = GestureHelpers.IsDoubleTap(p, _previousPressPosition, DateTime.Now - _previousPress);
         var isPinch = e.Event.PointerCount > 1;
 
         _scaleDetector ??= new ScaleGestureDetector(
@@ -115,6 +117,7 @@ internal partial class PointerController : INativePointerController
                 if (!_isPinching)
                     Pressed?.Invoke(sender, new(p, isRightClick, e.Event));
                 _previousPress = DateTime.Now;
+                _previousPressPosition = p;
                 _customScaleListener.Paused = isRightClick && !isPinch;
                 _touchStart = p;
                 break;

@@ -23,6 +23,7 @@
 using System;
 using System.Runtime.InteropServices;
 using LiveChartsCore.Drawing;
+using LiveChartsCore.Kernel;
 using LiveChartsCore.Kernel.Events;
 using LiveChartsCore.Kernel.Sketches;
 using LiveChartsCore.SkiaSharpView.WinUI;
@@ -47,6 +48,7 @@ namespace LiveChartsGeneratedCode;
 public abstract partial class SourceGenChart : UserControl, IChartView
 {
     private DateTime _lastTouch;
+    private LvcPoint _lastTouchPosition;
     private readonly PointerController _pointerController;
     private static readonly bool s_isWebAssembly = RuntimeInformation.IsOSPlatform(OSPlatform.Create("BROWSER"));
 
@@ -131,12 +133,15 @@ public abstract partial class SourceGenChart : UserControl, IChartView
         if (PointerPressedCommand?.CanExecute(cArgs) == true)
             PointerPressedCommand.Execute(cArgs);
 
-        var isSecondary = (DateTime.Now - _lastTouch).TotalMilliseconds < 500;
+        var isSecondary = GestureHelpers.IsDoubleTap(args.Location, _lastTouchPosition, DateTime.Now - _lastTouch);
 
         CoreChart?.InvokePointerDown(args.Location, args.IsSecondaryPress || isSecondary);
 
         if (NativeHelpers.IsTouchDevice())
+        {
             _lastTouch = DateTime.Now;
+            _lastTouchPosition = args.Location;
+        }
     }
 
     private void OnMoved(object? sender, LiveChartsCore.Native.Events.ScreenEventArgs args)
