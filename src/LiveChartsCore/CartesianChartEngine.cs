@@ -172,7 +172,7 @@ public class CartesianChartEngine(
             foreach (var axis in YAxes)
                 ZoomAxis(axis, flags, pivot.Y, direction, scaleFactor);
 
-        _ = _zoommingDebouncer.Debounce(() => FitAllOnZoom(flags));
+        _zoommingDebouncer.Debounce(() => FitAllOnZoom(flags));
     }
 
     /// <summary>
@@ -913,6 +913,7 @@ public class CartesianChartEngine(
         _sharedEvents = null;
         _zoomingSection = null;
         _isFirstDraw = true;
+        _zoommingDebouncer.Dispose();
     }
 
     private LvcPoint? _sectionZoomingStart = null;
