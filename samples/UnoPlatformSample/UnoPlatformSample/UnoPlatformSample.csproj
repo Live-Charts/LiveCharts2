@@ -1,4 +1,4 @@
-﻿<Project Sdk="Uno.Sdk/6.5.31">
+﻿<Project Sdk="Uno.Sdk/6.5.33">
     <PropertyGroup>
         <TargetFrameworks>net10.0-android;net10.0-ios;net10.0-windows10.0.19041.0;net10.0-browserwasm;net10.0-desktop</TargetFrameworks>
 

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Uno.Sdk/6.3.28">
+﻿<Project Sdk="Uno.Sdk/6.5.33">
   
   <PropertyGroup>
     <UnoSingleProject>true</UnoSingleProject>
