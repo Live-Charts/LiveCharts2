@@ -388,10 +388,9 @@ jobs:
           - id: maui
             tf: net10.0-android
             workloads: maui-android
-          # ToDo: find why not running.
-          # - id: uno
-          #   tf: net10.0-android
-          #   workloads: android
+          - id: uno
+            tf: net10.0-android
+            workloads: android
     needs: [pack, prepare]
     steps:
       - name: Checkout
