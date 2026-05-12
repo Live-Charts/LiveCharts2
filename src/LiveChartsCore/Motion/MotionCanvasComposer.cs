@@ -46,12 +46,25 @@ public class MotionCanvasComposer(IRenderMode renderMode, IFrameTicker ticker)
     /// </summary>
     public IFrameTicker Ticker { get; } = ticker;
 
+    private bool _isInitialized;
+
     /// <summary>
     /// Initializes the composer.
     /// </summary>
     /// <param name="canvas"></param>
     public void Initialize(CoreMotionCanvas canvas)
     {
+        // Guard against repeated Initialize without an intervening Dispose.
+        // WPF's TabControl raises Loaded on a chart that lives in a not-yet-
+        // selected tab (size 0), then raises Loaded again — with no Unloaded
+        // in between — when the tab is reparented into the active content
+        // host. Without this guard the render-mode paint event and the
+        // FrameRequest → DrawFrame handler would be subscribed twice, so
+        // every paint applies the HiDPI Canvas.Scale twice (e.g. 1.75² ≈ 3)
+        // and the chart renders at multiple-times the intended scale (#2029).
+        if (_isInitialized) return;
+        _isInitialized = true;
+
         RenderMode.InitializeRenderMode(canvas);
         Ticker.InitializeTicker(canvas, RenderMode);
         RenderMode.FrameRequest += canvas.DrawFrame;
@@ -63,6 +76,9 @@ public class MotionCanvasComposer(IRenderMode renderMode, IFrameTicker ticker)
     /// <param name="canvas"></param>
     public void Dispose(CoreMotionCanvas canvas)
     {
+        if (!_isInitialized) return;
+        _isInitialized = false;
+
         RenderMode.DisposeRenderMode();
         Ticker.DisposeTicker();
         RenderMode.FrameRequest -= canvas.DrawFrame;
