@@ -34,7 +34,7 @@
     <UITesting>false</UITesting>
     <NoWarnUITests>$(NoWarn);NETSDK1198;NU1701;XC0022;XA0141;XAAADB0000;CS0067;CS0414;CS0108;CS0618;CS4014;CS8600;CS8601;CS8602;CS8603;CS8612;CS8618;CS8622;CS8625;CS8629;CS9264;</NoWarnUITests>
     <!-- Factos version https://github.com/beto-rodriguez/Factos -->
-    <FactosVersion>0.8.1</FactosVersion>
+    <FactosVersion>0.8.3</FactosVersion>
 
     <!-- Useful to toggle between using project references or nuget references -->
     <UseNuGetForSamples>false</UseNuGetForSamples>
