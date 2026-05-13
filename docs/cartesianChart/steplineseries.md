@@ -74,7 +74,9 @@ a look at the [Paints article]({{ website_url }}/docs/{{ platform }}/{{ version 
 
 The geometry is the circle shape (by default) that the line series draws for every point, you can customize
 the fill and stroke of this shape, if none of these properties are set then LiveCharts will create them based on 
-the series position in your series collection and the current theme.
+the series position in your series collection and the current theme. As long as you don't set `GeometryStroke`,
+the default theme rule derives it from the series' `Stroke` (when `Stroke` is a `SolidColorPaint`) so the marker
+matches the line; if you do set `GeometryStroke` explicitly, your value wins.
 
 ![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/stepgeometrystrokefill.png)
 

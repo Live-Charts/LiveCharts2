@@ -131,14 +131,27 @@ public static class ThemesExtensions
                     })
                     .HasRuleForLineSeries(lineSeries =>
                     {
-                        var color = theme.GetSeriesColor(lineSeries).AsSKColor();
+                        // Order-dependent: write Stroke first (no-op when the user
+                        // touched it — gated by CanSetProperty), then read the resulting
+                        // Stroke back as the series identity color for Fill and marker
+                        // defaults. That makes the area Fill, legend miniature, and
+                        // per-point markers all match the line whether it's user-set or
+                        // theme-rotated. Keeps theme switches (dark/light) correct
+                        // because the second-apply Stroke is rewritten to the new
+                        // palette before we derive from it. See #2064.
+                        var paletteColor = theme.GetSeriesColor(lineSeries).AsSKColor();
 
+                        lineSeries.Stroke = new SolidColorPaint(paletteColor, 4);
+
+                        var identityColor = lineSeries.Stroke is SolidColorPaint actualStroke
+                            ? actualStroke.Color
+                            : paletteColor;
+
+                        lineSeries.Fill = new SolidColorPaint(identityColor.WithAlpha(50));
                         lineSeries.GeometrySize = 12;
-                        lineSeries.GeometryStroke = new SolidColorPaint(color, 4);
+                        lineSeries.GeometryStroke = new SolidColorPaint(identityColor, 4);
                         lineSeries.GeometryFill =
                             new SolidColorPaint(theme.IsDark ? new(30, 30, 30) : new(250, 250, 250));
-                        lineSeries.Stroke = new SolidColorPaint(color, 4);
-                        lineSeries.Fill = new SolidColorPaint(color.WithAlpha(50));
 
                         if (lineSeries.ShowError)
                             lineSeries.ErrorPaint = theme.IsDark
@@ -151,14 +164,19 @@ public static class ThemesExtensions
                     })
                     .HasRuleForStepLineSeries(steplineSeries =>
                     {
-                        var color = theme.GetSeriesColor(steplineSeries).AsSKColor();
+                        var paletteColor = theme.GetSeriesColor(steplineSeries).AsSKColor();
 
+                        steplineSeries.Stroke = new SolidColorPaint(paletteColor, 4);
+
+                        var identityColor = steplineSeries.Stroke is SolidColorPaint actualStroke
+                            ? actualStroke.Color
+                            : paletteColor;
+
+                        steplineSeries.Fill = new SolidColorPaint(identityColor.WithAlpha(50));
                         steplineSeries.GeometrySize = 12;
-                        steplineSeries.GeometryStroke = new SolidColorPaint(color, 4);
+                        steplineSeries.GeometryStroke = new SolidColorPaint(identityColor, 4);
                         steplineSeries.GeometryFill =
                             new SolidColorPaint(theme.IsDark ? new(30, 30, 30) : new(250, 250, 250));
-                        steplineSeries.Stroke = new SolidColorPaint(color, 4);
-                        steplineSeries.Fill = new SolidColorPaint(color.WithAlpha(50));
 
                         _ = steplineSeries.HasState("Hover", [
                                 (nameof(DrawnGeometry.ScaleTransform), new LvcPoint(1.35f, 1.35f))
@@ -280,14 +298,19 @@ public static class ThemesExtensions
                     })
                     .HasRuleForPolarLineSeries(polarLine =>
                     {
-                        var color = theme.GetSeriesColor(polarLine).AsSKColor();
+                        var paletteColor = theme.GetSeriesColor(polarLine).AsSKColor();
 
+                        polarLine.Stroke = new SolidColorPaint(paletteColor, 4);
+
+                        var identityColor = polarLine.Stroke is SolidColorPaint actualStroke
+                            ? actualStroke.Color
+                            : paletteColor;
+
+                        polarLine.Fill = new SolidColorPaint(identityColor.WithAlpha(50));
                         polarLine.GeometrySize = 12;
-                        polarLine.GeometryStroke = new SolidColorPaint(color, 4);
+                        polarLine.GeometryStroke = new SolidColorPaint(identityColor, 4);
                         polarLine.GeometryFill =
                             new SolidColorPaint(theme.IsDark ? new(30, 30, 30) : new(250, 250, 250));
-                        polarLine.Stroke = new SolidColorPaint(color, 4);
-                        polarLine.Fill = new SolidColorPaint(color.WithAlpha(50));
 
                         _ = polarLine.HasState("Hover", [
                                 (nameof(DrawnGeometry.ScaleTransform), new LvcPoint(1.35f, 1.35f))
