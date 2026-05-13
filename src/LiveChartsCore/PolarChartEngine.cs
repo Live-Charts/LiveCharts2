@@ -245,7 +245,10 @@ public class PolarChartEngine(
 
         // get seriesBounds
         SetDrawMargin(ControlSize, new Margin());
-        foreach (var series in VisibleSeries.Cast<IPolarSeries>())
+        // iterate Series (not VisibleSeries) so invisible series still get their theme
+        // applied; the legend can still request their miniature when IsVisibleAtLegend is
+        // true (its default), and a missing paint would otherwise crash on draw.
+        foreach (var series in Series.Cast<IPolarSeries>())
         {
             if (series.SeriesId == -1) series.SeriesId = GetNextSeriesId();
 
@@ -260,6 +263,12 @@ public class PolarChartEngine(
             {
                 theme.ApplyStyleToSeries(series);
                 ce._theme = themeId;
+            }
+
+            if (!series.IsVisible)
+            {
+                ce._isInternalSet = false;
+                continue;
             }
 
             var secondaryAxis = GetAngleAxis(series);

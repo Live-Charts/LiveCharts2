@@ -153,7 +153,10 @@ public class PieChartEngine(
         IndexBounds = new Bounds();
         PushoutBounds = new Bounds();
 
-        foreach (var series in VisibleSeries.Cast<IPieSeries>())
+        // iterate Series (not VisibleSeries) so invisible series still get their theme
+        // applied; the legend can still request their miniature when IsVisibleAtLegend is
+        // true (its default), and a missing paint would otherwise crash on draw.
+        foreach (var series in Series.Cast<IPieSeries>())
         {
             if (series.SeriesId == -1) series.SeriesId = GetNextSeriesId();
 
@@ -163,6 +166,12 @@ public class PieChartEngine(
             {
                 theme.ApplyStyleToSeries(series);
                 ce._theme = themeId;
+            }
+
+            if (!series.IsVisible)
+            {
+                ce._isInternalSet = false;
+                continue;
             }
 
             var seriesBounds = series.GetBounds(this);

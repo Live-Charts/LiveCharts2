@@ -413,7 +413,10 @@ public class CartesianChartEngine(
         var areAllColumns = true;
         var columnsFlags = SeriesProperties.Bar | SeriesProperties.PrimaryAxisVerticalOrientation;
 
-        foreach (var series in VisibleSeries.Cast<ICartesianSeries>())
+        // iterate Series (not VisibleSeries) so invisible series still get their theme
+        // applied; the legend can still request their miniature when IsVisibleAtLegend is
+        // true (its default), and a missing paint would otherwise crash on draw.
+        foreach (var series in Series.Cast<ICartesianSeries>())
         {
             if (series.SeriesId == -1) series.SeriesId = GetNextSeriesId();
 
@@ -430,6 +433,12 @@ public class CartesianChartEngine(
             {
                 theme.ApplyStyleToSeries(series);
                 ce._theme = themeId;
+            }
+
+            if (!series.IsVisible)
+            {
+                ce._isInternalSet = false;
+                continue;
             }
 
             var xAxis = GetXAxis(series);
