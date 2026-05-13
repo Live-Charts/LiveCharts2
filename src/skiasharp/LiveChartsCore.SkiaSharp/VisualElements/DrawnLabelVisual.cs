@@ -57,6 +57,16 @@ public class DrawnLabelVisual : Visual
         _drawnElement = labelGeometry;
     }
 
+    /// <summary>
+    /// Gets the underlying <see cref="LabelGeometry"/>. Use this to read or
+    /// mutate label properties such as
+    /// <see cref="BaseLabelGeometry.Text"/>,
+    /// <see cref="BaseLabelGeometry.TextSize"/>,
+    /// <see cref="BaseLabelGeometry.Paint"/> or
+    /// <see cref="BaseLabelGeometry.Padding"/> after construction.
+    /// </summary>
+    public LabelGeometry Label => _drawnElement;
+
     /// <inheritdoc cref="Visual.DrawnElement"/>
     protected internal override IDrawnElement? DrawnElement => _drawnElement;
 
