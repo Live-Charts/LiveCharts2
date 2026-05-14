@@ -38,6 +38,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="build\LiveChartsCore.SkiaSharpView.Blazor.targets"
+          Pack="true"
+          PackagePath="buildTransitive\$(AssemblyName).targets" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="SkiaSharp.Views.Blazor" Version="$(LatestSkiaSharpVersion)" />
     <PackageReference Include="HarfBuzzSharp.NativeAssets.WebAssembly" Version="$(HarfBuzzWASMVersion)" />
   </ItemGroup>
