@@ -61,7 +61,11 @@ internal partial class NativeFrameTicker : IFrameTicker
     public void DisposeTicker()
     {
         CompositionTarget.Rendering -= OnCompositonTargetRendering;
-        _canvas?.Invalidated -= OnCoreInvalidated;
+
+        // _canvas can be null when DisposeTicker is called without a prior
+        // InitializeTicker, or twice in a row — same #2216 contract violation
+        // guarded in the WPF CompositionTargetTicker.
+        if (_canvas is not null) _canvas.Invalidated -= OnCoreInvalidated;
 
         _canvas = null!;
         _renderMode = null!;

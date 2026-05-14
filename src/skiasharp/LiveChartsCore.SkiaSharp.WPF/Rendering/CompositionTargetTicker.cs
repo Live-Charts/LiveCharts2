@@ -54,7 +54,12 @@ internal class CompositionTargetTicker : IFrameTicker
     public void DisposeTicker()
     {
         CompositionTarget.Rendering -= OnCompositonTargetRendering;
-        _canvas.Invalidated -= OnCoreInvalidated;
+
+        // _canvas can be null if Unloaded fires on a MotionCanvas whose Loaded
+        // never ran (Prism-style ContentControl swaps where a TabControl
+        // hosting the chart is removed while a different tab is active) or
+        // if Dispose runs twice — both seen in #2216.
+        if (_canvas is not null) _canvas.Invalidated -= OnCoreInvalidated;
 
         _canvas = null!;
         _renderMode = null!;
