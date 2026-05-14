@@ -277,6 +277,16 @@ public class DataFactory<TModel>
         var bounds = new DimensionalBounds();
         var hasData = false;
 
+        // Gauges occupy the full ring and never pop out on hover, so reserving space
+        // for HoverPushout (default 20) is wasted — CorePieSeries.Invalidate subtracts
+        // 2 * maxPushout from the available radius, and on a tightly-sized chart that
+        // reservation pushed InnerRadius outside the chart bounds, collapsing the ring
+        // to a 1-pixel sliver (issue #2131). Contribute 0 so the chart-wide
+        // PushoutBounds aggregate stays correct for any non-gauge sibling series.
+        var pushoutReservation = (series.SeriesProperties & SeriesProperties.Gauge) != 0
+            ? 0d
+            : series.Pushout > series.HoverPushout ? series.Pushout : series.HoverPushout;
+
         foreach (var point in series.Fetch(chart))
         {
             if (point.IsEmpty) continue;
@@ -284,7 +294,7 @@ public class DataFactory<TModel>
             _ = stack.StackPoint(point);
             bounds.PrimaryBounds.AppendValue(point.Coordinate.PrimaryValue);
             bounds.SecondaryBounds.AppendValue(point.Coordinate.SecondaryValue);
-            bounds.TertiaryBounds.AppendValue(series.Pushout > series.HoverPushout ? series.Pushout : series.HoverPushout);
+            bounds.TertiaryBounds.AppendValue(pushoutReservation);
             hasData = true;
         }
 
