@@ -79,6 +79,10 @@ runs:
       shell: bash
       run: |
         cat << 'EOF' > run_tests.sh
+        # reactivecircus/android-emulator-runner spawns a subshell that drops
+        # DOTNET_HOST_PATH set by setup-dotnet; SDK 10.0.300 ILLink hard-fails
+        # _ComputeManagedAssemblies (MSB4221) without it.
+        export DOTNET_HOST_PATH="$(command -v dotnet)"
         n=0
         while [ $n -lt 3 ]; do
           echo "Starting Attempt $((n+1))..."
