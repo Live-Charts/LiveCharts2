@@ -131,15 +131,6 @@ public class GeoMapChart
     {
         if (_isUnloaded) return;
 
-        // Hide the tooltip and clear hover state so that a subsequent Load +
-        // Measure does not re-show a tooltip from a stale _hoveredLand.
-        if (_isToolTipOpen)
-        {
-            View.Tooltip?.Hide(this);
-            _isToolTipOpen = false;
-        }
-        _hoveredLand = null;
-
         if (View.Stroke is not null) View.CoreCanvas.RemovePaintTask(View.Stroke);
         if (View.Fill is not null) View.CoreCanvas.RemovePaintTask(View.Fill);
 
