@@ -1046,11 +1046,23 @@ public class CartesianChartEngine(
             var min = axis.MinLimit ?? limits.DataMin;
             var max = axis.MaxLimit ?? limits.DataMax;
 
-            if (min < limits.DataMin)
-                min = limits.DataMin - geometryOffset;
+            // The outer rail the post-zoom fit may grow back to is the user's
+            // pinning when wider than the data, otherwise the data bounds.
+            // Without this, a user-pinned view wider than the data was snapped
+            // to data bounds on every zoom and never returned to its initial
+            // state (#2159).
+            var outerMin = limits.UserSetMin.HasValue
+                ? Math.Min(limits.UserSetMin.Value, limits.DataMin)
+                : limits.DataMin;
+            var outerMax = limits.UserSetMax.HasValue
+                ? Math.Max(limits.UserSetMax.Value, limits.DataMax)
+                : limits.DataMax;
 
-            if (max > limits.DataMax)
-                max = limits.DataMax + geometryOffset;
+            if (min < outerMin)
+                min = outerMin - geometryOffset;
+
+            if (max > outerMax)
+                max = outerMax + geometryOffset;
 
             axis.SetLimits(min, max);
         }
@@ -1122,11 +1134,24 @@ public class CartesianChartEngine(
         {
             var threshold = GetThreshold(axis, scale);
 
-            if (fits && mint < limits.DataMin - threshold)
-                mint = limits.DataMin - threshold;
+            // Outer rail for zoom-out: when the user pinned MinLimit/MaxLimit
+            // wider than the data, those pinned values are the rail — not the
+            // data bounds. Clamping to data alone trapped the view at data
+            // bounds the first time a user with a wider pin zoomed out, and
+            // the subsequent "zoom-in does nothing / can only shrink" symptom
+            // had no path back to the user's original view (#2159).
+            var outerMin = limits.UserSetMin.HasValue
+                ? Math.Min(limits.UserSetMin.Value, limits.DataMin)
+                : limits.DataMin;
+            var outerMax = limits.UserSetMax.HasValue
+                ? Math.Max(limits.UserSetMax.Value, limits.DataMax)
+                : limits.DataMax;
 
-            if (fits && maxt > limits.DataMax + threshold)
-                maxt = limits.DataMax + threshold;
+            if (fits && mint < outerMin - threshold)
+                mint = outerMin - threshold;
+
+            if (fits && maxt > outerMax + threshold)
+                maxt = outerMax + threshold;
         }
 
         if (maxt < mint)

@@ -40,7 +40,7 @@ namespace LiveChartsCore;
 /// <typeparam name="TTextGeometry">The type of the text geometry.</typeparam>
 /// <typeparam name="TLineGeometry">The type of the line geometry.</typeparam>
 public abstract class CoreAxis<TTextGeometry, TLineGeometry>
-    : ChartElement, ICartesianAxis, IPlane
+    : ChartElement, ICartesianAxis, IInternalCartesianAxis, IPlane
         where TTextGeometry : BaseLabelGeometry, new()
         where TLineGeometry : BaseLineGeometry, new()
 {
@@ -63,6 +63,9 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
     private TTextGeometry? _nameGeometry;
     private double? _minLimit = null;
     private double? _maxLimit = null;
+    private double? _userSetMinLimit = null;
+    private double? _userSetMaxLimit = null;
+    private bool _isEngineSettingLimits;
     private BaseLineGeometry? _ticksPath;
     private BaseLineGeometry? _zeroLine;
     private BaseLineGeometry? _crosshairLine;
@@ -142,6 +145,15 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
             if (filtered is not null && double.IsNaN(filtered.Value))
                 filtered = null;
 
+            // Track the user-set pinning separately from the view min/max.
+            // The chart engine's zoom/pan path also lands here (via
+            // SetLimits(notify: true)) — that path raises _isEngineSettingLimits
+            // so the engine's transient view is NOT mistaken for a user pin.
+            // Without this guard the outer rail collapses onto the zoomed-out
+            // view and the bounce-back-to-fit is lost (#2159).
+            if (!_isEngineSettingLimits)
+                _userSetMinLimit = filtered;
+
             SetProperty(ref _minLimit, filtered);
         }
     }
@@ -156,6 +168,9 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
 
             if (filtered is not null && double.IsNaN(filtered.Value))
                 filtered = null;
+
+            if (!_isEngineSettingLimits)
+                _userSetMaxLimit = filtered;
 
             SetProperty(ref _maxLimit, filtered);
         }
@@ -297,6 +312,9 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
 
     /// <inheritdoc cref="ICartesianAxis.SharedWith"/>
     public IEnumerable<ICartesianAxis>? SharedWith { get; set; }
+
+    double? IInternalCartesianAxis.UserSetMinLimit => _userSetMinLimit;
+    double? IInternalCartesianAxis.UserSetMaxLimit => _userSetMaxLimit;
 
     #endregion
 
@@ -902,6 +920,13 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
         var mind = DataBounds.Min;
         var minZoomDelta = MinZoomDelta ?? DataBounds.MinDelta * 3;
 
+        // The user pin must be aggregated across the shared group the same way
+        // Min/Max/DataMin/DataMax are: a zoom started from an unpinned shared
+        // axis still has to honor a sibling's pin as the outer rail, otherwise
+        // SetLimits propagates a data-bounds collapse onto the pinned axis (#2159).
+        var userSetMin = _userSetMinLimit;
+        var userSetMax = _userSetMaxLimit;
+
         foreach (var axis in SharedWith ?? [])
         {
             var maxI = axis.MaxLimit is null ? axis.DataBounds.Max : axis.MaxLimit.Value;
@@ -914,6 +939,15 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
             if (minI < min) min = minI;
             if (maxDI > maxd) maxd = maxDI;
             if (minDI < mind) mind = minDI;
+
+            // widest pin wins: smallest non-null UserSetMin, largest non-null UserSetMax
+            if (axis is IInternalCartesianAxis internalAxis)
+            {
+                if (internalAxis.UserSetMinLimit is { } usMin && (userSetMin is null || usMin < userSetMin))
+                    userSetMin = usMin;
+                if (internalAxis.UserSetMaxLimit is { } usMax && (userSetMax is null || usMax > userSetMax))
+                    userSetMax = usMax;
+            }
         }
 
         if (double.IsInfinity(minZoomDelta))
@@ -926,7 +960,11 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
             maxd = max;
         }
 
-        return new(min, max, minZoomDelta, mind, maxd);
+        return new(min, max, minZoomDelta, mind, maxd)
+        {
+            UserSetMin = userSetMin,
+            UserSetMax = userSetMax,
+        };
     }
 
     /// <inheritdoc cref="ICartesianAxis.SetLimits(double, double, double, bool, bool)"/>
@@ -939,6 +977,11 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
 
         if (notify)
         {
+            // notify: true still raises PropertyChanged so two-way MinLimit/
+            // MaxLimit bindings track zoom/pan — but _isEngineSettingLimits
+            // keeps the property setters from recording this engine-driven
+            // view change as a user pin (#2159).
+            _isEngineSettingLimits = true;
             MinLimit = min;
             MaxLimit = max;
 
@@ -947,6 +990,7 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
                 ForceStepToMin = true;
                 MinStep = step;
             }
+            _isEngineSettingLimits = false;
         }
         else
         {
