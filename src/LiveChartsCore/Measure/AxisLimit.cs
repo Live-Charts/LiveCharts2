@@ -62,6 +62,20 @@ public struct AxisLimit(double min, double max, double minDelta, double dataMin,
     public double MinDelta { get; set; } = minDelta;
 
     /// <summary>
+    /// Gets or sets the user-set <see cref="LiveChartsCore.Kernel.Sketches.IPlane.MinLimit"/>
+    /// pinning, independent of the current view min the chart engine may have mutated via
+    /// SetLimits during zoom/pan. <c>null</c> when the user never pinned a min.
+    /// </summary>
+    public double? UserSetMin { get; set; }
+
+    /// <summary>
+    /// Gets or sets the user-set <see cref="LiveChartsCore.Kernel.Sketches.IPlane.MaxLimit"/>
+    /// pinning, independent of the current view max the chart engine may have mutated via
+    /// SetLimits during zoom/pan. <c>null</c> when the user never pinned a max.
+    /// </summary>
+    public double? UserSetMax { get; set; }
+
+    /// <summary>
     /// Validates the limits of the axis, if the limits are not defined.
     /// </summary>
     /// <param name="min">The possible min value.</param>

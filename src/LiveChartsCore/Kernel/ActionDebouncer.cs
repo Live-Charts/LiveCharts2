@@ -21,29 +21,63 @@
 // SOFTWARE.
 
 using System;
+using System.Diagnostics;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace LiveChartsCore.Kernel;
 
-internal class ActionDebouncer(TimeSpan delay)
+internal sealed class ActionDebouncer(TimeSpan delay) : IDisposable
 {
     private readonly TimeSpan _delay = delay;
-    private CancellationTokenSource? _cts;
+    private readonly object _gate = new();
+    private Timer? _timer;
+    private Action? _pending;
 
-    public async Task Debounce(Action action)
+    public void Debounce(Action action)
     {
-        _cts?.Cancel(false);
-        _cts = new CancellationTokenSource();
-        var token = _cts.Token;
+        lock (_gate)
+        {
+            _pending = action;
+            if (_timer is null)
+                _timer = new Timer(OnTick, null, _delay, Timeout.InfiniteTimeSpan);
+            else
+                _ = _timer.Change(_delay, Timeout.InfiniteTimeSpan);
+        }
+    }
+
+    public void Dispose()
+    {
+        // Idempotent and revivable: if Debounce is called after Dispose (e.g.
+        // chart Load -> Unload -> Load), the next call creates a fresh Timer.
+        lock (_gate)
+        {
+            _timer?.Dispose();
+            _timer = null;
+            _pending = null;
+        }
+    }
+
+    private void OnTick(object? state)
+    {
+        Action? action;
+        lock (_gate)
+        {
+            action = _pending;
+            _pending = null;
+        }
 
         try
         {
-            await Task.Delay(_delay, token);
-            if (!token.IsCancellationRequested)
-                action();
+            action?.Invoke();
         }
-        catch (TaskCanceledException) { }
+        catch (Exception ex)
+        {
+            // OnTick runs on a ThreadPool thread; an unhandled throw here
+            // would terminate the process. Trace the exception (matching
+            // the pattern in Chart.UpdateThrottlerUnlocked from #1826) so
+            // listeners get a signal instead of a silent crash.
+            Trace.WriteLine($"[LiveCharts] debounced action failed: {ex}");
+        }
     }
 }
 

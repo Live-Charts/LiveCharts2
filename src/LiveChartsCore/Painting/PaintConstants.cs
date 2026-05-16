@@ -76,11 +76,6 @@ internal static class PaintConstants
 
     // Series-related z-index constants
     /// <summary>
-    /// Base z-index for stacked series.
-    /// </summary>
-    internal const double StackedSeriesBaseZIndex = 1000;
-
-    /// <summary>
     /// Z-index offset for series fill paint.
     /// </summary>
     internal const double SeriesFillZIndexOffset = 0.1;

@@ -23,6 +23,7 @@
 using System;
 using System.Runtime.InteropServices;
 using LiveChartsCore.Drawing;
+using LiveChartsCore.Kernel;
 using LiveChartsCore.Kernel.Events;
 using LiveChartsCore.Kernel.Sketches;
 using LiveChartsCore.SkiaSharpView.WinUI;
@@ -47,7 +48,7 @@ namespace LiveChartsGeneratedCode;
 public abstract partial class SourceGenChart : UserControl, IChartView
 {
     private DateTime _lastTouch;
-    private readonly ThemeListener _themeListener;
+    private LvcPoint _lastTouchPosition;
     private readonly PointerController _pointerController;
     private static readonly bool s_isWebAssembly = RuntimeInformation.IsOSPlatform(OSPlatform.Create("BROWSER"));
 
@@ -67,8 +68,6 @@ public abstract partial class SourceGenChart : UserControl, IChartView
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
 
-        _themeListener = new(CoreChart.ApplyTheme, DispatcherQueue);
-
         _pointerController = new PointerController();
 
         _pointerController.Pressed += OnPressed;
@@ -85,7 +84,12 @@ public abstract partial class SourceGenChart : UserControl, IChartView
     public CoreMotionCanvas CoreCanvas => MotionCanvas.CanvasCore;
 
     bool IChartView.DesignerMode => false;
-    bool IChartView.IsDarkMode => Application.Current?.RequestedTheme == ApplicationTheme.Dark;
+    // ActualTheme resolves the chain: this element's RequestedTheme -> any ancestor
+    // FrameworkElement.RequestedTheme -> Application.RequestedTheme -> system theme.
+    // Reading Application.RequestedTheme directly (the prior implementation) ignored
+    // both element-level overrides (the standard WinUI 3 pattern, e.g. setting
+    // RequestedTheme on a Window or page) and runtime theme toggles — see #2004.
+    bool IChartView.IsDarkMode => ActualTheme == ElementTheme.Dark;
     LvcColor IChartView.BackColor =>
         Background is not SolidColorBrush b
             ? CoreCanvas._virtualBackgroundColor
@@ -94,7 +98,7 @@ public abstract partial class SourceGenChart : UserControl, IChartView
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
-        _themeListener.Listen();
+        ActualThemeChanged += OnActualThemeChanged;
         _pointerController.InitializeController(this);
         StartObserving();
         CoreChart.Load();
@@ -102,11 +106,14 @@ public abstract partial class SourceGenChart : UserControl, IChartView
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
-        _themeListener.Dispose();
+        ActualThemeChanged -= OnActualThemeChanged;
         _pointerController.DisposeController(this);
         StopObserving();
         CoreChart.Unload();
     }
+
+    private void OnActualThemeChanged(FrameworkElement sender, object args) =>
+        CoreChart.ApplyTheme();
 
     private void AddUIElement(object item)
     {
@@ -126,12 +133,15 @@ public abstract partial class SourceGenChart : UserControl, IChartView
         if (PointerPressedCommand?.CanExecute(cArgs) == true)
             PointerPressedCommand.Execute(cArgs);
 
-        var isSecondary = (DateTime.Now - _lastTouch).TotalMilliseconds < 500;
+        var isSecondary = GestureHelpers.IsDoubleTap(args.Location, _lastTouchPosition, DateTime.Now - _lastTouch);
 
         CoreChart?.InvokePointerDown(args.Location, args.IsSecondaryPress || isSecondary);
 
         if (NativeHelpers.IsTouchDevice())
+        {
             _lastTouch = DateTime.Now;
+            _lastTouchPosition = args.Location;
+        }
     }
 
     private void OnMoved(object? sender, LiveChartsCore.Native.Events.ScreenEventArgs args)
@@ -147,9 +157,17 @@ public abstract partial class SourceGenChart : UserControl, IChartView
 
     private void OnReleased(object? sender, LiveChartsCore.Native.Events.PressedEventArgs args)
     {
-        var cArgs = new PointerCommandArgs(this, new(args.Location.X, args.Location.Y), args);
-        if (PointerReleasedCommand?.CanExecute(cArgs) == true)
-            PointerReleasedCommand.Execute(cArgs);
+        // Synthetic releases are raised by the chart itself when an ancestor steals
+        // pointer capture mid-drag (see #1576). The user has not actually lifted the
+        // pointer, so we must not invoke the public PointerReleasedCommand — only
+        // forward to the core chart so internal pan/drag state can be released. WPF
+        // and Avalonia follow the same rule from their own capture-loss handlers.
+        if (!args.IsSyntheticRelease)
+        {
+            var cArgs = new PointerCommandArgs(this, new(args.Location.X, args.Location.Y), args);
+            if (PointerReleasedCommand?.CanExecute(cArgs) == true)
+                PointerReleasedCommand.Execute(cArgs);
+        }
 
         CoreChart?.InvokePointerUp(args.Location, args.IsSecondaryPress);
     }

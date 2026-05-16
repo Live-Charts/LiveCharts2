@@ -3,6 +3,7 @@ using System.Collections;
 using System.Linq;
 using CoreTests.CoreObjectsTests;
 using LiveChartsCore;
+using LiveChartsCore.Measure;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
 using LiveChartsCore.SkiaSharpView.SKCharts;
@@ -15,6 +16,44 @@ namespace CoreTests.SeriesTests;
 [TestClass]
 public class VisibilityTests
 {
+    // Issue #2054: a series declared with IsVisible=false never reached the theme-application
+    // loop (which iterated VisibleSeries), leaving its paints null. The legend still listed it
+    // (IsVisibleAtLegend defaults to true) and the miniature crashed in SkiaSharp with
+    // "Value cannot be null. (Parameter 'paint')" at the first draw.
+    [TestMethod]
+    public void InvisibleSeriesWithLegend_DoesNotCrash_Issue2054()
+    {
+        var cartesian = new SKCartesianChart
+        {
+            Width = 500,
+            Height = 500,
+            LegendPosition = LegendPosition.Top,
+            Series = [new LineSeries<double> { IsVisible = false }],
+            ExplicitDisposing = true
+        };
+        _ = cartesian.GetImage();
+
+        var pie = new SKPieChart
+        {
+            Width = 500,
+            Height = 500,
+            LegendPosition = LegendPosition.Top,
+            Series = [new PieSeries<double> { IsVisible = false, Values = [1] }],
+            ExplicitDisposing = true
+        };
+        _ = pie.GetImage();
+
+        var polar = new SKPolarChart
+        {
+            Width = 500,
+            Height = 500,
+            LegendPosition = LegendPosition.Top,
+            Series = [new PolarLineSeries<double> { IsVisible = false }],
+            ExplicitDisposing = true
+        };
+        _ = polar.GetImage();
+    }
+
     [TestMethod]
     public void VisibilityChangingTest()
     {

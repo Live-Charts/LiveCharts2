@@ -56,6 +56,29 @@ public class PieChartTests
     }
 #endif
 
+#if AVALONIA_UI_TESTING
+    // Regression for https://github.com/Live-Charts/LiveCharts2/issues/2008
+    //
+    // When XAML inside an Avalonia ControlTemplate sets a XamlGaugeSeries property
+    // to a value equal to its DP default (e.g. CornerRadius="0"), Avalonia skips
+    // OnPropertyChanged. Without the EndInit sync, MapChangeToBaseType never fires
+    // and _userSets stays empty, so the gauge theme rule (CornerRadius=8) silently
+    // overrides the user's explicit 0.
+
+    [AppTestMethod]
+    public async Task GaugeSeriesRespectsXamlCornerRadiusZero_Issue2008()
+    {
+        var sut = await App.NavigateTo<Samples.VisualTest.Issue2008Repro.View>();
+
+        // wait for the templated control to instantiate and the chart to measure.
+        await Task.Delay(1500);
+
+        var series = sut.FindTemplatedGaugeSeries();
+        Xunit.Assert.NotNull(series);
+        Xunit.Assert.Equal(0d, series!.CornerRadius);
+    }
+#endif
+
 #if (WPF_UI_TESTING && TEST_HA_VIEWS) || MAUI_UI_TESTING || WINUI_UI_TESTING || (UNO_UI_TESTING && HAS_OS_LVC)
     // native platforms where gpu is supported
 

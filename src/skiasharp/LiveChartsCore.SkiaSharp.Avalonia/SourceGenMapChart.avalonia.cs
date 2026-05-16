@@ -51,6 +51,7 @@ public partial class SourceGenMapChart : UserControl, IGeoMapView, ICustomHitTes
         SizeChanged += (s, e) =>
             CoreChart.Update();
 
+        AttachedToVisualTree += GeoMap_AttachedToVisualTree;
         DetachedFromVisualTree += GeoMap_DetachedFromVisualTree;
     }
 
@@ -62,11 +63,11 @@ public partial class SourceGenMapChart : UserControl, IGeoMapView, ICustomHitTes
     bool IGeoMapView.DesignerMode => Design.IsDesignMode;
     LvcSize IDrawnView.ControlSize => new() { Width = (float)MotionCanvas.Bounds.Width, Height = (float)MotionCanvas.Bounds.Height };
 
-    private void GeoMap_DetachedFromVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
-    {
-        if (CoreChart is null) return;
-        CoreChart.Unload();
-    }
+    private void GeoMap_AttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e) =>
+        CoreChart?.Load();
+
+    private void GeoMap_DetachedFromVisualTree(object? sender, VisualTreeAttachmentEventArgs e) =>
+        CoreChart?.Unload();
 
     void IGeoMapView.InvokeOnUIThread(Action action) =>
         Dispatcher.UIThread.Post(action);

@@ -92,6 +92,18 @@ public abstract partial class SourceGenChart : ChartView, IChartView
     {
         StopObserving();
         CoreChart?.Unload();
+#if IOS || MACCATALYST
+        // Maui doesn't auto-DisconnectHandler when an Element leaves the visual tree.
+        // On Apple, ChartViewHandler.ConnectHandler attaches PointerController's
+        // UIKit gesture recognizers (UILongPress/UIPinch/UIPan/UIHover) to the
+        // platform UIView; UIKit holds the recognizers' selector target (the
+        // controller) strongly, the handler subscribes to the controller via
+        // instance methods, and Handler.VirtualView pins the chart — leaking
+        // every chart removed from the visual tree (#1725). Other platforms
+        // exhibit the same +=/-= pattern but don't leak in practice (no
+        // equivalent native-peer pinning), so scope this to Apple.
+        Handler?.DisconnectHandler();
+#endif
     }
 
     private ISeries InflateSeriesTemplate(object item)
@@ -144,9 +156,17 @@ public abstract partial class SourceGenChart : ChartView, IChartView
 
     internal override void OnReleased(object? sender, LiveChartsCore.Native.Events.PressedEventArgs args)
     {
-        var cArgs = new PointerCommandArgs(this, new(args.Location.X, args.Location.Y), args);
-        if (ReleasedCommand?.CanExecute(cArgs) == true)
-            ReleasedCommand.Execute(cArgs);
+        // Synthetic releases are raised by the shared PointerController on
+        // PointerCaptureLost (see #1576). The user has not actually lifted the
+        // pointer, so we must not invoke the public ReleasedCommand — only forward
+        // to the core chart so internal pan/drag state can be released. WinUI/Uno
+        // and WPF/Avalonia follow the same rule from their own platform paths.
+        if (!args.IsSyntheticRelease)
+        {
+            var cArgs = new PointerCommandArgs(this, new(args.Location.X, args.Location.Y), args);
+            if (ReleasedCommand?.CanExecute(cArgs) == true)
+                ReleasedCommand.Execute(cArgs);
+        }
 
         CoreChart.InvokePointerUp(args.Location, args.IsSecondaryPress);
     }

@@ -167,6 +167,32 @@ public partial class XamlGaugeSeries<TVisual, TLabel> : XamlSeries, IPieSeries, 
         MapChangeToBaseType(change.Property.Name);
         OnXamlPropertyChanged(change);
     }
+
+    /// <inheritdoc />
+    public override void EndInit()
+    {
+        base.EndInit();
+
+        // Avalonia skips OnPropertyChanged when SetValue assigns a value equal to the
+        // property's default (e.g. CornerRadius="0" where the DP default is also 0).
+        // MapChangeToBaseType then never runs for that property, _userSets stays empty,
+        // and a theme rule (HasRuleForGaugeSeries setting CornerRadius=8) silently
+        // overrides the user's explicit value (issue #2008). Series controls don't
+        // get rooted in the visual tree (they're collected by Series, not Children),
+        // so OnInitialized never fires for them — but EndInit does, after the XAML
+        // parser has applied every value.
+        //
+        // Walk the registered DPs and sync any property whose value source isn't the
+        // default. MapChangeToBaseType pushes the value into the wrapped CorePieSeries
+        // and SetProperty there records the property in _userSets, blocking subsequent
+        // theme overrides. Properties at default source are skipped so theme defaults
+        // still apply for unspecified properties.
+        foreach (var prop in global::Avalonia.AvaloniaPropertyRegistry.Instance.GetRegistered(GetType()))
+        {
+            if (IsSet(prop))
+                MapChangeToBaseType(prop.Name);
+        }
+    }
 #endif
 }
 

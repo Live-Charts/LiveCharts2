@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Collections.Generic;
+using System.Globalization;
 using LiveChartsCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -7,6 +8,22 @@ namespace CoreTests.CoreObjectsTests;
 [TestClass]
 public class LabelerTesting
 {
+    [TestMethod]
+    public void NamedLabeler_NullEntry_ReturnsEmpty()
+    {
+        // regression for #1826: a null entry in Axis.Labels would flow as a null
+        // string into the rendering pipeline. The named labeler must coerce
+        // nulls to string.Empty so the chart renders the position blank instead
+        // of failing silently downstream.
+        var labeler = Labelers.BuildNamedLabeler(new List<string> { "A", null!, "C" });
+
+        Assert.AreEqual("A", labeler(0));
+        Assert.AreEqual(string.Empty, labeler(1));
+        Assert.AreEqual("C", labeler(2));
+        Assert.AreEqual(string.Empty, labeler(3));  // out of range
+        Assert.AreEqual(string.Empty, labeler(-1)); // out of range
+    }
+
     [TestMethod]
     public void Million()
     {

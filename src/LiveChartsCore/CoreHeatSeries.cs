@@ -46,6 +46,8 @@ public abstract class CoreHeatSeries<TModel, TVisual, TLabel>
     private Paint? _paintTaks;
     private int _heatKnownLength = 0;
     private List<Tuple<double, LvcColor>> _heatStops = [];
+    private double _xStep = double.NaN;
+    private double _yStep = double.NaN;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CoreHeatSeries{TModel, TVisual, TLabel}"/> class.
@@ -107,6 +109,8 @@ public abstract class CoreHeatSeries<TModel, TVisual, TLabel>
         }
 
         var cartesianChart = (CartesianChartEngine)chart;
+        _ = GetAnimation(cartesianChart);
+
         var primaryAxis = cartesianChart.GetYAxis(this);
         var secondaryAxis = cartesianChart.GetXAxis(this);
 
@@ -117,8 +121,13 @@ public abstract class CoreHeatSeries<TModel, TVisual, TLabel>
         var previousPrimaryScale = primaryAxis.GetActualScaler(cartesianChart);
         var previousSecondaryScale = secondaryAxis.GetActualScaler(cartesianChart);
 
-        var uws = secondaryScale.MeasureInPixels(secondaryAxis.UnitWidth);
-        var uwp = primaryScale.MeasureInPixels(primaryAxis.UnitWidth);
+        // Cell size is driven by the actual data spacing (computed once per measure
+        // cycle in GetBounds) rather than Axis.UnitWidth, which defaults to 1 and is
+        // correct only for unit-stepped axes. See issue #1511.
+        var xStep = double.IsNaN(_xStep) ? secondaryAxis.UnitWidth : _xStep;
+        var yStep = double.IsNaN(_yStep) ? primaryAxis.UnitWidth : _yStep;
+        var uws = secondaryScale.MeasureInPixels(xStep);
+        var uwp = primaryScale.MeasureInPixels(yStep);
 
         var actualZIndex = ZIndex == 0 ? ((ISeries)this).SeriesId : ZIndex;
 
@@ -255,8 +264,7 @@ public abstract class CoreHeatSeries<TModel, TVisual, TLabel>
                 {
                     var l = new TLabel { X = secondary - uws * 0.5f, Y = primary - uws * 0.5f, RotateTransform = (float)DataLabelsRotation, MaxWidth = (float)DataLabelsMaxWidth };
                     l.Animate(
-                        EasingFunction ?? cartesianChart.ActualEasingFunction,
-                        AnimationsSpeed ?? cartesianChart.ActualAnimationsSpeed,
+                        GetAnimation(cartesianChart),
                         BaseLabelGeometry.XProperty,
                         BaseLabelGeometry.YProperty);
                     label = l;
@@ -295,10 +303,40 @@ public abstract class CoreHeatSeries<TModel, TVisual, TLabel>
     /// <inheritdoc cref="CartesianSeries{TModel, TVisual, TLabel}.GetBounds(Chart, ICartesianAxis, ICartesianAxis)"/>
     public override SeriesBounds GetBounds(Chart chart, ICartesianAxis secondaryAxis, ICartesianAxis primaryAxis)
     {
+        // Derive cell steps from the data once per measure cycle and cache them so
+        // Invalidate (the per-frame hot path) can read them without an extra scan.
+        ComputeCellSteps(chart, secondaryAxis.UnitWidth, primaryAxis.UnitWidth);
+
         var seriesBounds = base.GetBounds(chart, secondaryAxis, primaryAxis);
-        var b = seriesBounds.Bounds.TertiaryBounds;
-        WeightBounds = new(MinValue ?? b.Min, MaxValue ?? b.Max);
+        var b = seriesBounds.Bounds;
+        WeightBounds = new(MinValue ?? b.TertiaryBounds.Min, MaxValue ?? b.TertiaryBounds.Max);
+
+        // SeriesBounds.HasData is true when there's no data to render; base.GetBounds
+        // returns the un-padded raw bounds in that case, so nothing to compensate.
+        if (seriesBounds.HasData) return seriesBounds;
+
+        // base.GetBounds padded SecondaryBounds/PrimaryBounds by offset * Axis.UnitWidth,
+        // which over-expands the auto axis when the data step is finer than UnitWidth
+        // (e.g. UnitWidth=1 on a Y axis stepped by 0.1 adds 0.5 of empty space each
+        // side). Add the (cellStep - UnitWidth) * offset delta so padding matches
+        // cell sizing.
+        var rso = GetRequestedSecondaryOffset();
+        var rpo = GetRequestedPrimaryOffset();
+        var dx = (_xStep - secondaryAxis.UnitWidth) * rso;
+        var dy = (_yStep - primaryAxis.UnitWidth) * rpo;
+
+        Expand(b.SecondaryBounds, dx);
+        Expand(b.VisibleSecondaryBounds, dx);
+        Expand(b.PrimaryBounds, dy);
+        Expand(b.VisiblePrimaryBounds, dy);
+
         return seriesBounds;
+
+        static void Expand(Bounds bounds, double delta)
+        {
+            bounds.Max += delta;
+            bounds.Min -= delta;
+        }
     }
 
     /// <inheritdoc cref="CartesianSeries{TModel, TVisual, TLabel}.GetRequestedSecondaryOffset"/>
@@ -312,7 +350,7 @@ public abstract class CoreHeatSeries<TModel, TVisual, TLabel>
     {
         var chart = chartPoint.Context.Chart;
         if (chartPoint.Context.Visual is not TVisual visual) throw new Exception("Unable to initialize the point instance.");
-        visual.Animate(EasingFunction ?? chart.CoreChart.ActualEasingFunction, AnimationsSpeed ?? chart.CoreChart.ActualAnimationsSpeed);
+        visual.Animate(GetAnimation(chart.CoreChart));
     }
 
     /// <inheritdoc cref="CartesianSeries{TModel, TVisual, TLabel}.SoftDeleteOrDisposePoint(ChartPoint, Scaler, Scaler)"/>
@@ -353,5 +391,41 @@ public abstract class CoreHeatSeries<TModel, TVisual, TLabel>
     {
         return SeriesProperties.Heat | SeriesProperties.PrimaryAxisVerticalOrientation |
             SeriesProperties.Solid | SeriesProperties.PrefersXYStrategyTooltips;
+    }
+
+    private void ComputeCellSteps(Chart chart, double xFallback, double yFallback)
+    {
+        var xs = new HashSet<double>();
+        var ys = new HashSet<double>();
+        foreach (var point in Fetch(chart))
+        {
+            // Empty points carry Coordinate(0, 0); including them would inject a
+            // spurious 0 into the distinct-values set and shrink the computed step.
+            if (point.IsEmpty) continue;
+            var c = point.Coordinate;
+            _ = xs.Add(c.SecondaryValue);
+            _ = ys.Add(c.PrimaryValue);
+        }
+
+        _xStep = MinStep(xs, xFallback);
+        _yStep = MinStep(ys, yFallback);
+
+        static double MinStep(HashSet<double> values, double fallback)
+        {
+            if (values.Count < 2) return fallback;
+
+            var sorted = new double[values.Count];
+            values.CopyTo(sorted);
+            Array.Sort(sorted);
+
+            var min = double.PositiveInfinity;
+            for (var i = 1; i < sorted.Length; i++)
+            {
+                var delta = sorted[i] - sorted[i - 1];
+                if (delta > 0 && delta < min) min = delta;
+            }
+
+            return double.IsPositiveInfinity(min) ? fallback : min;
+        }
     }
 }

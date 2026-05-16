@@ -239,7 +239,10 @@ public interface ICartesianAxis : IPlane, INotifyPropertyChanged
     AxisLimit GetLimits();
 
     /// <summary>
-    /// Sets the axis limits (own and shared).
+    /// Sets the current view limits (own and shared). This is the engine/runtime path used by zoom
+    /// and pan; it does <b>not</b> record a user pin. To pin a range that zoom-out and post-zoom fit
+    /// must respect as the outer rail, set <see cref="IPlane.MinLimit"/> / <see cref="IPlane.MaxLimit"/>
+    /// instead.
     /// </summary>
     /// <param name="min">The min limit.</param>
     /// <param name="max">The max limit.</param>

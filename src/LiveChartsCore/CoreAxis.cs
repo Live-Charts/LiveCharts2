@@ -40,7 +40,7 @@ namespace LiveChartsCore;
 /// <typeparam name="TTextGeometry">The type of the text geometry.</typeparam>
 /// <typeparam name="TLineGeometry">The type of the line geometry.</typeparam>
 public abstract class CoreAxis<TTextGeometry, TLineGeometry>
-    : ChartElement, ICartesianAxis, IPlane
+    : ChartElement, ICartesianAxis, IInternalCartesianAxis, IPlane
         where TTextGeometry : BaseLabelGeometry, new()
         where TLineGeometry : BaseLineGeometry, new()
 {
@@ -63,6 +63,9 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
     private TTextGeometry? _nameGeometry;
     private double? _minLimit = null;
     private double? _maxLimit = null;
+    private double? _userSetMinLimit = null;
+    private double? _userSetMaxLimit = null;
+    private bool _isEngineSettingLimits;
     private BaseLineGeometry? _ticksPath;
     private BaseLineGeometry? _zeroLine;
     private BaseLineGeometry? _crosshairLine;
@@ -73,6 +76,11 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
     internal double? _logBase;
     internal DoubleMotionProperty? _animatableMin;
     internal DoubleMotionProperty? _animatableMax;
+
+    // Shared by every geometry this axis animates. Mutated in-place on each Invalidate so
+    // AnimationsSpeed/EasingFunction changes reach already-created visuals — every MotionProperty
+    // holds a reference to this same instance, not a copy.
+    private readonly Animation _animation = new(EasingFunctions.QuadraticOut, TimeSpan.Zero);
 
     #endregion
 
@@ -123,6 +131,9 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
     /// <inheritdoc cref="IPlane.ForceStepToMin"/>
     public bool ForceStepToMin { get => _forceStepToMin; set => SetProperty(ref _forceStepToMin, value); }
 
+    /// <inheritdoc cref="IPlane.MinSeparators"/>
+    public int MinSeparators { get; set => SetProperty(ref field, value); } = 3;
+
     /// <inheritdoc cref="IPlane.MinLimit"/>
     public double? MinLimit
     {
@@ -133,6 +144,15 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
 
             if (filtered is not null && double.IsNaN(filtered.Value))
                 filtered = null;
+
+            // Track the user-set pinning separately from the view min/max.
+            // The chart engine's zoom/pan path also lands here (via
+            // SetLimits(notify: true)) — that path raises _isEngineSettingLimits
+            // so the engine's transient view is NOT mistaken for a user pin.
+            // Without this guard the outer rail collapses onto the zoomed-out
+            // view and the bounce-back-to-fit is lost (#2159).
+            if (!_isEngineSettingLimits)
+                _userSetMinLimit = filtered;
 
             SetProperty(ref _minLimit, filtered);
         }
@@ -148,6 +168,9 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
 
             if (filtered is not null && double.IsNaN(filtered.Value))
                 filtered = null;
+
+            if (!_isEngineSettingLimits)
+                _userSetMaxLimit = filtered;
 
             SetProperty(ref _maxLimit, filtered);
         }
@@ -290,6 +313,9 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
     /// <inheritdoc cref="ICartesianAxis.SharedWith"/>
     public IEnumerable<ICartesianAxis>? SharedWith { get; set; }
 
+    double? IInternalCartesianAxis.UserSetMinLimit => _userSetMinLimit;
+    double? IInternalCartesianAxis.UserSetMaxLimit => _userSetMaxLimit;
+
     #endregion
 
     /// <inheritdoc cref="ICartesianAxis.MeasureStarted"/>
@@ -299,6 +325,7 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
     public override void Invalidate(Chart chart)
     {
         var cartesianChart = (CartesianChartEngine)chart;
+        var animation = GetAnimation(cartesianChart);
 
         var controlSize = cartesianChart.ControlSize;
         var drawLocation = cartesianChart.DrawMarginLocation;
@@ -311,18 +338,8 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
 
         if (_animatableMin is null || _animatableMax is null)
         {
-            _animatableMin = new DoubleMotionProperty(min)
-            {
-                Animation = new Animation(
-                    EasingFunction ?? cartesianChart.ActualEasingFunction,
-                    AnimationsSpeed ?? cartesianChart.ActualAnimationsSpeed)
-            };
-            _animatableMax = new DoubleMotionProperty(max)
-            {
-                Animation = new Animation(
-                    EasingFunction ?? cartesianChart.ActualEasingFunction,
-                    AnimationsSpeed ?? cartesianChart.ActualAnimationsSpeed)
-            };
+            _animatableMin = new DoubleMotionProperty(min) { Animation = animation };
+            _animatableMax = new DoubleMotionProperty(max) { Animation = animation };
         }
 
         _animatableMin.SetMovement(min, Animatable.Empty);
@@ -903,6 +920,13 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
         var mind = DataBounds.Min;
         var minZoomDelta = MinZoomDelta ?? DataBounds.MinDelta * 3;
 
+        // The user pin must be aggregated across the shared group the same way
+        // Min/Max/DataMin/DataMax are: a zoom started from an unpinned shared
+        // axis still has to honor a sibling's pin as the outer rail, otherwise
+        // SetLimits propagates a data-bounds collapse onto the pinned axis (#2159).
+        var userSetMin = _userSetMinLimit;
+        var userSetMax = _userSetMaxLimit;
+
         foreach (var axis in SharedWith ?? [])
         {
             var maxI = axis.MaxLimit is null ? axis.DataBounds.Max : axis.MaxLimit.Value;
@@ -915,6 +939,15 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
             if (minI < min) min = minI;
             if (maxDI > maxd) maxd = maxDI;
             if (minDI < mind) mind = minDI;
+
+            // widest pin wins: smallest non-null UserSetMin, largest non-null UserSetMax
+            if (axis is IInternalCartesianAxis internalAxis)
+            {
+                if (internalAxis.UserSetMinLimit is { } usMin && (userSetMin is null || usMin < userSetMin))
+                    userSetMin = usMin;
+                if (internalAxis.UserSetMaxLimit is { } usMax && (userSetMax is null || usMax > userSetMax))
+                    userSetMax = usMax;
+            }
         }
 
         if (double.IsInfinity(minZoomDelta))
@@ -927,7 +960,11 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
             maxd = max;
         }
 
-        return new(min, max, minZoomDelta, mind, maxd);
+        return new(min, max, minZoomDelta, mind, maxd)
+        {
+            UserSetMin = userSetMin,
+            UserSetMax = userSetMax,
+        };
     }
 
     /// <inheritdoc cref="ICartesianAxis.SetLimits(double, double, double, bool, bool)"/>
@@ -940,6 +977,11 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
 
         if (notify)
         {
+            // notify: true still raises PropertyChanged so two-way MinLimit/
+            // MaxLimit bindings track zoom/pan — but _isEngineSettingLimits
+            // keeps the property setters from recording this engine-driven
+            // view change as a user pin (#2159).
+            _isEngineSettingLimits = true;
             MinLimit = min;
             MaxLimit = max;
 
@@ -948,6 +990,7 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
                 ForceStepToMin = true;
                 MinStep = step;
             }
+            _isEngineSettingLimits = false;
         }
         else
         {
@@ -1032,6 +1075,16 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
         return labeler;
     }
 
+    private Animation GetAnimation(Chart chart)
+    {
+        if (AnimationsSpeed is null && EasingFunction is null)
+            return chart.Animation;
+
+        _animation.Duration = (long)(AnimationsSpeed ?? chart.ActualAnimationsSpeed).TotalMilliseconds;
+        _animation.EasingFunction = EasingFunction ?? chart.ActualEasingFunction;
+        return _animation;
+    }
+
     private LvcSize GetPossibleMaxLabelSize()
     {
         if (LabelsPaint is null) return new LvcSize();
@@ -1093,7 +1146,7 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
                 VerticalAlign = Align.Middle
             };
 
-            _nameGeometry.Animate(EasingFunction ?? cartesianChart.ActualEasingFunction, AnimationsSpeed ?? cartesianChart.ActualAnimationsSpeed);
+            _nameGeometry.Animate(GetAnimation(cartesianChart));
             isNew = true;
         }
 
@@ -1166,9 +1219,7 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
     }
 
     private void InitializeLine(BaseLineGeometry lineGeometry, CartesianChartEngine cartesianChart) =>
-        lineGeometry.Animate(
-            EasingFunction ?? cartesianChart.ActualEasingFunction,
-            AnimationsSpeed ?? cartesianChart.ActualAnimationsSpeed);
+        lineGeometry.Animate(GetAnimation(cartesianChart));
 
     private void InitializeTick(
         AxisVisualSeprator visualSeparator, CartesianChartEngine cartesianChart, TLineGeometry? subTickGeometry = null)
@@ -1185,9 +1236,7 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
             visualSeparator.Tick = tickGeometry;
         }
 
-        tickGeometry.Animate(
-            EasingFunction ?? cartesianChart.ActualEasingFunction,
-            AnimationsSpeed ?? cartesianChart.ActualAnimationsSpeed);
+        tickGeometry.Animate(GetAnimation(cartesianChart));
     }
 
     private void InitializeSubticks(
@@ -1215,8 +1264,7 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
         if (hasRotation) textGeometry.RotateTransform = r;
 
         textGeometry.Animate(
-            EasingFunction ?? cartesianChart.ActualEasingFunction,
-            AnimationsSpeed ?? cartesianChart.ActualAnimationsSpeed,
+            GetAnimation(cartesianChart),
             BaseLabelGeometry.XProperty,
             BaseLabelGeometry.YProperty,
             BaseLabelGeometry.OpacityProperty);

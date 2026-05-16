@@ -49,8 +49,23 @@ public class DrawnLabelVisual : Visual
     /// <param name="labelGeometry">The label.</param>
     public DrawnLabelVisual(LabelGeometry labelGeometry)
     {
+        // Chart.AddTitleToChart positions the title at (X, 0) and expects the
+        // bbox top-left at that point. BaseLabelGeometry defaults to Align.Middle,
+        // which would center the bbox on Y=0 and clip the top half.
+        labelGeometry.HorizontalAlign = Align.Start;
+        labelGeometry.VerticalAlign = Align.Start;
         _drawnElement = labelGeometry;
     }
+
+    /// <summary>
+    /// Gets the underlying <see cref="LabelGeometry"/>. Use this to read or
+    /// mutate label properties such as
+    /// <see cref="BaseLabelGeometry.Text"/>,
+    /// <see cref="BaseLabelGeometry.TextSize"/>,
+    /// <see cref="BaseLabelGeometry.Paint"/> or
+    /// <see cref="BaseLabelGeometry.Padding"/> after construction.
+    /// </summary>
+    public LabelGeometry Label => _drawnElement;
 
     /// <inheritdoc cref="Visual.DrawnElement"/>
     protected internal override IDrawnElement? DrawnElement => _drawnElement;

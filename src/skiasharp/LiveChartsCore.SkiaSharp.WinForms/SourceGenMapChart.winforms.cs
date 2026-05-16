@@ -84,6 +84,13 @@ public abstract partial class SourceGenMapChart : UserControl, IGeoMapView
         _ = BeginInvoke(action);
     }
 
+    /// <inheritdoc cref="ContainerControl.OnParentChanged(EventArgs)"/>
+    protected override void OnParentChanged(EventArgs e)
+    {
+        base.OnParentChanged(e);
+        CoreChart?.Load();
+    }
+
     /// <summary>
     /// Raises the <see cref="E:HandleDestroyed" /> event.
     /// </summary>

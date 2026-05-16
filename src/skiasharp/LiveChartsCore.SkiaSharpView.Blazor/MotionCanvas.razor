@@ -37,14 +37,30 @@
 -->
 
 <div>
-    <SKGLView
-	    @ref="_glView"
-	    OnPaintSurface="OnPaintGlSurface"
-	    IgnorePixelScaling="true"
-	    @onpointerdown="OnPointerDown"
-	    @onpointermove="OnPointerMove"
-	    @onpointerup="OnPointerUp"
-	    @onpointerout="OnPointerOut"
-	    @onmousewheel="OnWheel">
-    </SKGLView>
+    @if (_useGpu)
+    {
+        <SKGLView
+	        @ref="_glView"
+	        OnPaintSurface="OnPaintGlSurface"
+	        IgnorePixelScaling="true"
+	        @onpointerdown="OnPointerDown"
+	        @onpointermove="OnPointerMove"
+	        @onpointerup="OnPointerUp"
+	        @onpointerout="OnPointerOut"
+	        @onmousewheel="OnWheel">
+        </SKGLView>
+    }
+    else
+    {
+        <SKCanvasView
+	        @ref="_canvasView"
+	        OnPaintSurface="OnPaintCanvasSurface"
+	        IgnorePixelScaling="true"
+	        @onpointerdown="OnPointerDown"
+	        @onpointermove="OnPointerMove"
+	        @onpointerup="OnPointerUp"
+	        @onpointerout="OnPointerOut"
+	        @onmousewheel="OnWheel">
+        </SKCanvasView>
+    }
 </div>

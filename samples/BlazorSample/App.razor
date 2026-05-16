@@ -22,6 +22,14 @@
         // LiveCharts configuration section: // mark
         LiveCharts.Configure(c => c // mark
             .AddLiveChartsAppSettings()); // mark
+
+#if BLAZOR_UI_TESTING
+        // Headless Chrome on the GHA Linux runner has no GPU and (post-Chrome 12x)
+        // no implicit SwiftShader fallback for WebGL, so SKGLView's InitGL probe
+        // fails. Tests run on the SKCanvasView raster path; production users
+        // keep the Blazor default of UseGPU=true (WebGL).
+        LiveCharts.Configure(c => c.HasRenderingSettings(s => s.UseGPU = false));
+#endif
     }
 
     // protected override async Task OnInitializedAsync()

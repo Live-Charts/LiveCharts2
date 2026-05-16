@@ -33,6 +33,12 @@ namespace LiveChartsCore.Native;
 internal partial class PointerController : INativePointerController
 {
     private bool _isPinching;
+    private bool _isPointerDown;
+    // Remember the original press's button so the synthetic release we raise on
+    // PointerCaptureLost reports the same button (right-click drags interrupted by
+    // an ancestor capture-steal must not be reported as a primary-button release).
+    private bool _wasSecondaryPress;
+    private LiveChartsCore.Drawing.LvcPoint _lastPointerPosition;
     private DateTime _pressedTime;
 
     public void InitializeController(object view)
@@ -42,6 +48,7 @@ internal partial class PointerController : INativePointerController
         winUIView.PointerPressed += OnWindowsPointerPressed;
         winUIView.PointerMoved += OnWindowsPointerMoved;
         winUIView.PointerReleased += OnWindowsPointerReleased;
+        winUIView.PointerCaptureLost += OnWindowsPointerCaptureLost;
         winUIView.PointerWheelChanged += OnWindowsPointerWheelChanged;
         winUIView.PointerExited += OnWindowsPointerExited;
 
@@ -58,6 +65,7 @@ internal partial class PointerController : INativePointerController
         winUIView.PointerPressed -= OnWindowsPointerPressed;
         winUIView.PointerMoved -= OnWindowsPointerMoved;
         winUIView.PointerReleased -= OnWindowsPointerReleased;
+        winUIView.PointerCaptureLost -= OnWindowsPointerCaptureLost;
         winUIView.PointerWheelChanged -= OnWindowsPointerWheelChanged;
         winUIView.PointerExited -= OnWindowsPointerExited;
 
@@ -77,9 +85,13 @@ internal partial class PointerController : INativePointerController
         _ = element.CapturePointer(e.Pointer);
 #endif
 
+        _isPointerDown = true;
+        _wasSecondaryPress = p.Properties.IsRightButtonPressed;
+        _lastPointerPosition = new(p.Position.X, p.Position.Y);
+
         Pressed?.Invoke(
             sender,
-            new(new(p.Position.X, p.Position.Y), p.Properties.IsRightButtonPressed, e));
+            new(_lastPointerPosition, _wasSecondaryPress, e));
 
         _pressedTime = DateTime.Now;
     }
@@ -92,9 +104,11 @@ internal partial class PointerController : INativePointerController
         var p = e.GetCurrentPoint(sender as UIElement);
         if (p is null) return;
 
+        _lastPointerPosition = new(p.Position.X, p.Position.Y);
+
         Moved?.Invoke(
             sender,
-            new(new(p.Position.X, p.Position.Y), e));
+            new(_lastPointerPosition, e));
     }
 
     private void OnWindowsPointerReleased(object sender, PointerRoutedEventArgs e)
@@ -108,9 +122,29 @@ internal partial class PointerController : INativePointerController
         element.ReleasePointerCapture(element.PointerCaptures[0]);
 #endif
 
+        _isPointerDown = false;
+        _lastPointerPosition = new(p.Position.X, p.Position.Y);
+
         Released?.Invoke(
             sender,
-            new(new(p.Position.X, p.Position.Y), p.Properties.IsRightButtonPressed, e));
+            new(_lastPointerPosition, p.Properties.IsRightButtonPressed, e));
+    }
+
+    // When an ancestor (e.g. a button wrapping the chart, see #1576) calls
+    // CapturePointer mid-gesture, capture is transferred away from the chart and
+    // PointerReleased is then routed to the ancestor; the chart never sees it and
+    // pan/drag state stays armed. Treat capture loss as a synthetic release.
+    private void OnWindowsPointerCaptureLost(object sender, PointerRoutedEventArgs e)
+    {
+        if (!_isPointerDown) return;
+        _isPointerDown = false;
+
+        // Mark this Released as synthetic so the shared OnReleased handler skips
+        // PointerReleasedCommand: the user is still holding the button; we are
+        // raising this only so the core chart can release its pan/drag state.
+        Released?.Invoke(
+            sender,
+            new(_lastPointerPosition, _wasSecondaryPress, isSyntheticRelease: true, e));
     }
 
     private void OnWindowsPointerWheelChanged(object sender, PointerRoutedEventArgs e)

@@ -63,10 +63,17 @@ public abstract partial class SourceGenMapChart : Panel, IGeoMapView
     void IGeoMapView.InvokeOnUIThread(Action action) =>
         _ = Application.Instance.InvokeAsync(action);
 
+    /// <inheritdoc cref="Control.OnLoadComplete(EventArgs)"/>
+    protected override void OnLoadComplete(EventArgs e)
+    {
+        base.OnLoadComplete(e);
+        CoreChart?.Load();
+    }
+
     /// <inheritdoc cref="Control.OnUnLoad(EventArgs)"/>
     protected override void OnUnLoad(EventArgs e)
     {
         base.OnUnLoad(e);
-        CoreChart.Unload();
+        CoreChart?.Unload();
     }
 }

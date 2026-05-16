@@ -154,6 +154,21 @@ Uses a grid system to place `IDrawnElement` objects.
 {{~ render "~/../samples/ViewModelsSamples/General/VisualElements/TableVisual.cs" ~}}
 ```
 
+### Z-ordering with series
+
+By default, every series whose `ZIndex` is unset draws its fill at `SeriesId + 0.1`, while a `Visual` (or
+`VisualElement`) draws at `0`. That means decorations land **behind** the data they annotate, which is
+rarely what you want for glyphs, callouts or markers.
+
+To bring a visual to the front, set `Visual.ZIndex` (or `VisualElement.ZIndex`) to a value above
+the series stack. A safe ceiling is `1000` (above stacked series and below the crosshair layer):
+
+```csharp
+new RectangleVisual { ZIndex = 1000 };
+```
+
+Set it to `0` (the default) to keep the legacy "behind the series" placement, useful for backgrounds.
+
 ### Update on property change
 
 To do...

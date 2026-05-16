@@ -59,6 +59,10 @@ public abstract class CorePolarAxis<TTextGeometry, TLineGeometry, TCircleGeometr
     private Bounds? _visibleDataBounds = null;
     private LvcColor _labelsBackground = new(255, 255, 255);
 
+    // Shared Animation reference; mutated in-place so AnimationsSpeed/EasingFunction changes
+    // reach every existing geometry without recreating it.
+    private readonly Animation _animation = new(EasingFunctions.QuadraticOut, TimeSpan.Zero);
+
     #endregion
 
     #region properties
@@ -94,6 +98,9 @@ public abstract class CorePolarAxis<TTextGeometry, TLineGeometry, TCircleGeometr
 
     /// <inheritdoc cref="IPlane.ForceStepToMin"/>
     public bool ForceStepToMin { get; set => SetProperty(ref field, value); }
+
+    /// <inheritdoc cref="IPlane.MinSeparators"/>
+    public int MinSeparators { get; set => SetProperty(ref field, value); } = 3;
 
     /// <inheritdoc cref="IPlane.MinLimit"/>
     public double? MinLimit { get; set => SetProperty(ref field, value); } = null;
@@ -170,6 +177,7 @@ public abstract class CorePolarAxis<TTextGeometry, TLineGeometry, TCircleGeometr
     public override void Invalidate(Chart chart)
     {
         var polarChart = (PolarChartEngine)chart;
+        _ = GetAnimation(polarChart);
 
         if (_dataBounds is null) throw new Exception("DataBounds not found");
 
@@ -274,7 +282,7 @@ public abstract class CorePolarAxis<TTextGeometry, TLineGeometry, TCircleGeometr
                     visualSeparator.Label = textGeometry;
                     if (hasRotation) textGeometry.RotateTransform = r;
 
-                    textGeometry.Animate(EasingFunction ?? chart.ActualEasingFunction, AnimationsSpeed ?? chart.ActualAnimationsSpeed);
+                    textGeometry.Animate(GetAnimation(chart));
 
                     textGeometry.X = l.X;
                     textGeometry.Y = l.Y;
@@ -291,7 +299,7 @@ public abstract class CorePolarAxis<TTextGeometry, TLineGeometry, TCircleGeometr
 
                         linearSeparator.Separator = lineGeometry;
 
-                        lineGeometry.Animate(EasingFunction ?? chart.ActualEasingFunction, AnimationsSpeed ?? chart.ActualAnimationsSpeed);
+                        lineGeometry.Animate(GetAnimation(chart));
 
                         lineGeometry.Opacity = 0;
                         lineGeometry.CompleteTransition(null);
@@ -303,7 +311,7 @@ public abstract class CorePolarAxis<TTextGeometry, TLineGeometry, TCircleGeometr
 
                         polarSeparator.Circle = circleGeometry;
 
-                        circleGeometry.Animate(EasingFunction ?? chart.ActualEasingFunction, AnimationsSpeed ?? chart.ActualAnimationsSpeed);
+                        circleGeometry.Animate(GetAnimation(chart));
 
                         var h = Math.Sqrt(Math.Pow(l.X - scaler.CenterX, 2) + Math.Pow(l.Y - scaler.CenterY, 2));
                         var radius = (float)h;
@@ -588,5 +596,15 @@ public abstract class CorePolarAxis<TTextGeometry, TLineGeometry, TCircleGeometr
         }
 
         return labeler;
+    }
+
+    private Animation GetAnimation(Chart chart)
+    {
+        if (AnimationsSpeed is null && EasingFunction is null)
+            return chart.Animation;
+
+        _animation.Duration = (long)(AnimationsSpeed ?? chart.ActualAnimationsSpeed).TotalMilliseconds;
+        _animation.EasingFunction = EasingFunction ?? chart.ActualEasingFunction;
+        return _animation;
     }
 }

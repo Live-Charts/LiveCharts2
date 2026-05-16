@@ -124,6 +124,8 @@ public abstract class CoreLineSeries<TModel, TVisual, TLabel, TPathGeometry, TEr
     public override void Invalidate(Chart chart)
     {
         var cartesianChart = (CartesianChartEngine)chart;
+        _ = GetAnimation(cartesianChart);
+
         var primaryAxis = cartesianChart.GetYAxis(this);
         var secondaryAxis = cartesianChart.GetXAxis(this);
 
@@ -150,18 +152,19 @@ public abstract class CoreLineSeries<TModel, TVisual, TLabel, TPathGeometry, TEr
             ? cartesianChart.SeriesContext.GetStackPosition(this, GetStackGroup())
             : null;
 
-        var actualZIndex = ZIndex == 0 ? ((ISeries)this).SeriesId : ZIndex;
-
-        if (stacker is not null)
-        {
-            // Note# 010621
-            // easy workaround to set an automatic and valid z-index for stacked area series
-            // the problem of this solution is that the user needs to set z-indexes above 1000
-            // if the user needs to add more series to the chart.
-            actualZIndex = (int)PaintConstants.StackedSeriesBaseZIndex - stacker.Position;
-            Fill?.ZIndex = actualZIndex;
-            Stroke?.ZIndex = actualZIndex;
-        }
+        // #1923: anchor a default-ZIndex stacked area at the largest SeriesId in
+        // its stack group, then subtract Position so the bottom layer (Position 0)
+        // draws ON TOP of later, larger-fill layers. Stacked area fills extend
+        // from the line down to the pivot, so within-stack ordering is required
+        // for the layers to be individually visible. The whole stack sits as one
+        // rank against non-stacked siblings: a default-ZIndex Line added AFTER
+        // the last stacked series (SeriesId > MaxSeriesId) wins; a Line added
+        // BEFORE the first stacked series loses. User-set ZIndex always wins.
+        var actualZIndex = ZIndex != 0
+            ? ZIndex
+            : stacker is not null
+                ? stacker.Stacker.MaxSeriesId - stacker.Position
+                : ((ISeries)this).SeriesId;
 
         var dls = (float)DataLabelsSize;
         var pointsCleanup = ChartPointCleanupContext.For(everFetched);
@@ -226,7 +229,7 @@ public abstract class CoreLineSeries<TModel, TVisual, TLabel, TPathGeometry, TEr
                         fillPath.Pivot = p;
                         if (isNew)
                         {
-                            fillPath.Animate(EasingFunction ?? cartesianChart.ActualEasingFunction, AnimationsSpeed ?? cartesianChart.ActualAnimationsSpeed);
+                            fillPath.Animate(GetAnimation(cartesianChart));
                         }
                     }
                     if (Stroke is not null && Stroke != Paint.Default)
@@ -237,7 +240,7 @@ public abstract class CoreLineSeries<TModel, TVisual, TLabel, TPathGeometry, TEr
                         strokePath.Pivot = p;
                         if (isNew)
                         {
-                            strokePath.Animate(EasingFunction ?? cartesianChart.ActualEasingFunction, AnimationsSpeed ?? cartesianChart.ActualAnimationsSpeed);
+                            strokePath.Animate(GetAnimation(cartesianChart));
                         }
                     }
 
@@ -430,8 +433,7 @@ public abstract class CoreLineSeries<TModel, TVisual, TLabel, TPathGeometry, TEr
                     {
                         var l = new TLabel { X = x - hgs, Y = p - hgs, RotateTransform = (float)DataLabelsRotation, MaxWidth = (float)DataLabelsMaxWidth };
                         l.Animate(
-                            EasingFunction ?? cartesianChart.ActualEasingFunction,
-                            AnimationsSpeed ?? cartesianChart.ActualAnimationsSpeed,
+                            GetAnimation(cartesianChart),
                             BaseLabelGeometry.XProperty,
                             BaseLabelGeometry.YProperty);
                         label = l;
@@ -468,12 +470,12 @@ public abstract class CoreLineSeries<TModel, TVisual, TLabel, TPathGeometry, TEr
             if (GeometryFill is not null && GeometryFill != Paint.Default)
             {
                 cartesianChart.Canvas.AddDrawableTask(GeometryFill, zone: CanvasZone.DrawMargin);
-                GeometryFill.ZIndex = actualZIndex + PaintConstants.SeriesGeometryStrokeZIndexOffset;
+                GeometryFill.ZIndex = actualZIndex + PaintConstants.SeriesGeometryFillZIndexOffset;
             }
             if (GeometryStroke is not null && GeometryStroke != Paint.Default)
             {
                 cartesianChart.Canvas.AddDrawableTask(GeometryStroke, zone: CanvasZone.DrawMargin);
-                GeometryStroke.ZIndex = actualZIndex + PaintConstants.SeriesDataLabelsZIndexOffset;
+                GeometryStroke.ZIndex = actualZIndex + PaintConstants.SeriesGeometryStrokeZIndexOffset;
             }
 
             if (!isSegmentEmpty) segmentI++;
@@ -743,13 +745,12 @@ public abstract class CoreLineSeries<TModel, TVisual, TLabel, TPathGeometry, TEr
         if (chartPoint.Context.AdditionalVisuals is not CubicSegmentVisualPoint visual)
             throw new Exception("Unable to initialize the point instance.");
 
-        var easing = EasingFunction ?? chart.CoreChart.ActualEasingFunction;
-        var speed = AnimationsSpeed ?? chart.CoreChart.ActualAnimationsSpeed;
+        var animation = GetAnimation(chart.CoreChart);
 
-        visual.Geometry.Animate(easing, speed);
-        visual.Segment.Animate(easing, speed);
-        visual.YError?.Animate(easing, speed);
-        visual.XError?.Animate(easing, speed);
+        visual.Geometry.Animate(animation);
+        visual.Segment.Animate(animation);
+        visual.YError?.Animate(animation);
+        visual.XError?.Animate(animation);
     }
 
     /// <inheritdoc cref="CartesianSeries{TModel, TVisual, TLabel}.SoftDeleteOrDisposePoint(ChartPoint, Scaler, Scaler)"/>

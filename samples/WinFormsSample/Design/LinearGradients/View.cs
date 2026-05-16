@@ -23,7 +23,10 @@ public partial class View : UserControl
             new SKPoint(0.5f, 1f)
         );
 
-        var lineGradient = new LinearGradientPaint(
+        // Use separate paint instances for Stroke and GeometryStroke. Sharing a
+        // single instance would tie both to the same z-index, which forces the
+        // line to render above the marker fill and slice through it.
+        LinearGradientPaint MakeLineGradient() => new(
             [new SKColor(0x2D, 0x40, 0x59), new SKColor(0xFF, 0xD3, 0x60)],
             new SKPoint(0f, 0f),
             new SKPoint(1f, 1f)
@@ -46,8 +49,8 @@ public partial class View : UserControl
                 Values = values2,
                 GeometrySize = 22,
                 Fill = null,
-                Stroke = lineGradient,
-                GeometryStroke = lineGradient
+                Stroke = MakeLineGradient(),
+                GeometryStroke = MakeLineGradient()
             }
         };
 

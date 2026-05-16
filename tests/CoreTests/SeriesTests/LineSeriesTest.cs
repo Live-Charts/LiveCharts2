@@ -1,4 +1,5 @@
 ﻿using CoreTests.MockedObjects;
+using LiveChartsCore;
 using LiveChartsCore.Drawing;
 using LiveChartsCore.Drawing.Segments;
 using LiveChartsCore.Kernel;
@@ -7,6 +8,7 @@ using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Drawing.Geometries;
 using LiveChartsCore.SkiaSharpView.Painting;
 using LiveChartsCore.SkiaSharpView.SKCharts;
+using LiveChartsCore.Themes;
 using SkiaSharp;
 
 namespace CoreTests.SeriesTests;
@@ -531,5 +533,77 @@ public class LineSeriesTest
         segments = series._fillPathHelperDictionary.Sum(x => x.Value.Sum(y => y.Commands.Count));
         AssertIsStraightLine(points);
         Assert.IsTrue(segments == 5);
+    }
+
+    [TestMethod]
+    public void MarkerColorMatchesUserStroke()
+    {
+        // Regression for #2064: when the user sets Stroke explicitly, the legend
+        // miniature and per-point marker should match the line color. The default
+        // theme used to rotate GeometryStroke from the palette by SeriesId, so a
+        // user-set blue/green/red line ended up with palette-rotated marker dots,
+        // giving each series two different identifying colors.
+
+        var blue = new SKColor(0, 0, 255);
+        var green = new SKColor(0, 128, 0);
+        var red = new SKColor(255, 0, 0);
+
+        var s0 = new LineSeries<int> { Values = [1, 2, 3], Stroke = new SolidColorPaint(blue) };
+        var s1 = new LineSeries<int> { Values = [1, 2, 3], Stroke = new SolidColorPaint(green) };
+        var s2 = new LineSeries<int> { Values = [1, 2, 3], Stroke = new SolidColorPaint(red) };
+
+        var chart = new SKCartesianChart
+        {
+            Width = 400,
+            Height = 400,
+            Series = [s0, s1, s2]
+        };
+        _ = chart.GetImage();
+
+        Assert.AreEqual(blue, ((SolidColorPaint)s0.GeometryStroke!).Color);
+        Assert.AreEqual(green, ((SolidColorPaint)s1.GeometryStroke!).Color);
+        Assert.AreEqual(red, ((SolidColorPaint)s2.GeometryStroke!).Color);
+    }
+
+    [TestMethod]
+    public void MarkerColorFollowsActiveThemeAfterSwitch()
+    {
+        // Regression for PR #2236 review: when the theme is re-applied after a
+        // dark/light switch the marker color must follow the new palette, not be
+        // stuck on the previous theme's palette color that was already written
+        // into Stroke. An earlier draft used `Stroke is SolidColorPaint` as a
+        // heuristic for "user-set", which on the second apply captured the
+        // previous theme's palette color and froze it into GeometryStroke.
+
+        var theme = LiveCharts.DefaultSettings.GetTheme();
+        var originalColors = theme.Colors;
+
+        var series = new LineSeries<int> { Values = [1, 2, 3] };
+        ((ISeries)series).SeriesId = 0;
+        var ce = ((IChartElement)series).ChartElementSource;
+
+        ce._isInternalSet = true;
+        try
+        {
+            // 1st apply with the light palette.
+            theme.Colors = ColorPalletes.MaterialDesign500;
+            theme.ApplyStyleToSeries(series);
+            var lightMarker = ((SolidColorPaint)series.GeometryStroke!).Color;
+
+            // Swap palette and re-apply (the engine does this on theme switch).
+            // Stroke is theme-set (not in _userSets) so it must be rewritten to
+            // the new palette color before GeometryStroke derives from it.
+            theme.Colors = ColorPalletes.MaterialDesign200;
+            theme.ApplyStyleToSeries(series);
+            var darkMarker = ((SolidColorPaint)series.GeometryStroke!).Color;
+
+            Assert.AreEqual(new SKColor(33, 150, 243), lightMarker);    // MD500[0]
+            Assert.AreEqual(new SKColor(144, 202, 249), darkMarker);    // MD200[0]
+        }
+        finally
+        {
+            ce._isInternalSet = false;
+            theme.Colors = originalColors;
+        }
     }
 }

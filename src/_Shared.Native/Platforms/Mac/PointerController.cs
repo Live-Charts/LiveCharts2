@@ -27,6 +27,7 @@
 using System;
 using CoreGraphics;
 using LiveChartsCore.Drawing;
+using LiveChartsCore.Kernel;
 using UIKit;
 
 namespace LiveChartsCore.Native;
@@ -34,6 +35,7 @@ namespace LiveChartsCore.Native;
 internal partial class PointerController : INativePointerController
 {
     private DateTime _previousPress = DateTime.MinValue;
+    private LvcPoint _previousPressPosition;
     private float _previousScale = 1;
     private UILongPressGestureRecognizer _longPressGestureRecognizer;
     private UIPinchGestureRecognizer _pinchGestureRecognizer;
@@ -82,7 +84,13 @@ internal partial class PointerController : INativePointerController
     public PointerController()
     {
 #if MACCATALYST
-        _hoverGestureRecognizer = new UIHoverGestureRecognizer(OnHover);
+        _hoverGestureRecognizer = new UIHoverGestureRecognizer(OnHover)
+        {
+            // hover must coexist with the long-press recognizer used for clicks;
+            // otherwise a click forces hover into Cancelled/Failed and tooltips
+            // stop appearing afterwards. See issue #1436.
+            ShouldRecognizeSimultaneously = (g1, g2) => true
+        };
 #endif
         _longPressGestureRecognizer = new UILongPressGestureRecognizer(OnLongPress)
         {
@@ -109,6 +117,7 @@ internal partial class PointerController : INativePointerController
         var view = e.View;
         switch (e.State)
         {
+            case UIGestureRecognizerState.Began:
             case UIGestureRecognizerState.Changed:
                 var p = e.LocationInView(view);
                 Moved?.Invoke(view, new(new(p.X, p.Y), e));
@@ -119,7 +128,6 @@ internal partial class PointerController : INativePointerController
                 Exited?.Invoke(view, new(e));
                 break;
             case UIGestureRecognizerState.Possible:
-            case UIGestureRecognizerState.Began:
             default:
                 break;
         }
@@ -131,7 +139,7 @@ internal partial class PointerController : INativePointerController
         var view = e.View;
         var location = e.LocationInView(view);
         var p = new LvcPoint((float)location.X, (float)location.Y);
-        var isRightClick = (DateTime.Now - _previousPress).TotalMilliseconds < 500;
+        var isRightClick = GestureHelpers.IsDoubleTap(p, _previousPressPosition, DateTime.Now - _previousPress);
         var isPinch = e.NumberOfTouches > 1;
 
         switch (e.State)
@@ -139,6 +147,7 @@ internal partial class PointerController : INativePointerController
             case UIGestureRecognizerState.Began:
                 Pressed?.Invoke(view, new(p, isRightClick, e));
                 _previousPress = DateTime.Now;
+                _previousPressPosition = p;
                 break;
             case UIGestureRecognizerState.Changed:
                 Moved?.Invoke(view, new(p, e));

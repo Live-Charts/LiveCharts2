@@ -107,10 +107,30 @@ public class GeoMapChart
     }
 
     /// <summary>
-    /// Unload the map resources.
+    /// Loads (or reloads) the map resources after a previous <see cref="Unload"/>,
+    /// then queues a measure. Safe to call when the chart has not been unloaded —
+    /// it will simply queue an update.
+    /// </summary>
+    public void Load()
+    {
+        if (_isUnloaded)
+        {
+            _heatPaint = LiveCharts.DefaultSettings.GetProvider().GetSolidColorPaint();
+            _mapFactory = LiveCharts.DefaultSettings.GetProvider().GetDefaultMapFactory();
+            _isHeatInCanvas = false;
+            _isUnloaded = false;
+        }
+        Update();
+    }
+
+    /// <summary>
+    /// Unload the map resources. Calling this method on an already-unloaded chart
+    /// is a no-op.
     /// </summary>
     public void Unload()
     {
+        if (_isUnloaded) return;
+
         if (View.Stroke is not null) View.CoreCanvas.RemovePaintTask(View.Stroke);
         if (View.Fill is not null) View.CoreCanvas.RemovePaintTask(View.Fill);
 
@@ -120,8 +140,11 @@ public class GeoMapChart
         _previousFill = null!;
         _isUnloaded = true;
         _mapFactory.Dispose();
-        _activeMap?.Dispose();
 
+        // Do NOT dispose _activeMap: DrawnMap.Dispose clears its Layers dictionary,
+        // and the same instance is referenced by View.ActiveMap. Disposing it here
+        // would make the chart unrenderable on a subsequent Load (issue #1417).
+        // The View owns the map's lifetime.
         _activeMap = null!;
         _mapFactory = null!;
 
@@ -231,18 +254,23 @@ public class GeoMapChart
 
         _mapFactory.GenerateLands(context);
 
-        var toDeleteSeries = new HashSet<IGeoSeries>(_everMeasuredSeries);
-        foreach (var series in View.Series?.Cast<IGeoSeries>() ?? [])
+        // Departed series must be deleted BEFORE measuring the new series.
+        // Otherwise CoreHeatLandSeries.Delete -> ClearHeat would null the Shape.Fill
+        // on lands shared with the new series AFTER the new series painted them,
+        // making shared lands appear blank on series swap (issue #962).
+        var currentSeries = View.Series?.Cast<IGeoSeries>().ToArray() ?? [];
+        var currentSet = new HashSet<IGeoSeries>(currentSeries);
+        foreach (var series in _everMeasuredSeries)
+        {
+            if (currentSet.Contains(series)) continue;
+            series.Delete(context);
+        }
+        _everMeasuredSeries.RemoveWhere(s => !currentSet.Contains(s));
+
+        foreach (var series in currentSeries)
         {
             series.Measure(context);
             _ = _everMeasuredSeries.Add(series);
-            _ = toDeleteSeries.Remove(series);
-        }
-
-        foreach (var series in toDeleteSeries)
-        {
-            series.Delete(context);
-            _ = _everMeasuredSeries.Remove(series);
         }
 
         View.CoreCanvas.Invalidate();

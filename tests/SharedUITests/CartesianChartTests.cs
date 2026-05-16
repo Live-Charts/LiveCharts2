@@ -40,6 +40,37 @@ public class CartesianChartTests
     }
 #endif
 
+#if XAML_UI_TESTING
+    // Regression for https://github.com/Live-Charts/LiveCharts2/issues/1981.
+    // Inside a DataTemplate, WPF's FrameworkElementFactory skips applying a
+    // binding when the target DP already has a non-default local value. The
+    // chart used to set Series/XAxes/YAxes to a fresh ObservableCollection
+    // in its constructor, which silently swallowed direct bindings on those
+    // properties. The fix lazy-inits those collections in the property getter
+    // (via SetCurrentValue) so the constructor leaves the DP at its default,
+    // letting the binding attach normally.
+    //
+    // The same sample runs across every XAML platform so any platform with
+    // similar template-binding semantics is caught here.
+
+    [AppTestMethod]
+    public async Task ShouldBindSeriesAndAxesInsideDataTemplate()
+    {
+        var sut = await App.NavigateTo<Samples.VisualTest.Issue1981.View>();
+
+        await Task.Delay(2000);
+
+        var charts = sut.FindCharts().ToList();
+        Assert.NotEmpty(charts);
+
+        foreach (var chart in charts)
+        {
+            await chart.WaitUntilChartRenders();
+            Assert.ChartIsLoaded(chart);
+        }
+    }
+#endif
+
 #if !BLAZOR_UI_TESTING
     // this test makes no sense in blazor.
 
@@ -102,6 +133,28 @@ public class CartesianChartTests
         sut.ScrollToChart();
         await Task.Delay(1000);
         Assert.ChartIsLoaded(sut.Chart1);
+    }
+#endif
+
+#if BLAZOR_UI_TESTING
+    // based on:
+    // https://github.com/Live-Charts/LiveCharts2/issues/1993
+    // a chart wrapped in a fixed-height container should size to that container,
+    // not paint past it. regressed when the MotionCanvas wrapper div was left at
+    // height: auto, breaking the percentage chain down to the canvas element.
+
+    [AppTestMethod]
+    public async Task ShouldHonorFixedContainerHeight()
+    {
+        var sut = await App.NavigateTo<Samples.Test.AspectRatio.View>();
+        await sut.Chart.WaitUntilChartRenders();
+
+        // the sample wraps the chart in <div style="height: 150px; width: 100%;">.
+        // with the fix, the MotionCanvas wrapper div passes that 150px down to the
+        // canvas element, so ControlSize.Height matches the container (within a
+        // pixel of layout rounding). without the fix the canvas overflows past
+        // the wrapper and ControlSize.Height is much larger than 150.
+        Assert.InRange(sut.Chart.CoreChart.ControlSize.Height, 149, 151);
     }
 #endif
 

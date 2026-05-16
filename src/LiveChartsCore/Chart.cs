@@ -22,6 +22,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using LiveChartsCore.Drawing;
@@ -58,14 +59,20 @@ public abstract class Chart
     private LvcPoint _pointerPanningPosition = new(-10, -10);
     private LvcPoint _pointerPreviousPanningPosition = new(-10, -10);
     internal bool _isPanning = false;
+    internal bool _isPointerDown = false;
+    // Squared pixel distance the pointer must travel after pressing before pan
+    // engages. Below this threshold a press+move is treated as a tooltip-only
+    // gesture (matters most on touch, where pan and tooltip share one finger;
+    // see issue #1957). Mirrors the threshold already used by GeoMapChart.
+    private const float PanEngageThresholdSq = 25f;
     private readonly HashSet<ChartPoint> _activePoints = [];
     private LvcSize _previousSize = new();
     private int _nextSeriesId = 0;
     private long _lastMeasureTimeStamp = -1;
 
 #if NET5_0_OR_GREATER
-    private readonly bool _isMobile;
-    private bool _isTooltipCanceled;
+    internal bool _isMobile;
+    internal bool _isTooltipCanceled;
 #endif
 
     #endregion
@@ -95,7 +102,12 @@ public abstract class Chart
 
 #if NET5_0_OR_GREATER
 
-        _isMobile = OperatingSystem.IsOSPlatform("Android") || OperatingSystem.IsOSPlatform("iOS");
+        // Mac Catalyst reports as iOS via OperatingSystem.IsOSPlatform("iOS") but is
+        // a desktop UX (hover, cursor, click). Treating it as mobile would cause
+        // InvokePointerUp to leave _isTooltipCanceled set, blocking hover-after-pan
+        // tooltips for the rest of the chart's lifetime.
+        _isMobile = OperatingSystem.IsOSPlatform("Android")
+                    || (OperatingSystem.IsOSPlatform("iOS") && !OperatingSystem.IsMacCatalyst());
 
 #endif
     }
@@ -228,20 +240,45 @@ public abstract class Chart
     public IChartTooltip? Tooltip { get; protected set; }
 
     /// <summary>
-    /// Gets the animations speed.
+    /// Gets the animations speed. Setting this also refreshes <see cref="Animation"/> so
+    /// already-created chart-default geometries pick up the new duration without recreation.
     /// </summary>
     /// <value>
     /// The animations speed.
     /// </value>
-    public TimeSpan ActualAnimationsSpeed { get; protected set; }
+    public TimeSpan ActualAnimationsSpeed
+    {
+        get;
+        protected set
+        {
+            field = value;
+            Animation.Duration = (long)value.TotalMilliseconds;
+        }
+    }
 
     /// <summary>
-    /// Gets the easing function.
+    /// Gets the easing function. Setting this also refreshes <see cref="Animation"/> so
+    /// already-created chart-default geometries pick up the new function without recreation.
     /// </summary>
     /// <value>
     /// The easing function.
     /// </value>
-    public Func<float, float>? ActualEasingFunction { get; protected set; } = EasingFunctions.QuadraticOut;
+    public Func<float, float>? ActualEasingFunction
+    {
+        get;
+        protected set
+        {
+            field = value;
+            Animation.EasingFunction = value;
+        }
+    } = EasingFunctions.QuadraticOut;
+
+    /// <summary>
+    /// Shared animation reference used by chart-default geometries (geometries that don't
+    /// have a per-element override). Mutated in-place by <see cref="ActualAnimationsSpeed"/>
+    /// and <see cref="ActualEasingFunction"/> so existing visuals pick up new settings.
+    /// </summary>
+    internal Animation Animation { get; } = new(EasingFunctions.QuadraticOut, TimeSpan.Zero);
 
     /// <summary>
     /// Gets the visual elements.
@@ -330,15 +367,29 @@ public abstract class Chart
         Canvas.Dispose();
     }
 
+    // Whether panning gestures actually move the chart. False on the base
+    // Chart (Pie / Polar / GeoMap have no pan in the core pipeline);
+    // CartesianChartEngine overrides to true when ZoomMode includes PanX or
+    // PanY. Used to gate the press deadzone in InvokePointerMove — without
+    // this, a >5px drag on a non-pannable chart would cancel the tooltip
+    // (because _isPanning gets set) even though no pan actually happens.
+    internal virtual bool IsPanEnabled => false;
+
     /// <summary>
     /// Invokes the pointer down event.
     /// </summary>
     /// <param name="point">The pointer position.</param>
-    /// <param name="isSecondaryAction">Flags the action as secondary (normally rigth click or double tap on mobile)</param>
+    /// <param name="isSecondaryAction">Flags the action as secondary (normally right click or double tap on mobile)</param>
     protected internal virtual void InvokePointerDown(LvcPoint point, bool isSecondaryAction)
     {
-        _isPanning = true;
+        _isPointerDown = true;
         _pointerPreviousPanningPosition = point;
+        // Seed _pointerPosition/_isPointerIn so the tooltip throttler called below
+        // can draw at the press location even on platforms whose press doesn't
+        // emit a synthetic Move (iOS UILongPressGestureRecognizer fires Began→Ended
+        // with no Changed when the finger doesn't move).
+        _pointerPosition = point;
+        _isPointerIn = true;
 
         lock (Canvas.Sync)
         {
@@ -380,6 +431,11 @@ public abstract class Chart
 
         // experimental events from the chart engine.
         PointerDown?.Invoke(this, point);
+
+        // Render the tooltip on press so a static tap opens it on every platform,
+        // not only platforms whose native press also emits a Move (Android does,
+        // iOS does not — see _pointerPosition seed above).
+        _tooltipThrottler.Call();
     }
 
     /// <summary>
@@ -390,7 +446,28 @@ public abstract class Chart
     {
         _pointerPosition = point;
         _isPointerIn = true;
-        _tooltipThrottler.Call();
+
+        // Pan engagement deadzone: with a finger down, defer pan until the pointer
+        // has moved past PanEngageThresholdSq pixels from the press point. Without
+        // this, every touch+move on mobile fires both tooltip and pan throttlers
+        // simultaneously and the tooltip cannot lock on as the data scrolls
+        // underneath the finger (issue #1957). On desktop the threshold is below
+        // perceptible movement so click+drag still pans as before.
+        if (_isPointerDown && !_isPanning && IsPanEnabled)
+        {
+            var pdx = point.X - _pointerPreviousPanningPosition.X;
+            var pdy = point.Y - _pointerPreviousPanningPosition.Y;
+            if (pdx * pdx + pdy * pdy > PanEngageThresholdSq)
+            {
+                _isPanning = true;
+#if NET5_0_OR_GREATER
+                _isTooltipCanceled = true;
+#endif
+                View.InvokeOnUIThread(CloseTooltip);
+            }
+        }
+
+        if (!_isPanning) _tooltipThrottler.Call();
 
         // experimental events from the chart engine.
         PointerMove?.Invoke(this, point);
@@ -404,9 +481,11 @@ public abstract class Chart
     /// Invokes the pointer up event.
     /// </summary>
     /// <param name="point">The pointer position.</param>
-    /// <param name="isSecondaryAction">Flags the action as secondary (normally rigth click or double tap on mobile)</param>
+    /// <param name="isSecondaryAction">Flags the action as secondary (normally right click or double tap on mobile)</param>
     protected internal virtual void InvokePointerUp(LvcPoint point, bool isSecondaryAction)
     {
+        _isPointerDown = false;
+
 #if NET5_0_OR_GREATER
         if (_isMobile)
         {
@@ -416,6 +495,12 @@ public abstract class Chart
             }
 
             View.InvokeOnUIThread(CloseTooltip);
+        }
+        else
+        {
+            // Clear the pan-engagement tooltip suppression on desktop so the next
+            // hover after a drag-pan can show a tooltip again.
+            _isTooltipCanceled = false;
         }
 #endif
 
@@ -506,9 +591,21 @@ public abstract class Chart
         {
             View.InvokeOnUIThread(() =>
             {
-                lock (Canvas.Sync)
+                try
                 {
-                    Measure();
+                    lock (Canvas.Sync)
+                    {
+                        Measure();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // The measure runs inside a fire-and-forget Task.Run, so an unhandled
+                    // exception here disappears into the unobserved-task pipeline. Surface
+                    // it via Trace so users with a TraceListener attached (Visual Studio's
+                    // Output window, file/EventLog listeners in production) get a signal
+                    // instead of a silently blank chart. See issue #1826.
+                    Trace.WriteLine($"[LiveCharts] chart update failed: {ex}");
                 }
             });
         });

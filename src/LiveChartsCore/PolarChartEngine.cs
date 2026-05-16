@@ -245,9 +245,17 @@ public class PolarChartEngine(
 
         // get seriesBounds
         SetDrawMargin(ControlSize, new Margin());
-        foreach (var series in VisibleSeries.Cast<IPolarSeries>())
+        // iterate Series (not VisibleSeries) so invisible series still get their theme
+        // applied; the legend can still request their miniature when IsVisibleAtLegend is
+        // true (its default), and a missing paint would otherwise crash on draw.
+        foreach (var series in Series.Cast<IPolarSeries>())
         {
             if (series.SeriesId == -1) series.SeriesId = GetNextSeriesId();
+
+            // #1923: see CartesianChartEngine for rationale — pre-register stack
+            // positions so Stacker.MaxSeriesId is final before any series renders.
+            if ((series.SeriesProperties & SeriesProperties.Stacked) == SeriesProperties.Stacked)
+                _ = SeriesContext.GetStackPosition(series, series.GetStackGroup());
 
             var ce = series.ChartElementSource;
             ce._isInternalSet = true;
@@ -255,6 +263,12 @@ public class PolarChartEngine(
             {
                 theme.ApplyStyleToSeries(series);
                 ce._theme = themeId;
+            }
+
+            if (!series.IsVisible)
+            {
+                ce._isInternalSet = false;
+                continue;
             }
 
             var secondaryAxis = GetAngleAxis(series);

@@ -24,6 +24,9 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+#if NET462
+using System.Linq;
+#endif
 using LiveChartsCore.Drawing;
 using LiveChartsCore.Geo;
 using LiveChartsCore.Kernel.Observers;
@@ -149,7 +152,14 @@ public abstract class CoreHeatLandSeries<TModel> : IGeoSeries, INotifyPropertyCh
     /// <inheritdoc cref="IGeoSeries.Delete(MapContext)"/>
     public void Delete(MapContext context)
     {
+        // ClearHeat removes each item from _everUsed during iteration; passing
+        // _everUsed directly throws "Collection was modified" on .NET Framework's
+        // HashSet enumerator, so snapshot it there (matches CollectionDeepObserver).
+#if NET462
+        ClearHeat(_everUsed.ToArray());
+#else
         ClearHeat(_everUsed);
+#endif
         _ = _subscribedTo.Remove(context.CoreMap);
     }
 
@@ -177,18 +187,13 @@ public abstract class CoreHeatLandSeries<TModel> : IGeoSeries, INotifyPropertyCh
     {
         foreach (var mapLand in toRemove)
         {
-            // THIS SEEEMS UNECESARY,
-            // I KEEP THIS CODE AS COMMENT BECAUSE IN GENERAL
-            // HEATMAPS REQUIRE A DEEPER REVIEW.
-
-            //var shapesQuery = mapLand.Data
-            //    .Select(x => x.Shape)
-            //    .Where(x => x is not null);
-
-            //foreach (var pathShape in shapesQuery)
-            //{
-            //    pathShape!.Fill = null;
-            //}
+            // Null the Fill so a swapped-out land paints with no heat next
+            // render — required by the series-swap fix in PR #2186 (#962).
+            foreach (var data in mapLand.Data)
+            {
+                if (data.Shape is not null)
+                    data.Shape.Fill = null;
+            }
 
             _ = _everUsed.Remove(mapLand);
         }

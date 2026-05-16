@@ -198,4 +198,37 @@ public sealed class TextTests
         chart.PointerAt(200, 100);
         chart.AssertSnapshotMatches($"{nameof(TextTests)}_{nameof(RenderShapedGlyphsMultiLineInTooltips)}");
     }
+
+    [TestMethod]
+    public void RenderRtlTextMixedWithLtrNumbers()
+    {
+        // issue #1229: when a label mixed LTR digits with RTL text (e.g. "60.52 درصد"
+        // or "853,432,672 تومان"), the shaper used to reverse characters within the
+        // numeric run, so "60.52" rendered as "25.06" and digit groups got jumbled.
+        // The fix tokenizes by whitespace, shapes each token independently (preserving
+        // per-run directionality), and reverses only token order for RTL display.
+        var values = new double[] { 1, 2, 3 };
+
+        var chart = new SKCartesianChart
+        {
+            Series = [
+                new ColumnSeries<double> { Values = values },
+            ],
+            XAxes = [
+                new Axis
+                {
+                    TextSize = 24,
+                    Labels = [
+                        "60.52 درصد",
+                        "853,432,672 تومان",
+                        "12.5 خرید"
+                    ]
+                }
+            ],
+            Width = 800,
+            Height = 600
+        };
+
+        chart.AssertSnapshotMatches($"{nameof(TextTests)}_{nameof(RenderRtlTextMixedWithLtrNumbers)}");
+    }
 }

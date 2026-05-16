@@ -172,7 +172,7 @@ public class CartesianChartEngine(
             foreach (var axis in YAxes)
                 ZoomAxis(axis, flags, pivot.Y, direction, scaleFactor);
 
-        _ = _zoommingDebouncer.Debounce(() => FitAllOnZoom(flags));
+        _zoommingDebouncer.Debounce(() => FitAllOnZoom(flags));
     }
 
     /// <summary>
@@ -413,9 +413,19 @@ public class CartesianChartEngine(
         var areAllColumns = true;
         var columnsFlags = SeriesProperties.Bar | SeriesProperties.PrimaryAxisVerticalOrientation;
 
-        foreach (var series in VisibleSeries.Cast<ICartesianSeries>())
+        // iterate Series (not VisibleSeries) so invisible series still get their theme
+        // applied; the legend can still request their miniature when IsVisibleAtLegend is
+        // true (its default), and a missing paint would otherwise crash on draw.
+        foreach (var series in Series.Cast<ICartesianSeries>())
         {
             if (series.SeriesId == -1) series.SeriesId = GetNextSeriesId();
+
+            // #1923: pre-register stack positions so each stacked series sees the
+            // final Stacker.MaxSeriesId (the largest SeriesId in its stack group)
+            // when computing its own actualZIndex during Invalidate. Without this,
+            // earlier-iterated series would only see partial peer registration.
+            if ((series.SeriesProperties & SeriesProperties.Stacked) == SeriesProperties.Stacked)
+                _ = SeriesContext.GetStackPosition(series, series.GetStackGroup());
 
             var ce = series.ChartElementSource;
             ce._isInternalSet = true;
@@ -423,6 +433,12 @@ public class CartesianChartEngine(
             {
                 theme.ApplyStyleToSeries(series);
                 ce._theme = themeId;
+            }
+
+            if (!series.IsVisible)
+            {
+                ce._isInternalSet = false;
+                continue;
             }
 
             var xAxis = GetXAxis(series);
@@ -497,6 +513,11 @@ public class CartesianChartEngine(
         // measure and draw title.
         var m = new Margin();
         float ts = 0f, bs = 0f, ls = 0f, rs = 0f;
+        // X axes with InLineNamePlacement reserve horizontal space for the name on the
+        // left of their row (and half the leftmost label so it doesn't bleed into the
+        // name). Tracked separately so we can apply it AFTER the Y axis loop, which
+        // would otherwise overwrite m.Left/m.Right with smaller values.
+        float xInlineLeftReserve = 0f, xInlineRightReserve = 0f;
         if (View.Title is not null)
         {
             var titleSize = MeasureTitle();
@@ -540,14 +561,20 @@ public class CartesianChartEngine(
 
                     // X Bottom
                     axis.NameDesiredSize = new LvcRectangle(
-                        new LvcPoint(0, ControlSize.Height - h), new LvcSize(ns.Width, h));
+                        new LvcPoint(0, ControlSize.Height - bs - h), new LvcSize(ns.Width, h));
                     axis.LabelsDesiredSize = new LvcRectangle(
                         new LvcPoint(0, axis.NameDesiredSize.Y - h), new LvcSize(ControlSize.Width, s.Height));
 
                     axis.Yo = m.Bottom + h * 0.5f;
-                    bs = h;
+
+                    // Inline placement renders name and labels in the same row of height h,
+                    // so accumulate by h (not s.Height + ns.Height as in the stacked layout).
+                    bs += h;
                     m.Bottom = bs;
-                    m.Left = ns.Width;
+
+                    var leftReserve = ns.Width + s.Width * 0.5f;
+                    if (leftReserve > xInlineLeftReserve) xInlineLeftReserve = leftReserve;
+                    if (s.Width * 0.5f > xInlineRightReserve) xInlineRightReserve = s.Width * 0.5f;
                 }
                 else
                 {
@@ -570,16 +597,22 @@ public class CartesianChartEngine(
                 {
                     var h = s.Height > ns.Height ? s.Height : ns.Height;
 
-                    // X Bottom
+                    // X Top
                     axis.NameDesiredSize = new LvcRectangle(
-                        new LvcPoint(0, 0), new LvcSize(ns.Width, h));
+                        new LvcPoint(0, ts), new LvcSize(ns.Width, h));
                     axis.LabelsDesiredSize = new LvcRectangle(
                         new LvcPoint(0, axis.NameDesiredSize.Y - h), new LvcSize(ControlSize.Width, s.Height));
 
                     axis.Yo = m.Top + h * 0.5f;
-                    ts = h;
+
+                    // Inline placement renders name and labels in the same row of height h,
+                    // so accumulate by h (not s.Height + ns.Height as in the stacked layout).
+                    ts += h;
                     m.Top = ts;
-                    m.Left = ns.Width;
+
+                    var leftReserve = ns.Width + s.Width * 0.5f;
+                    if (leftReserve > xInlineLeftReserve) xInlineLeftReserve = leftReserve;
+                    if (s.Width * 0.5f > xInlineRightReserve) xInlineRightReserve = s.Width * 0.5f;
                 }
                 else
                 {
@@ -680,6 +713,11 @@ public class CartesianChartEngine(
                 }
             }
         }
+
+        // Apply X-axis inline name reservations now so the Y axis loop's m.Left/m.Right
+        // assignments can't shrink the chart back into the X axis name area.
+        if (xInlineLeftReserve > m.Left) m.Left = xInlineLeftReserve;
+        if (xInlineRightReserve > m.Right) m.Right = xInlineRightReserve;
 
         var rm = viewDrawMargin ?? new Margin(Margin.Auto);
 
@@ -884,6 +922,7 @@ public class CartesianChartEngine(
         _sharedEvents = null;
         _zoomingSection = null;
         _isFirstDraw = true;
+        _zoommingDebouncer.Dispose();
     }
 
     private LvcPoint? _sectionZoomingStart = null;
@@ -972,8 +1011,12 @@ public class CartesianChartEngine(
     internal void ClearPointerDown()
     {
         _isPanning = false;
+        _isPointerDown = false;
         _sectionZoomingStart = null;
     }
+
+    internal override bool IsPanEnabled =>
+        (_chartView.ZoomMode & (ZoomAndPanMode.PanX | ZoomAndPanMode.PanY)) != 0;
 
     internal void SubscribeSharedEvents(HashSet<CartesianChartEngine> instance)
     {
@@ -1003,11 +1046,23 @@ public class CartesianChartEngine(
             var min = axis.MinLimit ?? limits.DataMin;
             var max = axis.MaxLimit ?? limits.DataMax;
 
-            if (min < limits.DataMin)
-                min = limits.DataMin - geometryOffset;
+            // The outer rail the post-zoom fit may grow back to is the user's
+            // pinning when wider than the data, otherwise the data bounds.
+            // Without this, a user-pinned view wider than the data was snapped
+            // to data bounds on every zoom and never returned to its initial
+            // state (#2159).
+            var outerMin = limits.UserSetMin.HasValue
+                ? Math.Min(limits.UserSetMin.Value, limits.DataMin)
+                : limits.DataMin;
+            var outerMax = limits.UserSetMax.HasValue
+                ? Math.Max(limits.UserSetMax.Value, limits.DataMax)
+                : limits.DataMax;
 
-            if (max > limits.DataMax)
-                max = limits.DataMax + geometryOffset;
+            if (min < outerMin)
+                min = outerMin - geometryOffset;
+
+            if (max > outerMax)
+                max = outerMax + geometryOffset;
 
             axis.SetLimits(min, max);
         }
@@ -1079,11 +1134,24 @@ public class CartesianChartEngine(
         {
             var threshold = GetThreshold(axis, scale);
 
-            if (fits && mint < limits.DataMin - threshold)
-                mint = limits.DataMin - threshold;
+            // Outer rail for zoom-out: when the user pinned MinLimit/MaxLimit
+            // wider than the data, those pinned values are the rail — not the
+            // data bounds. Clamping to data alone trapped the view at data
+            // bounds the first time a user with a wider pin zoomed out, and
+            // the subsequent "zoom-in does nothing / can only shrink" symptom
+            // had no path back to the user's original view (#2159).
+            var outerMin = limits.UserSetMin.HasValue
+                ? Math.Min(limits.UserSetMin.Value, limits.DataMin)
+                : limits.DataMin;
+            var outerMax = limits.UserSetMax.HasValue
+                ? Math.Max(limits.UserSetMax.Value, limits.DataMax)
+                : limits.DataMax;
 
-            if (fits && maxt > limits.DataMax + threshold)
-                maxt = limits.DataMax + threshold;
+            if (fits && mint < outerMin - threshold)
+                mint = outerMin - threshold;
+
+            if (fits && maxt > outerMax + threshold)
+                maxt = outerMax + threshold;
         }
 
         if (maxt < mint)
