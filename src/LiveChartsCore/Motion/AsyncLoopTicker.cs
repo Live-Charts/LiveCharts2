@@ -58,7 +58,10 @@ internal class AsyncLoopTicker : IFrameTicker
 
     public void DisposeTicker()
     {
-        _canvas.Invalidated -= OnCoreInvalidated;
+        // _canvas can be null when DisposeTicker is called without a prior
+        // InitializeTicker, or twice in a row. The WPF sibling
+        // CompositionTargetTicker hits this in #2216; same shape applies here.
+        if (_canvas is not null) _canvas.Invalidated -= OnCoreInvalidated;
 
         _canvas = null!;
         _renderMode = null!;

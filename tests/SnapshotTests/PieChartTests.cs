@@ -181,6 +181,48 @@ public sealed class PieChartTests
         chart.AssertSnapshotMatches($"{nameof(PieChartTests)}_{nameof(GaugeMultiple)}");
     }
 
+    [TestMethod]
+    public void GaugeInTightBounds()
+    {
+        // issue #2131 (re-open): with a small chart size, the default HoverPushout=20
+        // on every PieSeries had each gauge subtract 40px from the available diameter
+        // via PushoutBounds. That pushed the user's requested InnerRadius outside the
+        // chart's available radius, so the MaxRadialColumnWidth clamp never fired and
+        // the value ring broke. The geometry here is the reporter's actual layout — a
+        // wide, short "card row" (240x100) — which renders the value gauge as an
+        // oversized blob escaping the top of the chart; a square tight chart only
+        // collapses it to a small concentric ring, a milder symptom. Gauges never pop
+        // out on hover, so they no longer contribute to PushoutBounds — the ring now
+        // honors InnerRadius + MaxRadialColumnWidth the same as in a roomy chart.
+        var chart = new SKPieChart
+        {
+            Series = GaugeGenerator.BuildSolidGauge(
+                new GaugeItem(
+                    100,
+                    series =>
+                    {
+                        series.InnerRadius = 38;
+                        series.RelativeInnerRadius = -4;
+                        series.MaxRadialColumnWidth = 5;
+                    }),
+                new GaugeItem(GaugeItem.Background, series =>
+                {
+                    series.InnerRadius = 40;
+                    series.RelativeInnerRadius = 4;
+                    series.OuterRadiusOffset = -20;
+                    series.MaxRadialColumnWidth = 5;
+                })),
+            InitialRotation = 270,
+            MaxAngle = 360,
+            MinValue = 0,
+            MaxValue = 100,
+            Width = 240,
+            Height = 100
+        };
+
+        chart.AssertSnapshotMatches($"{nameof(PieChartTests)}_{nameof(GaugeInTightBounds)}");
+    }
+
     public static void SetStyle(string name, PieSeries<ObservableValue> series)
     {
         series.Name = name;

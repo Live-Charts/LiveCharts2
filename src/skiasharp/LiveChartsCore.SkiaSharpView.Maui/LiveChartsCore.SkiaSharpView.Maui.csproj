@@ -65,7 +65,6 @@
 	  <PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="$(LatestSkiaSharpVersion)" />
     <PackageReference Include="SkiaSharp.HarfBuzz" Version="$(LatestSkiaSharpVersion)" />
     <PackageReference Include="Microsoft.Maui.Controls" Version="$(LvcMauiVersion)" />
-    <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(LvcMauiVersion)" />
   </ItemGroup>
 
 	<ItemGroup>

@@ -346,6 +346,13 @@ public abstract class Chart
     /// </summary>
     public virtual void Load()
     {
+        // At design time GetTheme below would JIT-load SkiaSharp paint types via
+        // ThemesExtensions.AddDefaultTheme initializers, which crashes the .NET
+        // Framework WinForms designer host on strong-name binding (#2182).
+        // SkiaSharp's SKElement/SKControl already short-circuit paint at design
+        // time, so there's nothing to set up.
+        if (View.DesignerMode) return;
+
         IsLoaded = true;
         _isFirstDraw = true;
         var theme = GetTheme();

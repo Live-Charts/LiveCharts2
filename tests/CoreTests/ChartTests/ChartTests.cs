@@ -119,4 +119,24 @@ public class ChartTests
 
         Assert.IsTrue(image is not null);
     }
+
+    // https://github.com/Live-Charts/LiveCharts2/issues/2182
+    // Chart.Load() must short-circuit when the host reports designer mode,
+    // otherwise the theme initializer JIT-loads SkiaSharp paint types and the
+    // .NET Framework WinForms designer host crashes on strong-name binding.
+    [TestMethod]
+    public void DesignerModeShortCircuitsLoad()
+    {
+        var chart = new DesignerSKCartesianChart();
+
+        Assert.IsFalse(
+            chart.CoreChart.IsLoaded,
+            "Chart.Load() ran in designer mode — the theme initializer would " +
+            "JIT-load SkiaSharp and crash the WinForms designer host (#2182).");
+    }
+
+    private sealed class DesignerSKCartesianChart : SKCartesianChart
+    {
+        protected override bool IsDesignerMode => true;
+    }
 }
