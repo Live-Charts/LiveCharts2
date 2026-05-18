@@ -39,7 +39,10 @@ public class LabelGeometry : BaseLabelGeometry, IDrawnElement<SkiaSharpDrawingCo
     {
         get
         {
-            PeekPaintInfo(out var skPaint, out _);
+            // Only the paint identity matters for the cache check — building the SKFont
+            // (PeekPaintInfo) on every access wasted an allocation on the cache-hit path,
+            // and label getters are hit per-frame for every axis/legend/data label.
+            var skPaint = PeekPaint();
 
             var changed =                         // changed if:
                 _previousKey != BuildBlobKey() || //   - the key changed, structural equality between previous and current
@@ -74,13 +77,19 @@ public class LabelGeometry : BaseLabelGeometry, IDrawnElement<SkiaSharpDrawingCo
 
     internal void PeekPaintInfo(out SKPaint skPaint, out SKFont font)
     {
-        var lvcSkiaPaint = (SkiaPaint?)Paint;
-        skPaint = lvcSkiaPaint?.UpdateSkiaPaint(null, null)
-            ?? throw new Exception("A paint is required to measure a label.");
+        var lvcSkiaPaint = PeekPaintCore();
+        skPaint = lvcSkiaPaint.UpdateSkiaPaint(null, null);
 
         font = lvcSkiaPaint._fontBuilder(
             skPaint, lvcSkiaPaint.GetSKTypeface(), TextSize);
     }
+
+    // Paint-only accessor for the blob cache check — avoids the SKFont allocation that
+    // PeekPaintInfo would emit even when the cached blob is still valid.
+    private SKPaint PeekPaint() => PeekPaintCore().UpdateSkiaPaint(null, null);
+
+    private SkiaPaint PeekPaintCore() =>
+        (SkiaPaint?)Paint ?? throw new Exception("A paint is required to measure a label.");
 
     private (string Text, float Size, Padding Padding, float MaxWidth) BuildBlobKey() =>
         (Text, TextSize, Padding, MaxWidth);
