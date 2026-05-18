@@ -193,7 +193,12 @@ public class SkiaSharpDrawingContext(
         {
             // we will draw using the active paint while the element paint is null
 
-            if (ActiveLvcPaint.PaintStyle.HasFlag(PaintStyle.Fill))
+            // Direct bitwise instead of Enum.HasFlag — fires per geometry per frame; on
+            // net462 (still a supported target) HasFlag boxes both operands. On net8 the
+            // JIT intrinsifies it, but bitwise is identical there and faster everywhere else.
+            var style = ActiveLvcPaint.PaintStyle;
+
+            if ((style & PaintStyle.Fill) != 0)
             {
                 var elementFill = element.Fill;
 
@@ -203,7 +208,7 @@ public class SkiaSharpDrawingContext(
                     DrawByPaint(elementFill, element, opacity);
             }
 
-            if (ActiveLvcPaint.PaintStyle.HasFlag(PaintStyle.Stroke))
+            if ((style & PaintStyle.Stroke) != 0)
             {
                 var elementStroke = element.Stroke;
 
