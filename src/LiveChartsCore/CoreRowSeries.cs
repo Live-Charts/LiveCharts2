@@ -269,7 +269,7 @@ public abstract class CoreRowSeries<TModel, TVisual, TLabel, TErrorGeometry>
                 // strange.. this should be improved.
 
                 e!.YError!.X = primary + primaryScale.MeasureInPixels(pe.Yi);
-                e.YError.X1 = primary - primaryScale.MeasureInPixels(pe.Yi);
+                e.YError.X1 = primary - primaryScale.MeasureInPixels(pe.Yj);
                 e.YError.Y = ye;
                 e.YError.Y1 = ye;
                 e.YError.RemoveOnCompleted = false;
