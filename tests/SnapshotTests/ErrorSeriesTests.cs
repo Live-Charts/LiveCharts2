@@ -52,6 +52,57 @@ public sealed class ErrorSeriesTests
         chart.AssertSnapshotMatches($"{nameof(ErrorSeriesTests)}_{nameof(ColumnWithError)}");
     }
 
+    // Regression for the fix one commit back: CoreRowSeries used pe.Yi for both
+    // endpoints of the Y error whisker, ignoring pe.Yj. The asymmetric ErrorValue
+    // entries below (e.g. new(70, 15, 4)) make the bug visually obvious — the
+    // pre-fix code rendered a symmetric whisker centered on each bar, the fix
+    // makes the whisker extend asymmetrically by Yi on one side and Yj on the
+    // other. Reverting the fix flips this baseline.
+    [TestMethod]
+    public void RowWithError()
+    {
+        var values1 = new ErrorValue[]
+        {
+            new(65, 6),
+            new(70, 15, 4),
+            new(35, 4),
+            new(70, 6),
+            new(30, 5),
+            new(60, 4, 16),
+            new(65, 6)
+        };
+        var values2 = new ErrorPoint[]
+        {
+            new(0, 50, 0.2, 8),
+            new(1, 45, 0.1, 0.3, 15, 4),
+            new(2, 25, 0.3, 4),
+            new(3, 30, 0.2, 6),
+            new(4, 70, 0.2, 8),
+            new(5, 30, 0.4, 4),
+            new(6, 50, 0.3, 6)
+        };
+
+        var chart = new SKCartesianChart
+        {
+            Series = [
+                 new RowSeries<ErrorValue>
+                {
+                    Values = values1,
+                    ShowError = true
+                },
+                new RowSeries<ErrorPoint>
+                {
+                    Values = values2,
+                    ShowError = true
+                },
+            ],
+            Width = 600,
+            Height = 600
+        };
+
+        chart.AssertSnapshotMatches($"{nameof(ErrorSeriesTests)}_{nameof(RowWithError)}");
+    }
+
     [TestMethod]
     public void LineWithError()
     {
