@@ -334,9 +334,24 @@ public class CoreMotionCanvas : IDisposable
     {
         var task = new DrawnTask(this, geometries);
 
-        Zones[zone].AddTask(task);
+        if (!TryGetValue(zone, out var canvasZone))
+            throw new ArgumentOutOfRangeException(nameof(zone), zone, "The canvas zone does not exist.");
+
+        canvasZone.AddTask(task);
 
         return task;
+    }
+
+    private bool TryGetValue(int zone, out CanvasZone canvasZone)
+    {
+        if ((uint)zone < (uint)Zones.Length)
+        {
+            canvasZone = Zones[zone];
+            return true;
+        }
+
+        canvasZone = null!;
+        return false;
     }
 
     /// <summary>

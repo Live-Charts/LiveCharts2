@@ -1,5 +1,6 @@
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.SKCharts;
+using LiveChartsCore.Motion;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CoreTests.ChartTests;
@@ -51,5 +52,15 @@ public class TooltipZoneTests
             $"Tooltip task must land in the last canvas zone (index {lastZoneIndex}). " +
             $"Before tooltip: {lastZoneBefore} tasks, after: {lastZoneAfter}. " +
             "If the delta is 0 the tooltip went into an earlier zone and axis ticks will paint over it.");
+    }
+
+    [TestMethod]
+    public void AddGeometry_ThrowsForMissingZone()
+    {
+        var canvas = new CoreMotionCanvas();
+        var missingZone = canvas.Zones.Length;
+
+        _ = Assert.ThrowsExactly<ArgumentOutOfRangeException>(
+            () => canvas.AddGeometry(missingZone));
     }
 }
