@@ -102,7 +102,16 @@ public abstract partial class SourceGenChart : ChartView, IChartView
         // every chart removed from the visual tree (#1725). Other platforms
         // exhibit the same +=/-= pattern but don't leak in practice (no
         // equivalent native-peer pinning), so scope this to Apple.
-        Handler?.DisconnectHandler();
+        //
+        // Gate on Window == null: on a TabbedPage (iOS only) MAUI fires Unloaded
+        // for the inactive tab's chart even though the element is still mounted
+        // in the window — UITabBarController just hides the platform UIView.
+        // DisconnectHandler in that case nulls the handler and MAUI never raises
+        // Loaded again when the tab is reselected, so the chart goes permanently
+        // blank (#2297). Window is null only when the chart has truly detached
+        // from the window, which is the case we need to release the chain in.
+        if (Window is null)
+            Handler?.DisconnectHandler();
 #endif
     }
 
