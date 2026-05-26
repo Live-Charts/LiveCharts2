@@ -34,6 +34,9 @@ internal class CanvasZone
     public const int NoClip = 1;
     public const int XCrosshair = 2;
     public const int YCrosshair = 3;
+    // Overlay draws last so tooltips and legends are never obscured by ticks/labels
+    // from the crosshair zones above (issue #2304).
+    public const int Overlay = 4;
     private Paint[] _sortedPaints = [];
     private bool _isDirty = true;
 
@@ -43,7 +46,7 @@ internal class CanvasZone
 
     // one instance per zone
     public static CanvasZone[] CreateZones() =>
-        [new CanvasZone(), new CanvasZone(), new CanvasZone(), new CanvasZone()];
+        [new CanvasZone(), new CanvasZone(), new CanvasZone(), new CanvasZone(), new CanvasZone()];
 
     public Paint[] EnumerateTasks()
     {
