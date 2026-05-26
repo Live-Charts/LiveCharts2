@@ -47,11 +47,6 @@ internal partial class SkiaRenderMode : Grid, IRenderMode
         Children.Add(_renderMode);
     }
 
-    static SkiaRenderMode()
-    {
-        SkiaSharpDrawingContext.s_clearCanvasOnNewFrame = false;
-    }
-
     public event CoreMotionCanvas.FrameRequestHandler FrameRequest
     {
         add => _renderMode.FrameRequest += value;
@@ -95,7 +90,8 @@ internal partial class SkiaRenderMode : Grid, IRenderMode
         protected override void RenderOverride(SKCanvas canvas, Size area)
         {
             FrameRequest?.Invoke(
-                new SkiaSharpDrawingContext(_canvas, canvas, GetBackground()));
+                new SkiaSharpDrawingContext(
+                    _canvas, canvas, GetBackground(), clearCanvasOnNewFrame: false));
         }
 
         private SKColor GetBackground() =>
