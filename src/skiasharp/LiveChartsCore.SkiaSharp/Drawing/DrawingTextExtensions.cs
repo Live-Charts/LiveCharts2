@@ -143,6 +143,10 @@ internal static class DrawingTextExtensions
             var c = text[i];
             int codepoint;
 
+            // CRLF normalization: drop the CR so it does not render as a notdef
+            // glyph; the following LF still produces the line break.
+            if (c == '\r') continue;
+
             // custom "GetRunes", we cant use System.Text.Rune in net462 or netstandard2.0
             if (char.IsHighSurrogate(c) && i + 1 < text.Length && char.IsLowSurrogate(text[i + 1]))
             {
@@ -152,6 +156,22 @@ internal static class DrawingTextExtensions
             else
             {
                 codepoint = c;
+            }
+
+            // Line break: flush the buffer WITHOUT the '\n', then emit "\n" as
+            // its own token so ShapeAndPlace recognises it and returns s_newLine.
+            // Issue #2266: a bare '\n' with no preceding whitespace used to be
+            // glued to the previous token (e.g. "9.4700\n") and shaped as a tofu
+            // glyph instead of breaking the line.
+            if (codepoint == '\n')
+            {
+                if (sb.Length > 0)
+                {
+                    tokens.Add(sb.ToString());
+                    _ = sb.Clear();
+                }
+                tokens.Add("\n");
+                continue;
             }
 
             // Append full character (could be surrogate pair)
@@ -176,7 +196,7 @@ internal static class DrawingTextExtensions
 #endif
             }
 
-            // Token boundary
+            // Token boundary (other whitespace stays glued to the preceding token)
             if (IsTokenBoundary(codepoint) && sb.Length > 0)
             {
                 tokens.Add(sb.ToString());
