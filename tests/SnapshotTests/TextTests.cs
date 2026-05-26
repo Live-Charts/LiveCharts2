@@ -41,6 +41,35 @@ public sealed class TextTests
     }
 
     [TestMethod]
+    public void MultilineTextWithBareLineFeed()
+    {
+        // Issue #2266: a bare '\n' with no preceding whitespace used to get glued
+        // to the previous token (e.g. "9.4700\n") and shape as a notdef "tofu"
+        // glyph instead of breaking the line. The MultilineText test above does
+        // not catch it because Environment.NewLine is always preceded by a space.
+        var label = "O 9.4700\nH 9.5000\nL 9.3000\nC 9.3100";
+
+        var chart = new SKCartesianChart
+        {
+            Series = [
+                new LineSeries<double> { Values = [1, 2, 3] }
+            ],
+            XAxes = [
+                new Axis
+                {
+                    LabelsRotation = 45,
+                    Labels = [label, label, label],
+                }
+            ],
+            YAxes = [new Axis()],
+            Width = 600,
+            Height = 600
+        };
+
+        chart.AssertSnapshotMatches($"{nameof(TextTests)}_{nameof(MultilineTextWithBareLineFeed)}");
+    }
+
+    [TestMethod]
     public void MultilineTextInTooltips()
     {
         var label = $"Hi this is a label with {Environment.NewLine}a long text that generates {Environment.NewLine}multi lines";
