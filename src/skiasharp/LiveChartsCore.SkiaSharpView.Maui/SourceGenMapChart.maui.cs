@@ -68,8 +68,9 @@ public abstract partial class SourceGenMapChart : ChartView, IGeoMapView
     {
         CoreChart?.Unload();
 #if IOS || MACCATALYST
-        // See SourceGenChart.OnUnloaded for the rationale (#1725).
-        Handler?.DisconnectHandler();
+        // See SourceGenChart.OnUnloaded for the rationale (#1725 and #2297).
+        if (Window is null)
+            Handler?.DisconnectHandler();
 #endif
     }
 
