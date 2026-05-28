@@ -142,4 +142,63 @@ public class ZoomVisibleBoundsAutoFitTests
         Assert.IsFalse(double.IsNaN(y.VisibleDataBounds.Min), "Y min went NaN on an empty window.");
         Assert.IsFalse(double.IsNaN(y.VisibleDataBounds.Max), "Y max went NaN on an empty window.");
     }
+
+    // Characterizes a second, distinct bounds contract: a ColumnSeries does NOT
+    // force the zero baseline into the reported Y bounds. With clustered values
+    // (all ~1000) the Y axis auto-fits tightly around the cluster so the small
+    // differences are legible; the column visually grows from 0 but its lower
+    // portion is simply clipped. This is the behavior a batched/LOD column
+    // re-implementation must match — a naive "include 0 so the baseline shows"
+    // would flatten the plot from 0..1100.
+    [TestMethod]
+    public void ColumnSeries_ClusteredValues_DoesNotForceZeroBaseline()
+    {
+        var x = new Axis();
+        var y = new Axis();
+
+        var chart = new SKCartesianChart
+        {
+            Width = 800,
+            Height = 400,
+            XAxes = [x],
+            YAxes = [y],
+            Series =
+            [
+                new ColumnSeries<double> { Values = [1000d, 1010d, 990d] }
+            ]
+        };
+        _ = chart.GetImage();
+
+        // The Y data bounds track the cluster, not [0, ~1010].
+        Assert.IsTrue(y.DataBounds.Min >= 900,
+            $"Column Y bounds must auto-fit to the cluster, not force 0; got Min={y.DataBounds.Min}.");
+        Assert.IsTrue(y.DataBounds.Max <= 1100,
+            $"Column Y upper bound should track the data; got Max={y.DataBounds.Max}.");
+    }
+
+    // Same contract for a RowSeries on its value (X) axis.
+    [TestMethod]
+    public void RowSeries_ClusteredValues_DoesNotForceZeroBaseline()
+    {
+        var x = new Axis();
+        var y = new Axis();
+
+        var chart = new SKCartesianChart
+        {
+            Width = 800,
+            Height = 400,
+            XAxes = [x],
+            YAxes = [y],
+            Series =
+            [
+                new RowSeries<double> { Values = [1000d, 1010d, 990d] }
+            ]
+        };
+        _ = chart.GetImage();
+
+        Assert.IsTrue(x.DataBounds.Min >= 900,
+            $"Row X bounds must auto-fit to the cluster, not force 0; got Min={x.DataBounds.Min}.");
+        Assert.IsTrue(x.DataBounds.Max <= 1100,
+            $"Row X upper bound should track the data; got Max={x.DataBounds.Max}.");
+    }
 }
