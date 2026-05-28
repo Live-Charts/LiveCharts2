@@ -314,18 +314,44 @@ public class CoreMotionCanvas : IDisposable
     }
 
     /// <summary>
-    /// Adds a geometry (or geometries) to the canvas.
+    /// Adds a geometry (or geometries) to the canvas in the <see cref="CanvasZone.NoClip"/> zone.
     /// </summary>
     /// <returns>
     /// The task created to manage the geometries.
     /// </returns>
-    public DrawnTask AddGeometry(params IDrawnElement[] geometries)
+    public DrawnTask AddGeometry(params IDrawnElement[] geometries) =>
+        AddGeometry(CanvasZone.NoClip, geometries);
+
+    /// <summary>
+    /// Adds a geometry (or geometries) to the canvas in the given zone.
+    /// </summary>
+    /// <param name="zone">The canvas zone to add the task to.</param>
+    /// <param name="geometries">The geometries to add.</param>
+    /// <returns>
+    /// The task created to manage the geometries.
+    /// </returns>
+    public DrawnTask AddGeometry(int zone, params IDrawnElement[] geometries)
     {
         var task = new DrawnTask(this, geometries);
 
-        Zones[CanvasZone.NoClip].AddTask(task);
+        if (!TryGetValue(zone, out var canvasZone))
+            throw new ArgumentOutOfRangeException(nameof(zone), zone, "The canvas zone does not exist.");
+
+        canvasZone.AddTask(task);
 
         return task;
+    }
+
+    private bool TryGetValue(int zone, out CanvasZone canvasZone)
+    {
+        if ((uint)zone < (uint)Zones.Length)
+        {
+            canvasZone = Zones[zone];
+            return true;
+        }
+
+        canvasZone = null!;
+        return false;
     }
 
     /// <summary>

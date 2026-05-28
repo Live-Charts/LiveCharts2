@@ -27,6 +27,7 @@ using LiveChartsCore.Drawing;
 using LiveChartsCore.Drawing.Layouts;
 using LiveChartsCore.Kernel.Sketches;
 using LiveChartsCore.Measure;
+using LiveChartsCore.Motion;
 using LiveChartsCore.Painting;
 using LiveChartsCore.SkiaSharpView.Drawing;
 using LiveChartsCore.SkiaSharpView.Drawing.Geometries;
@@ -83,7 +84,7 @@ public class SKHeatLegend : Container, IChartLegend
 
         if (_drawnTask is null || _drawnTask.IsEmpty)
         {
-            _drawnTask = chart.Canvas.AddGeometry(this);
+            _drawnTask = chart.Canvas.AddGeometry(CanvasZone.Overlay, this);
             _drawnTask.ZIndex = 10099;
         }
 
