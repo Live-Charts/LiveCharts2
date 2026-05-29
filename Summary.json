@@ -1,25 +1,25 @@
 {
   "summary": {
-    "generatedon": "2026-05-29T19:05:51Z",
+    "generatedon": "2026-05-29T20:47:51Z",
     "parser": "DynamicCodeCoverage",
     "assemblies": 2,
     "classes": 354,
     "files": 557,
-    "coveredlines": 21158,
+    "coveredlines": 21150,
     "uncoveredlines": 3967,
-    "coverablelines": 25125,
+    "coverablelines": 25117,
     "totallines": 73122,
     "linecoverage": 84.2,
     "coveredbranches": 0,
     "totalbranches": 0,
-    "coveredmethods": 2608,
-    "fullcoveredmethods": 2243,
-    "totalmethods": 3237,
+    "coveredmethods": 2607,
+    "fullcoveredmethods": 2242,
+    "totalmethods": 3236,
     "methodcoverage": 80.5,
     "fullmethodcoverage": 69.2
  },
   "metrics": [
-    { "name": "Blocks covered", "value": 37034 },
+    { "name": "Blocks covered", "value": 37020 },
     { "name": "Blocks not covered", "value": 6824 } ],
   "coverage": {
     "assemblies": [
@@ -260,7 +260,7 @@
         { "name": "LiveChartsCore.VisualStates.DrawnPropertySetter", "coverage": 100, "coveredlines": 3, "coverablelines": 3, "totallines": 44, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 100, "fullmethodcoverage": 100, "coveredmethods": 1, "fullcoveredmethods": 1, "totalmethods": 1 },
         { "name": "LiveChartsCore.VisualStates.SetterExtensions", "coverage": 73, "coveredlines": 19, "coverablelines": 26, "totallines": 83, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 100, "fullmethodcoverage": 0, "coveredmethods": 1, "fullcoveredmethods": 0, "totalmethods": 1 },
         { "name": "LiveChartsCore.VisualStates.VisualStatesDictionary", "coverage": 63.7, "coveredlines": 51, "coverablelines": 80, "totallines": 182, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 75, "fullmethodcoverage": 62.5, "coveredmethods": 6, "fullcoveredmethods": 5, "totalmethods": 8 } ] },
-      { "name": "LiveChartsCore.SkiaSharpView.dll", "classes": 118, "coverage": 82.1, "coveredlines": 4010, "coverablelines": 4884, "totallines": 18876, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 69.2, "fullmethodcoverage": 59.8, "coveredmethods": 558, "fullcoveredmethods": 482, "totalmethods": 806, "classesinassembly": [
+      { "name": "LiveChartsCore.SkiaSharpView.dll", "classes": 118, "coverage": 82, "coveredlines": 4002, "coverablelines": 4876, "totallines": 18876, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 69.1, "fullmethodcoverage": 59.7, "coveredmethods": 557, "fullcoveredmethods": 481, "totalmethods": 805, "classesinassembly": [
         { "name": "LiveChartsCore.SkiaSharpView.Axis", "coverage": 100, "coveredlines": 3, "coverablelines": 3, "totallines": 35, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 100, "fullmethodcoverage": 100, "coveredmethods": 1, "fullcoveredmethods": 1, "totalmethods": 1 },
         { "name": "LiveChartsCore.SkiaSharpView.BoxSeries", "coverage": 42.8, "coveredlines": 9, "coverablelines": 21, "totallines": 162, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 40, "fullmethodcoverage": 40, "coveredmethods": 4, "fullcoveredmethods": 4, "totalmethods": 10 },
         { "name": "LiveChartsCore.SkiaSharpView.CandlesticksSeries", "coverage": 33.3, "coveredlines": 7, "coverablelines": 21, "totallines": 162, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 30, "fullmethodcoverage": 30, "coveredmethods": 3, "fullcoveredmethods": 3, "totalmethods": 10 },
@@ -372,7 +372,7 @@
         { "name": "LiveChartsCore.SkiaSharpView.VisualElements.DrawnLabelVisual", "coverage": 100, "coveredlines": 17, "coverablelines": 17, "totallines": 78, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 100, "fullmethodcoverage": 100, "coveredmethods": 5, "fullcoveredmethods": 5, "totalmethods": 5 },
         { "name": "LiveChartsCore.SkiaSharpView.VisualElements.LabelVisual", "coverage": 100, "coveredlines": 1, "coverablelines": 1, "totallines": 37, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 100, "fullmethodcoverage": 100, "coveredmethods": 1, "fullcoveredmethods": 1, "totalmethods": 1 },
         { "name": "LiveChartsCore.SkiaSharpView.VisualElements.SVGVisual", "coverage": 0, "coveredlines": 0, "coverablelines": 5, "totallines": 47, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 0, "fullmethodcoverage": 0, "coveredmethods": 0, "fullcoveredmethods": 0, "totalmethods": 2 },
-        { "name": "LiveChartsGeneratedCode.SourceGenSKCartesianChart", "coverage": 88.8, "coveredlines": 72, "coverablelines": 81, "totallines": 480, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 89.2, "fullmethodcoverage": 82.1, "coveredmethods": 25, "fullcoveredmethods": 23, "totalmethods": 28 },
+        { "name": "LiveChartsGeneratedCode.SourceGenSKCartesianChart", "coverage": 87.6, "coveredlines": 64, "coverablelines": 73, "totallines": 480, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 88.8, "fullmethodcoverage": 81.4, "coveredmethods": 24, "fullcoveredmethods": 22, "totalmethods": 27 },
         { "name": "LiveChartsGeneratedCode.SourceGenSKChart", "coverage": 78.7, "coveredlines": 318, "coverablelines": 404, "totallines": 1833, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 71.5, "fullmethodcoverage": 56.8, "coveredmethods": 63, "fullcoveredmethods": 50, "totalmethods": 88 },
         { "name": "LiveChartsGeneratedCode.SourceGenSKMapChart", "coverage": 87.1, "coveredlines": 347, "coverablelines": 398, "totallines": 3126, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 76.2, "fullmethodcoverage": 55, "coveredmethods": 61, "fullcoveredmethods": 44, "totalmethods": 80 },
         { "name": "LiveChartsGeneratedCode.SourceGenSKPieChart", "coverage": 88, "coveredlines": 44, "coverablelines": 50, "totallines": 363, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 90, "fullmethodcoverage": 75, "coveredmethods": 18, "fullcoveredmethods": 15, "totalmethods": 20 },
