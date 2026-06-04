@@ -1,6 +1,6 @@
 {
   "summary": {
-    "generatedon": "2026-06-04T04:54:53Z",
+    "generatedon": "2026-06-04T14:57:56Z",
     "parser": "DynamicCodeCoverage",
     "assemblies": 2,
     "classes": 356,
@@ -8,7 +8,7 @@
     "coveredlines": 21212,
     "uncoveredlines": 3962,
     "coverablelines": 25174,
-    "totallines": 73347,
+    "totallines": 73359,
     "linecoverage": 84.2,
     "coveredbranches": 0,
     "totalbranches": 0,
@@ -260,7 +260,7 @@
         { "name": "LiveChartsCore.VisualStates.DrawnPropertySetter", "coverage": 100, "coveredlines": 3, "coverablelines": 3, "totallines": 44, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 100, "fullmethodcoverage": 100, "coveredmethods": 1, "fullcoveredmethods": 1, "totalmethods": 1 },
         { "name": "LiveChartsCore.VisualStates.SetterExtensions", "coverage": 73, "coveredlines": 19, "coverablelines": 26, "totallines": 83, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 100, "fullmethodcoverage": 0, "coveredmethods": 1, "fullcoveredmethods": 0, "totalmethods": 1 },
         { "name": "LiveChartsCore.VisualStates.VisualStatesDictionary", "coverage": 63.7, "coveredlines": 51, "coverablelines": 80, "totallines": 182, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 75, "fullmethodcoverage": 62.5, "coveredmethods": 6, "fullcoveredmethods": 5, "totalmethods": 8 } ] },
-      { "name": "LiveChartsCore.SkiaSharpView.dll", "classes": 120, "coverage": 82.2, "coveredlines": 4035, "coverablelines": 4904, "totallines": 19030, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 69.6, "fullmethodcoverage": 60.4, "coveredmethods": 568, "fullcoveredmethods": 493, "totalmethods": 816, "classesinassembly": [
+      { "name": "LiveChartsCore.SkiaSharpView.dll", "classes": 120, "coverage": 82.2, "coveredlines": 4035, "coverablelines": 4904, "totallines": 19042, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 69.6, "fullmethodcoverage": 60.4, "coveredmethods": 568, "fullcoveredmethods": 493, "totalmethods": 816, "classesinassembly": [
         { "name": "LiveChartsCore.SkiaSharpView.Axis", "coverage": 100, "coveredlines": 3, "coverablelines": 3, "totallines": 35, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 100, "fullmethodcoverage": 100, "coveredmethods": 1, "fullcoveredmethods": 1, "totalmethods": 1 },
         { "name": "LiveChartsCore.SkiaSharpView.BoxSeries", "coverage": 42.8, "coveredlines": 9, "coverablelines": 21, "totallines": 162, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 40, "fullmethodcoverage": 40, "coveredmethods": 4, "fullcoveredmethods": 4, "totalmethods": 10 },
         { "name": "LiveChartsCore.SkiaSharpView.CandlesticksSeries", "coverage": 33.3, "coveredlines": 7, "coverablelines": 21, "totallines": 162, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 30, "fullmethodcoverage": 30, "coveredmethods": 3, "fullcoveredmethods": 3, "totalmethods": 10 },
@@ -319,11 +319,11 @@
         { "name": "LiveChartsCore.SkiaSharpView.Motion.SKMatrixMotionProperty", "coverage": 0, "coveredlines": 0, "coverablelines": 14, "totallines": 55, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 0, "fullmethodcoverage": 0, "coveredmethods": 0, "fullcoveredmethods": 0, "totalmethods": 3 },
         { "name": "LiveChartsCore.SkiaSharpView.OhlcSeries", "coverage": 33.3, "coveredlines": 7, "coverablelines": 21, "totallines": 155, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 30, "fullmethodcoverage": 30, "coveredmethods": 3, "fullcoveredmethods": 3, "totalmethods": 10 },
         { "name": "LiveChartsCore.SkiaSharpView.Painting.Effects.DashEffect", "coverage": 31.2, "coveredlines": 5, "coverablelines": 16, "totallines": 67, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 60, "fullmethodcoverage": 60, "coveredmethods": 3, "fullcoveredmethods": 3, "totalmethods": 5 },
-        { "name": "LiveChartsCore.SkiaSharpView.Painting.Effects.PathEffect", "coverage": 88.8, "coveredlines": 16, "coverablelines": 18, "totallines": 101, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 80, "fullmethodcoverage": 60, "coveredmethods": 4, "fullcoveredmethods": 3, "totalmethods": 5 },
+        { "name": "LiveChartsCore.SkiaSharpView.Painting.Effects.PathEffect", "coverage": 88.8, "coveredlines": 16, "coverablelines": 18, "totallines": 107, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 80, "fullmethodcoverage": 60, "coveredmethods": 4, "fullcoveredmethods": 3, "totalmethods": 5 },
         { "name": "LiveChartsCore.SkiaSharpView.Painting.Effects.PathEffectMotionProperty", "coverage": 100, "coveredlines": 3, "coverablelines": 3, "totallines": 48, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 100, "fullmethodcoverage": 100, "coveredmethods": 3, "fullcoveredmethods": 3, "totalmethods": 3 },
         { "name": "LiveChartsCore.SkiaSharpView.Painting.ImageFilters.Blur", "coverage": 100, "coveredlines": 13, "coverablelines": 13, "totallines": 65, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 100, "fullmethodcoverage": 100, "coveredmethods": 5, "fullcoveredmethods": 5, "totalmethods": 5 },
         { "name": "LiveChartsCore.SkiaSharpView.Painting.ImageFilters.DropShadow", "coverage": 100, "coveredlines": 23, "coverablelines": 23, "totallines": 82, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 100, "fullmethodcoverage": 100, "coveredmethods": 5, "fullcoveredmethods": 5, "totalmethods": 5 },
-        { "name": "LiveChartsCore.SkiaSharpView.Painting.ImageFilters.ImageFilter", "coverage": 94.7, "coveredlines": 18, "coverablelines": 19, "totallines": 104, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 80, "fullmethodcoverage": 80, "coveredmethods": 4, "fullcoveredmethods": 4, "totalmethods": 5 },
+        { "name": "LiveChartsCore.SkiaSharpView.Painting.ImageFilters.ImageFilter", "coverage": 94.7, "coveredlines": 18, "coverablelines": 19, "totallines": 110, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 80, "fullmethodcoverage": 80, "coveredmethods": 4, "fullcoveredmethods": 4, "totalmethods": 5 },
         { "name": "LiveChartsCore.SkiaSharpView.Painting.ImageFilters.ImageFilterMotionProperty", "coverage": 100, "coveredlines": 3, "coverablelines": 3, "totallines": 46, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 100, "fullmethodcoverage": 100, "coveredmethods": 3, "fullcoveredmethods": 3, "totalmethods": 3 },
         { "name": "LiveChartsCore.SkiaSharpView.Painting.ImageFilters.ImageFiltersMergeOperation", "coverage": 100, "coveredlines": 37, "coverablelines": 37, "totallines": 92, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 100, "fullmethodcoverage": 100, "coveredmethods": 6, "fullcoveredmethods": 6, "totalmethods": 6 },
         { "name": "LiveChartsCore.SkiaSharpView.Painting.LinearGradientPaint", "coverage": 92.6, "coveredlines": 88, "coverablelines": 95, "totallines": 227, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 91.6, "fullmethodcoverage": 75, "coveredmethods": 11, "fullcoveredmethods": 9, "totalmethods": 12 },
