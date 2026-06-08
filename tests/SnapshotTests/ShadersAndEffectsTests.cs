@@ -99,6 +99,52 @@ public sealed class ShadersAndEffectsTests
     }
 
     [TestMethod]
+    public void Striped()
+    {
+        var values1 = new int[] { 6, 7, 5, 9, 4 };
+        var values2 = new int[] { 4, 2, 8, 5, 3 };
+
+        // one base color in; the lighter/darker stripe tone is derived from it.
+        var columnStripes = new StripedPaint(new SKColor(0x64, 0x95, 0xED))
+        {
+            StripeBrightness = 0.25f,
+            StripeWidth = 10,
+            StripeAngle = 45
+        };
+        var lineStripes = new StripedPaint(new SKColor(0x2D, 0x40, 0x59))
+        {
+            StripeBrightness = -0.3f, // darker stripe
+            StripeWidth = 6,
+            StripeAngle = -30,
+            StrokeThickness = 18
+        };
+
+        var series = new ISeries[]
+        {
+            new ColumnSeries<int>
+            {
+                Values = values1,
+                Fill = columnStripes
+            },
+            new LineSeries<int>
+            {
+                Values = values2,
+                GeometrySize = 0,
+                Fill = null,
+                Stroke = lineStripes
+            }
+        };
+        var chart = new SKCartesianChart
+        {
+            Series = series,
+            Width = 600,
+            Height = 600
+        };
+
+        chart.AssertSnapshotMatches($"{nameof(ShadersAndEffectsTests)}_{nameof(Striped)}");
+    }
+
+    [TestMethod]
     public void StrokeDashEffect()
     {
         var values = new int[] { 4, 2, 8, 5, 3 };
