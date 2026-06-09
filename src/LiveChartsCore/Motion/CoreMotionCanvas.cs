@@ -114,6 +114,13 @@ public class CoreMotionCanvas : IDisposable
     public event Action<CoreMotionCanvas>? Validated;
 
     /// <summary>
+    /// An optional overlay painted on top of every frame, after all zones and the FPS panel.
+    /// Extensions use this to draw a fixed, screen-space overlay (for example a watermark).
+    /// It is not invoked while <see cref="IsTesting"/> is true, so it never affects test baselines.
+    /// </summary>
+    public static Action<CoreMotionCanvas, DrawingContext>? DrawOverlay { get; set; }
+
+    /// <summary>
     /// Returns true if the visual is valid.
     /// </summary>
     /// <value>
@@ -246,6 +253,11 @@ public class CoreMotionCanvas : IDisposable
             }
 
             IsValid = isValid;
+
+            // Painted last so it sits on top of everything; skipped under IsTesting to keep
+            // snapshot baselines clean. Extensions (e.g. the backers license watermark) opt in.
+            if (!IsTesting)
+                DrawOverlay?.Invoke(this, context);
 
             context.OnEndDraw();
         }
