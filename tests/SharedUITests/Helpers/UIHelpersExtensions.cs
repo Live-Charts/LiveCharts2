@@ -49,6 +49,33 @@ public static class UIHelpersExtensions
 
     extension(IChartView chartView)
     {
+        public async Task WaitUntilChartLoadsAndRenders(int timeoutMs = 10000, int pollMs = 50)
+        {
+            bool HasRenderedPoints()
+            {
+                if (!chartView.CoreChart.IsLoaded)
+                    return false;
+
+                var points = (chartView.Series ?? [])
+                    .SelectMany(s => s.Fetch(chartView.CoreChart))
+                    .ToArray();
+
+                // mirrors Assert.ChartIsLoaded: non-empty, every point has a positioned visual
+                return points.Length > 0 && points.All(p =>
+                {
+                    var v = p.Context.Visual;
+                    return v is not null && v.X > 0 && v.Y > 0;
+                });
+            }
+
+            var waited = 0;
+            while (waited < timeoutMs && !HasRenderedPoints())
+            {
+                await Task.Delay(pollMs);
+                waited += pollMs;
+            }
+        }
+
         public Task WaitUntilChartRenders()
         {
             var tcs = new TaskCompletionSource<object>();
