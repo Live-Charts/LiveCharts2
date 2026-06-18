@@ -2,7 +2,7 @@
   <PropertyGroup>
 
     <LiveChartsVersionSuffix></LiveChartsVersionSuffix>
-    <LiveChartsVersion>2.0.1</LiveChartsVersion>
+    <LiveChartsVersion>2.0.5</LiveChartsVersion>
     <LiveChartsCodeGenVersion>1.0.1</LiveChartsCodeGenVersion>
     <LiveChartsAuthors>BetoRodriguez</LiveChartsAuthors>
 

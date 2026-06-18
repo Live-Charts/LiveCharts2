@@ -47,11 +47,31 @@ public partial class MotionCanvas : Canvas
                     IFrameTicker ticker;
 
 #if !HAS_OS_LVC
-                    var renderMode = new SkiaRenderMode();
+                    // SKCanvasElement only works when the app runs Uno's Skia renderer;
+                    // under the native renderer (e.g. WASM native) its constructor throws
+                    // PlatformNotSupportedException, so fall back to the SkiaSharp.Views
+                    // elements in that case (#2020, #2333). CompositionTarget.Rendering
+                    // does not tick continuously under the native renderer either, so the
+                    // fallback also needs the async-loop ticker or animations freeze at
+                    // the first frame.
+                    IRenderMode renderMode;
 
-                    ticker = settings.TryUseVSync
-                        ? new NativeFrameTicker()
-                        : new AsyncLoopTicker();
+                    if (Uno.WinUI.Graphics2DSK.SKCanvasElement.IsSupportedOnCurrentPlatform())
+                    {
+                        // At this point, Uno has full control of the frame pacing.
+                        // SkiaRenderMode inherits from SKCanvasElement, it integrates with Uno's skia renderer and will draw when and how Uno needs.
+                        // NativeFrameTicker is a dummy ticker at this point, instead the frames are paced by Uno's skia renderer.
+                        renderMode = new SkiaRenderMode();
+                        ticker = new NativeFrameTicker();
+                    }
+                    else
+                    {
+                        renderMode = settings.UseGPU
+                            ? new GPURenderMode()
+                            : new CPURenderMode();
+
+                        ticker = new AsyncLoopTicker();
+                    }
 #else
                     IRenderMode renderMode = settings.UseGPU
                         ? new GPURenderMode()

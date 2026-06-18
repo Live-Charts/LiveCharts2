@@ -38,11 +38,26 @@ namespace LiveChartsCore.SkiaSharpView.Drawing;
 /// <param name="canvas">The canvas.</param>
 /// <param name="background">The background color.</param>
 /// <param name="clearBlendMode">The blend mode to use when clearing the canvas. Default is <see cref="SKBlendMode.SrcIn"/>.</param>
+/// <param name="clearCanvasOnNewFrame">
+/// Whether the canvas should be cleared at the beginning of each frame.
+/// Avalonia and Uno-Skia hosts clear the surface themselves before invoking
+/// <see cref="DrawingContext.OnBeginDraw"/>, so they pass <c>false</c>. Default
+/// <c>true</c> for hosts where SkiaSharp owns the surface and must clear it
+/// explicitly (WPF, MAUI, WinForms, Blazor, in-memory).
+/// </param>
 public class SkiaSharpDrawingContext(
-    CoreMotionCanvas motionCanvas, SKCanvas canvas, SKColor background, SKBlendMode clearBlendMode = SKBlendMode.SrcIn)
+    CoreMotionCanvas motionCanvas,
+    SKCanvas canvas,
+    SKColor background,
+    SKBlendMode clearBlendMode = SKBlendMode.SrcIn,
+    bool clearCanvasOnNewFrame = true)
         : DrawingContext
 {
-    internal static bool s_clearCanvasOnNewFrame = true;
+    /// <summary>
+    /// Gets a value indicating whether the canvas is cleared at the beginning of
+    /// each frame. See the constructor parameter of the same name.
+    /// </summary>
+    public bool ClearCanvasOnNewFrame { get; } = clearCanvasOnNewFrame;
 
     /// <summary>
     /// Gets or sets the motion canvas.
@@ -112,7 +127,7 @@ public class SkiaSharpDrawingContext(
 
     internal override void OnBeginDraw()
     {
-        if (!s_clearCanvasOnNewFrame)
+        if (!ClearCanvasOnNewFrame)
             return;
 
         // clear the canvas with the background color if it's fully opaque

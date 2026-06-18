@@ -44,7 +44,6 @@ public class MotionCanvas : UserControl
 
     static MotionCanvas()
     {
-        SkiaSharpDrawingContext.s_clearCanvasOnNewFrame = false;
         _ = LiveChartsSkiaSharp.EnsureInitialized();
     }
 
@@ -119,7 +118,8 @@ public class MotionCanvas : UserControl
             using var lease = leaseFeature.Lease();
 
             motionCanvas.DrawFrame(
-                new SkiaSharpDrawingContext(motionCanvas, lease.SkCanvas, background));
+                new SkiaSharpDrawingContext(
+                    motionCanvas, lease.SkCanvas, background, clearCanvasOnNewFrame: false));
         }
 
         public void Dispose() { }

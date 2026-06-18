@@ -47,9 +47,7 @@ public class PieChartTests
         await App.PopNavigation();
         await App.NavigateToView(sut);
 
-        // ToDo: improve this method? as a workaround for now we just wait for some time
-        // await sut.Chart.WaitUntilChartRenders();
-        await Task.Delay(2000);
+        await sut.Chart.WaitUntilChartLoadsAndRenders();
 
         Assert.ChartIsLoaded(sut.Chart);
 #endif

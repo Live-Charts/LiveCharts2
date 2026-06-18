@@ -59,6 +59,15 @@
        Condition="!$(TargetFramework.Contains('-windows'))"
        Include="SkiaSharp.Views.Uno.WinUI"
        Version="$(LatestSkiaSharpVersion)" />
+    <!--
+    On WASM with Uno's native renderer the charts shape text through HarfBuzzSharp
+    directly, so the wasm relink needs libHarfBuzzSharp; the Skia renderer brings it
+    on its own, the native renderer does not (#2020, #2333).
+    -->
+    <PackageReference
+       Condition="$(TargetFramework.Contains('-browserwasm'))"
+       Include="HarfBuzzSharp.NativeAssets.WebAssembly"
+       Version="$(HarfBuzzWASMVersion)" />
   </ItemGroup>
 
   <!-- Include Uno skia renderer if needed -->

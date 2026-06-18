@@ -51,6 +51,33 @@ public class FrameTickerTesting
         ticker.DisposeTicker();
     }
 
+    // Regression for #2020/#2333. AsyncLoopTicker is purely event-driven: it
+    // only starts its drawing loop when CoreMotionCanvas.Invalidated fires.
+    // On Uno's native renderer (e.g. WASM native) the chart engine can
+    // invalidate the canvas before the view raises Loaded — that is, before
+    // MotionCanvasComposer.Initialize subscribes the ticker. A canvas that is
+    // already invalid at InitializeTicker time never raises another event on
+    // its own, so the ticker idled forever and the chart froze before its
+    // first frame. The contract pinned here: initializing the ticker against
+    // an already-invalid canvas must start the drawing loop immediately.
+    [TestMethod]
+    public void AsyncLoopTicker_CanvasInvalidatedBeforeInitialize_StartsDrawingLoop()
+    {
+        var ticker = new AsyncLoopTicker();
+        var canvas = new CoreMotionCanvas();
+        var renderMode = new CountingRenderMode();
+
+        // the chart engine updated before the view loaded
+        canvas.Invalidate();
+
+        // the first loop iteration runs synchronously inside InitializeTicker
+        ticker.InitializeTicker(canvas, renderMode);
+
+        ticker.DisposeTicker();
+
+        Assert.IsTrue(renderMode.InvalidateCount >= 1);
+    }
+
     private sealed class NoopRenderMode : IRenderMode
     {
         public event CoreMotionCanvas.FrameRequestHandler FrameRequest { add { } remove { } }
@@ -58,5 +85,16 @@ public class FrameTickerTesting
         public void InitializeRenderMode(CoreMotionCanvas canvas) { }
         public void DisposeRenderMode() { }
         public void InvalidateRenderer() { }
+    }
+
+    private sealed class CountingRenderMode : IRenderMode
+    {
+        public int InvalidateCount { get; private set; }
+
+        public event CoreMotionCanvas.FrameRequestHandler FrameRequest { add { } remove { } }
+
+        public void InitializeRenderMode(CoreMotionCanvas canvas) { }
+        public void DisposeRenderMode() { }
+        public void InvalidateRenderer() => InvalidateCount++;
     }
 }

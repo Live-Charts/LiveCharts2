@@ -37,6 +37,11 @@ internal class AsyncLoopTicker : IFrameTicker
 
         _canvas.Invalidated += OnCoreInvalidated;
         CoreMotionCanvas.s_tickerName = nameof(AsyncLoopTicker);
+
+        // the canvas may have been invalidated before the ticker subscribed
+        // (e.g. the chart engine measures before the view raises Loaded), in
+        // that case no Invalidated event will ever come, start the loop now.
+        if (!_canvas.IsValid) OnCoreInvalidated(_canvas);
     }
 
     private void OnCoreInvalidated(CoreMotionCanvas obj) =>

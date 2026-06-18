@@ -24,7 +24,9 @@
 
 // reachable on winui, maui winui, uno winui
 
+using System;
 using LiveChartsCore.Motion;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Media;
 
 namespace LiveChartsCore.Native;
@@ -33,38 +35,69 @@ internal partial class NativeFrameTicker : IFrameTicker
 {
     private IRenderMode _renderMode = null!;
     private CoreMotionCanvas _canvas = null!;
+    private DispatcherQueue _dispatcher = null!;
+    private bool _isSubscribed;
 
     public void InitializeTicker(CoreMotionCanvas canvas, IRenderMode renderMode)
     {
         _canvas = canvas;
         _renderMode = renderMode;
+        _dispatcher = DispatcherQueue.GetForCurrentThread();
 
         _canvas.Invalidated += OnCoreInvalidated;
-        CompositionTarget.Rendering += OnCompositonTargetRendering;
+        _canvas.Validated += OnCoreValidated;
 
         CoreMotionCanvas.s_tickerName = "CompositionTarget.Rendering WinUI";
+
+        if (!_canvas.IsValid) OnCoreInvalidated(_canvas);
     }
 
-    private void OnCoreInvalidated(CoreMotionCanvas obj) =>
-        _renderMode.InvalidateRenderer();
+    private void OnCoreInvalidated(CoreMotionCanvas obj) => RunOnUI(StartLoop);
+
+    private void OnCoreValidated(CoreMotionCanvas obj) => RunOnUI(StopLoop);
+
+    private void StartLoop()
+    {
+        if (_isSubscribed || _canvas is null) return;
+        _isSubscribed = true;
+        CompositionTarget.Rendering += OnCompositonTargetRendering;
+    }
+
+    private void StopLoop()
+    {
+        if (!_isSubscribed) return;
+        _isSubscribed = false;
+        CompositionTarget.Rendering -= OnCompositonTargetRendering;
+    }
 
     private void OnCompositonTargetRendering(object? sender, object e)
     {
-        if (_canvas is null || _canvas.IsValid) return;
+        if (_canvas is null || _canvas.IsValid) { StopLoop(); return; }
         _renderMode.InvalidateRenderer();
+    }
+
+    private void RunOnUI(Action action)
+    {
+        if (_dispatcher is null || _dispatcher.HasThreadAccess) action();
+        else _ = _dispatcher.TryEnqueue(() => action());
     }
 
     public void DisposeTicker()
     {
-        CompositionTarget.Rendering -= OnCompositonTargetRendering;
+        StopLoop();
 
         // _canvas can be null when DisposeTicker is called without a prior
         // InitializeTicker, or twice in a row — same #2216 contract violation
         // guarded in the WPF CompositionTargetTicker.
-        if (_canvas is not null) _canvas.Invalidated -= OnCoreInvalidated;
+        if (_canvas is not null)
+        {
+            _canvas.Invalidated -= OnCoreInvalidated;
+            _canvas.Validated -= OnCoreValidated;
+        }
 
         _canvas = null!;
         _renderMode = null!;
+        _dispatcher = null!;
     }
 }
 
