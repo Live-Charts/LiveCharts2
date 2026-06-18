@@ -25,51 +25,23 @@
 // reachable on uno skia renderer
 // HAS_OS_LVC is true when the target framework contains any of the following:
 // -windows, -android, -ios, -maccatalyst, -tizen
-// currently this is the the same file as WinUI, because uno makes this work across platforms
-// but by design this file is separated so in the future if there are any uno specific changes
+// This is a dummy class, when Uno SkiaRenderer is used, we don't need a ticker, the control itself
+// can (and should) pace frame requests. This class is needed for compatibility with Native implementations that use
+// the ticker to request frames, like CAD display link on iOS, Choreographer on Android or CompositionTarget.Rendering on Windows.
 
 using LiveChartsCore.Motion;
-using Microsoft.UI.Xaml.Media;
 
 namespace LiveChartsCore.Native;
 
 internal partial class NativeFrameTicker : IFrameTicker
 {
-    private IRenderMode _renderMode = null!;
-    private CoreMotionCanvas _canvas = null!;
-
-    public void InitializeTicker(CoreMotionCanvas canvas, IRenderMode renderMode)
-    {
-        _canvas = canvas;
-        _renderMode = renderMode;
-
-        _canvas.Invalidated += OnCoreInvalidated;
-        CompositionTarget.Rendering += OnCompositonTargetRendering;
-
-        CoreMotionCanvas.s_tickerName = "CompositionTarget.Rendering WinUI";
-    }
-
-    private void OnCoreInvalidated(CoreMotionCanvas obj) =>
-        _renderMode.InvalidateRenderer();
-
-    private void OnCompositonTargetRendering(object? sender, object e)
-    {
-        if (_canvas is null || _canvas.IsValid) return;
-        _renderMode.InvalidateRenderer();
-    }
+    public void InitializeTicker(CoreMotionCanvas canvas, IRenderMode renderMode) =>
+        // no real ticker here: Uno's skia renderer paces the frames itself.
+        // still report a name so the FPS/debug overlay does not show an empty ticker.
+        CoreMotionCanvas.s_tickerName = "self-paced by Uno's skia renderer";
 
     public void DisposeTicker()
-    {
-        CompositionTarget.Rendering -= OnCompositonTargetRendering;
-
-        // _canvas can be null when DisposeTicker is called without a prior
-        // InitializeTicker, or twice in a row — same #2216 contract violation
-        // guarded in the WPF CompositionTargetTicker.
-        if (_canvas is not null) _canvas.Invalidated -= OnCoreInvalidated;
-
-        _canvas = null!;
-        _renderMode = null!;
-    }
+    { }
 }
 
 #endif
