@@ -5,10 +5,26 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="AvaloniaSample.Maps.World.View"
              xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
+             xmlns:draw="using:LiveChartsCore.SkiaSharpView.SKCharts"
              xmlns:vms="using:ViewModelsSamples.Maps.World"
              x:DataType="vms:ViewModel">
     <UserControl.DataContext>
         <vms:ViewModel/>
     </UserControl.DataContext>
-    <lvc:GeoMap Grid.Row="1" Series="{Binding Series}"  MapProjection="Mercator" />
+    <lvc:GeoMap
+        x:Name="geoMap"
+        Series="{Binding Series}"
+        MapProjection="Mercator"
+        LegendPosition="Right">
+        <lvc:GeoMap.Title>
+            <lvc:XamlDrawnLabelVisual
+                Text="World population by country"
+                Paint="{lvc:SolidColorPaint Color='#303030'}"
+                TextSize="20"
+                Padding="{lvc:Padding '12'}"/>
+        </lvc:GeoMap.Title>
+        <lvc:GeoMap.Legend>
+            <draw:SKHeatLegend BadgePadding="{lvc:Padding '20, 16, 8, 16'}"/>
+        </lvc:GeoMap.Legend>
+    </lvc:GeoMap>
 </UserControl>

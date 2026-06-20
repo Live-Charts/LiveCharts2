@@ -1,3 +1,8 @@
+<!--
+To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/master/docs/readme.md
+content is normally pulled from the examples in the repository.
+-->
+
 # Pressed and hover events
 
 You can request a chart to find the elements in a given position using the `Chart.GetPointsAt()` or
@@ -10,7 +15,7 @@ when a point is pressed/hovered; For example in the next gif, the tooltip opens 
 the pointer is not in the drawn shape, this is because the `HoverArea` is not the same as the drawn column.
 
 <div class="text-center sample-img">
-    <img src="{{ assets_url }}/docs/{{ unique_name }}/hover-area-col.gif" alt="sample image" />
+    <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/{{ unique_name }}/hover-area-col.gif" alt="sample image" />
 </div>
 
 #### FindingStrategy 
@@ -26,11 +31,11 @@ This is the recommended way to detect when a `ChartPoint` is pressed or hovered 
 commands/events to run actions as the user interacts with the chart.
 
 ```
-{{ full_name | get_vm_from_docs }}
+{{ render_current_directory_view_model }}
 ```
 
 ```
-{{ full_name | get_view_from_docs }}
+{{ render_current_directory_view }}
 ```
 
 In that example, we created the `OnHoveredPointsChanged` method, this method is called every time the "hovered" points change, `hover`
@@ -48,13 +53,13 @@ Both `OnHoveredPointsChanged` and `OnPressed` are marked with the `RelayCommand`
 When running that example on the `FindingStrategy.Automatic` we get:
 
 <div class="text-center sample-img">
-    <img src="{{ assets_url }}/docs/{{ unique_name }}/events-auto.gif" alt="sample image" />
+    <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/{{ unique_name }}/events-auto.gif" alt="sample image" />
 </div>
 
-But changing the strategy to `FindingStrategy.ExactMatch`, will only trigger only the points whose drawn column contains the pointer:
+But changing the strategy to `FindingStrategy.ExactMatch` will only trigger the points whose drawn column contains the pointer:
 
 <div class="text-center sample-img">
-    <img src="{{ assets_url }}/docs/{{ unique_name }}/events-ex.gif" alt="sample image" />
+    <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/{{ unique_name }}/events-ex.gif" alt="sample image" />
 </div>
 
 ## Override the find logic

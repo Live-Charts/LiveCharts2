@@ -1,6 +1,6 @@
-<div id="edit-this-article-source">
-    {{ edit_source | replace_local_to_server}}
-</div>
+<!--
+To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/master/docs/readme.md
+-->
 
 # {{ name | to_title_case }}
 
@@ -13,7 +13,7 @@
 If the stroke property is not set, then LiveCharts will create it based on the series position in your series collection
 and the current theme.
 
-![image]({{ assets_url }}/docs/_assets/box-stroke.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/box-stroke.png)
 
 ```csharp
 Series = new ISeries[]
@@ -43,7 +43,7 @@ a look at the [Paints article]({{ website_url }}/docs/{{ platform }}/{{ version 
 If the fill property is not set, then LiveCharts will create it based on the series position in your series collection
 and the current theme.
 
-![image]({{ assets_url }}/docs/_assets/box-fill.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/box-fill.png)
 
 ```csharp
 Series = new ISeries[]
@@ -70,7 +70,7 @@ a look at the [Paints article]({{ website_url }}/docs/{{ platform }}/{{ version 
 
 Specifies the maximum width a column can take, take a look at the following sample, where the max width is `10`.
 
-![image]({{ assets_url }}/docs/_assets/box-mw10.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/box-mw10.png)
 
 ```csharp
 Series = new ISeries[]
@@ -85,7 +85,7 @@ Series = new ISeries[]
 
 But now lets use `double.MaxValue` to see the difference.
 
-![image]({{ assets_url }}/docs/_assets/box-mw-.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/box-mw-.png)
 
 ```csharp
 Series = new ISeries[]
@@ -98,9 +98,9 @@ Series = new ISeries[]
 };
 ```
 
-Finally we could aso set the padding to `0`.
+Finally we could also set the padding to `0`.
 
-![image]({{ assets_url }}/docs/_assets/box-mw-p0.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/box-mw-p0.png)
 
 ```csharp
 Series = new ISeries[]

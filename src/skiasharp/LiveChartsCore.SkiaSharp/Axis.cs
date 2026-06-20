@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+using LiveChartsCore.Drawing;
 using LiveChartsCore.Kernel.Sketches;
 using LiveChartsCore.SkiaSharpView.Drawing.Geometries;
 
@@ -32,4 +33,7 @@ public class Axis : CoreAxis<LabelGeometry, LineGeometry>
     {
         LiveChartsSkiaSharp.EnsureInitialized();
     }
+
+    /// <inheritdoc cref="CoreAxis{TTextGeometry, TLineGeometry}.CreateBandGeometry"/>
+    protected override BoundedDrawnGeometry? CreateBandGeometry() => new RectangleGeometry();
 }

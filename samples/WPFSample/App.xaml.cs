@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows;
 using ViewModelsSamples;
-using LiveChartsCore; // mark
+using LiveChartsCore;  // mark
 
 namespace WPFSample;
 
@@ -17,5 +17,10 @@ public partial class App : Application
         // LiveCharts configuration section: // mark
         LiveCharts.Configure(c => c // mark
             .AddLiveChartsAppSettings()); // mark
+
+#if UI_TESTING
+        System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(Factos.SGTests).TypeHandle);
+        Factos.WPF.SetupExtensions.UseFactosApp(this);
+#endif
     }
 }

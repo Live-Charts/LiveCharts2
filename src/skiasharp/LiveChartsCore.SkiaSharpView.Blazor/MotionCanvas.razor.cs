@@ -35,7 +35,17 @@ namespace LiveChartsCore.SkiaSharpView.Blazor;
 /// <inheritdoc cref="CoreMotionCanvas"/>
 public partial class MotionCanvas : IDisposable, IRenderMode
 {
-    private SKGLView _glView = null!;
+    // Blazor's platform default for UseGPU is true: SKGLView (WebGL) renders
+    // desktop-quality charts. Raster mode (SKCanvasView) is uglier and is
+    // mainly useful when WebGL is unavailable (e.g. headless CI without
+    // SwiftShader, sandboxed iframes blocking WebGL contexts). Users opt out
+    // of GPU via:
+    //     LiveCharts.Configure(c => c.HasRenderingSettings(s => s.UseGPU = false));
+    // The flag is read once at instance construction; flipping it later on
+    // the global RenderingSettings has no effect on already-mounted charts.
+    private SKGLView? _glView;
+    private SKCanvasView? _canvasView;
+    private readonly bool _useGpu;
     private DotNetObjectReference<MotionCanvas>? _dotNetRef;
     private DomJsInterop? _dom;
     private IFrameTicker _ticker = null!;
@@ -43,6 +53,18 @@ public partial class MotionCanvas : IDisposable, IRenderMode
     static MotionCanvas()
     {
         _ = LiveChartsSkiaSharp.EnsureInitialized();
+        // Override the framework-wide UseGPU default for Blazor only — and only
+        // if the consumer has not already assigned UseGPU explicitly. WPF /
+        // WinForms / etc. don't call this and keep the false default.
+        LiveCharts.RenderingSettings.SetPlatformDefaultUseGPU(true);
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MotionCanvas"/> class.
+    /// </summary>
+    public MotionCanvas()
+    {
+        _useGpu = LiveCharts.RenderingSettings.UseGPU;
     }
 
     /// <summary>
@@ -138,18 +160,24 @@ public partial class MotionCanvas : IDisposable, IRenderMode
     protected virtual void OnPointerOut(PointerEventArgs e) =>
         _ = OnPointerOutCallback.InvokeAsync(e);
 
-    private void OnPaintGlSurface(SKPaintGLSurfaceEventArgs e)
+    private void OnPaintGlSurface(SKPaintGLSurfaceEventArgs e) =>
+        PaintFrame(e.Info.Width, e.Info.Height, e.Surface);
+
+    private void OnPaintCanvasSurface(SKPaintSurfaceEventArgs e) =>
+        PaintFrame(e.Info.Width, e.Info.Height, e.Surface);
+
+    private void PaintFrame(int width, int height, SkiaSharp.SKSurface surface)
     {
-        var sizeChanged = Width != e.Info.Width || Height != e.Info.Height;
+        var sizeChanged = Width != width || Height != height;
         if (sizeChanged)
         {
-            Width = e.Info.Width;
-            Height = e.Info.Height;
+            Width = width;
+            Height = height;
             SizeChanged?.Invoke();
         }
 
         CanvasCore.DrawFrame(
-            new SkiaSharpDrawingContext(CanvasCore, e.Surface.Canvas, SkiaSharp.SKColor.Empty));
+            new SkiaSharpDrawingContext(CanvasCore, surface.Canvas, SkiaSharp.SKColor.Empty));
     }
 
     /// <inheritdoc/>
@@ -172,6 +200,7 @@ public partial class MotionCanvas : IDisposable, IRenderMode
         _ticker?.DisposeTicker();
         _ticker = null!;
         _glView?.Dispose();
+        _canvasView?.Dispose();
         _ = (_dom?.StopFrameTicker(_dotNetRef!));
         _dotNetRef?.Dispose();
         _dotNetRef = null;
@@ -185,14 +214,19 @@ public partial class MotionCanvas : IDisposable, IRenderMode
     public void OnFrameTick()
     {
         if (CanvasCore.IsValid) return;
-        _glView.Invalidate();
+        Invalidate();
     }
 
     void IRenderMode.InitializeRenderMode(CoreMotionCanvas canvas) =>
         throw new NotImplementedException();
 
-    void IRenderMode.InvalidateRenderer() =>
+    void IRenderMode.InvalidateRenderer() => Invalidate();
+
+    private void Invalidate()
+    {
         _glView?.Invalidate();
+        _canvasView?.Invalidate();
+    }
 
     void IRenderMode.DisposeRenderMode() =>
         throw new NotImplementedException();

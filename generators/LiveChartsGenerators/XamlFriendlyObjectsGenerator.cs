@@ -39,6 +39,16 @@ public class XamlFriendlyObjectsGenerator : IIncrementalGenerator
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
+        // To debug the source generator, go to directory.build.props and set the property <DebugCodeGeneration> to true
+
+#if DEBUG_CODE_GENERATION
+        if (!System.Diagnostics.Debugger.IsAttached)
+        {
+            System.Diagnostics.Debugger.Launch();
+            System.Diagnostics.Debugger.Break();
+        }
+#endif
+
         var assemblyAttributes = context.CompilationProvider
             .Select(GetConsumerAssemblyType);
 
@@ -238,6 +248,15 @@ public class XamlFriendlyObjectsGenerator : IIncrementalGenerator
                     var hasSetter = property.SetMethod is not null;
                     var isPublic = property.DeclaredAccessibility == Accessibility.Public;
 
+                    // An explicit interface implementation can only be hosted by the generated
+                    // XAML wrapper when the wrapper itself implements that interface. Members that
+                    // explicitly implement an interface the wrapper does not declare (e.g. an
+                    // internal LiveCharts contract such as IInternalCartesianAxis, which lives on
+                    // the wrapped core type only) would emit `Interface.Member` and not compile.
+                    if (!notExplicit &&
+                        !ImplementsInterface(symbol, property.ExplicitInterfaceImplementations[0].ContainingType))
+                        continue;
+
                     if (notExplicit && hasSetter && isPublic)
                     {
                         bindableProperties.Add(property);
@@ -263,7 +282,11 @@ public class XamlFriendlyObjectsGenerator : IIncrementalGenerator
                     if (method.MethodKind == MethodKind.Ordinary && method.DeclaredAccessibility == Accessibility.Public)
                         methods[methodKey] = method;
 
-                    if (method.MethodKind == MethodKind.ExplicitInterfaceImplementation)
+                    // see the property comment above: only host an explicit implementation
+                    // when the XAML wrapper actually implements the interface.
+                    if (method.MethodKind == MethodKind.ExplicitInterfaceImplementation &&
+                        method.ExplicitInterfaceImplementations.Length > 0 &&
+                        ImplementsInterface(symbol, method.ExplicitInterfaceImplementations[0].ContainingType))
                         explicitMethods[methodKey] = method;
                 }
 
@@ -452,6 +475,10 @@ public class XamlFriendlyObjectsGenerator : IIncrementalGenerator
             _ => throw new NotSupportedException($"The consumer type '{consumerType}' is not supported.")
         };
     }
+
+    private static bool ImplementsInterface(INamedTypeSymbol type, INamedTypeSymbol interfaceType) =>
+        type.AllInterfaces.Any(i =>
+            SymbolEqualityComparer.Default.Equals(i.OriginalDefinition, interfaceType.OriginalDefinition));
 
     private static List<ISymbol> GetLiveChartsMembers(ITypeSymbol typeSymbol)
     {

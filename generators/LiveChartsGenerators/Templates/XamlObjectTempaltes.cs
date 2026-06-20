@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+using System.Collections.Generic;
 using System.Text;
 using LiveChartsGenerators.Definitions;
 using LiveChartsGenerators.Frameworks;
@@ -284,9 +285,15 @@ public partial class {target.Name} : LiveChartsCore.Generators.IXamlWrapper<{bas
         var isGauge = target.Type.Name.Contains("Gauge");
 
         var constraints = target.Type.TypeParameters
-            .Select(p => (
-                Argument: p,
-                Constraints: string.Join(", ", p.ConstraintTypes.Select(c => c.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)))))
+            .Select(p =>
+            {
+                var parts = new List<string>();
+                if (p.HasReferenceTypeConstraint) parts.Add("class");
+                else if (p.HasValueTypeConstraint) parts.Add("struct");
+                foreach (var c in p.ConstraintTypes)
+                    parts.Add(c.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
+                return (Argument: p, Constraints: string.Join(", ", parts));
+            })
             .ToArray();
 
         var sb = new StringBuilder();

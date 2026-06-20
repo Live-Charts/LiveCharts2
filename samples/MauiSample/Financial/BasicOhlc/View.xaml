@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="MauiSample.Financial.BasicOhlc.View"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Maui;assembly=LiveChartsCore.SkiaSharpView.Maui"
+    xmlns:vms="clr-namespace:ViewModelsSamples.Financial.BasicOhlc;assembly=ViewModelsSamples"
+    x:DataType="vms:ViewModel">
+
+    <ContentPage.BindingContext>
+        <vms:ViewModel/>
+    </ContentPage.BindingContext>
+
+    <lvc:CartesianChart>
+
+        <lvc:CartesianChart.Series>
+            <lvc:SeriesCollection>
+                <lvc:XamlOhlcSeries Values="{Binding Values}"/>
+            </lvc:SeriesCollection>
+        </lvc:CartesianChart.Series>
+
+        <lvc:CartesianChart.XAxes>
+            <lvc:AxesCollection>
+                <lvc:XamlDateTimeAxis
+                    Interval="1.00:00:00"
+                    DateFormatter="{Binding DateFormatter}"
+                    LabelsRotation="0"/>
+            </lvc:AxesCollection>
+        </lvc:CartesianChart.XAxes>
+
+    </lvc:CartesianChart>
+</ContentPage>

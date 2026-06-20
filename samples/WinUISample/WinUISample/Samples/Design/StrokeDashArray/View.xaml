@@ -19,18 +19,12 @@
                     Values="{Binding Values}"
                     LineSmoothness="1"
                     GeometrySize="22"
-                    
+                    Stroke="{lvc:SolidColorPaint
+                        Color='#6495ED',
+                        StrokeCap=Round,
+                        StrokeWidth=10,
+                        PathEffect={lvc:Dashed Array='30, 20'}}"
                     Fill="{x:Null}"/>
-
-                <!--
-                Nested extensions are not working in Uno
-                
-                Stroke="{lvc:SolidColorPaint
-                    Color='#6495ED',
-                    StrokeCap=Round,
-                    StrokeWidth=10,
-                    PathEffect={lvc:Dashed Array='30, 20'}}"
-                -->
             </lvc:SeriesCollection>
         </lvc:CartesianChart.Series>
     </lvc:CartesianChart>

@@ -1,10 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <LangVersion>$(GlobalLangVersion)</LangVersion>
-    <TargetFramework>net9.0-windows</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <TargetFramework>net10.0-windows</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,6 +13,19 @@
     <PackageReference Include="Vortice.Mathematics" Version="1.9.3" />
   </ItemGroup>
 
-  <Import Project="..\..\..\src\skiasharp\_Shared\_Shared.projitems" Label="Shared" />
+  <ItemGroup>
+    <Compile Include="..\..\..\src\skiasharp\_Shared\SourceGenChart.*.cs">
+      <Link>%(Filename).cs</Link>
+      <DependentUpon>SourceGenChart.cs</DependentUpon>
+    </Compile>
+
+    <Compile Include="..\..\..\src\skiasharp\_Shared\SourceGenCartesianChart.*.cs">
+      <Link>%(Filename).cs</Link>
+      <DependentUpon>CartesianChart.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SourceGenCartesianChart.*.cs">
+      <DependentUpon>CartesianChart.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
 
 </Project>

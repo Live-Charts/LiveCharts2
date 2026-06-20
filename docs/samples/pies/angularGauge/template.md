@@ -1,17 +1,22 @@
+<!--
+To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/master/docs/readme.md
+content is normally pulled from the examples in the repository.
+-->
+
 {{ render "~/shared/genericSampleJustGifHeader.md" }}
 
 {{~ if mvvm ~}}
 ## View model
 
 ```csharp
-{{ full_name | get_vm_from_docs }}
+{{ render_current_directory_view_model }}
 ```
 {{~ end ~}}
 
 ## {{~ view_title ~}}
 
 ```
-{{ full_name | get_view_from_docs }}
+{{ render_current_directory_view }}
 ```
 
 # Custom needle
@@ -83,7 +88,7 @@ public partial class ViewModel
 Run the app again, now there is a rectangle as our needle:
 
 <div class="text-center sample-img">
-    <img src="{{ assets_url }}/docs/{{ unique_name }}/needle-rect.png" alt="sample image" />
+    <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/{{ unique_name }}/needle-rect.png" alt="sample image" />
 </div>
 
 :::tip

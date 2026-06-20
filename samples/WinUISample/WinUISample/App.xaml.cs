@@ -23,6 +23,10 @@ public partial class App : Application
 
         m_window = new MainWindow();
         m_window.Activate();
+
+#if UI_TESTING
+        Factos.WinUI.SetupExtensions.UseFactosApp(this);
+#endif
     }
 
     private Window m_window;

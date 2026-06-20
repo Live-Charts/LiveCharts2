@@ -50,8 +50,26 @@ public partial class XamlRowSeries<TModel, TVisual, TLabel> : XamlSeries, IBarSe
     where TLabel : BaseLabelGeometry, new()
 { }
 
+[XamlClass(typeof(RangeColumnSeries<,,>), TVisual = typeof(RoundedRectangleGeometry))]
+public partial class XamlRangeColumnSeries<TModel, TVisual, TLabel> : XamlSeries, IBarSeries, IInternalSeries
+    where TVisual : BoundedDrawnGeometry, new()
+    where TLabel : BaseLabelGeometry, new()
+{ }
+
+[XamlClass(typeof(RangeRowSeries<,,>), TVisual = typeof(RoundedRectangleGeometry))]
+public partial class XamlRangeRowSeries<TModel, TVisual, TLabel> : XamlSeries, IBarSeries, IInternalSeries
+    where TVisual : BoundedDrawnGeometry, new()
+    where TLabel : BaseLabelGeometry, new()
+{ }
+
 [XamlClass(typeof(LineSeries<,,>), TVisual = typeof(CircleGeometry))]
 public partial class XamlLineSeries<TModel, TVisual, TLabel> : XamlSeries, ILineSeries, IInternalSeries
+    where TVisual : BoundedDrawnGeometry, new()
+    where TLabel : BaseLabelGeometry, new()
+{ }
+
+[XamlClass(typeof(RangeLineSeries<,,>), TVisual = typeof(CircleGeometry))]
+public partial class XamlRangeLineSeries<TModel, TVisual, TLabel> : XamlSeries, ILineSeries, IInternalSeries
     where TVisual : BoundedDrawnGeometry, new()
     where TLabel : BaseLabelGeometry, new()
 { }
@@ -74,6 +92,12 @@ public partial class XamlCandlesticksSeries<TModel, TVisual, TLabel> : XamlSerie
     where TLabel : BaseLabelGeometry, new()
 { }
 
+[XamlClass(typeof(OhlcSeries<,,>), TVisual = typeof(OhlcGeometry))]
+public partial class XamlOhlcSeries<TModel, TVisual, TLabel> : XamlSeries, IFinancialSeries, IInternalSeries
+    where TVisual : BaseCandlestickGeometry, new()
+    where TLabel : BaseLabelGeometry, new()
+{ }
+
 [XamlClass(typeof(BoxSeries<,,>), TVisual = typeof(BoxGeometry))]
 public partial class XamlBoxSeries<TModel, TVisual, TLabel> : XamlSeries, IBoxSeries, IInternalSeries
     where TVisual : BaseBoxGeometry, new()
@@ -89,6 +113,13 @@ public partial class XamlHeatSeries<TModel, TVisual, TLabel> : XamlSeries, IHeat
 [XamlClass(typeof(PieSeries<,,>), TVisual = typeof(DoughnutGeometry))]
 public partial class XamlPieSeries<TModel, TVisual, TLabel> : XamlSeries, IPieSeries, IInternalSeries
     where TVisual : BaseDoughnutGeometry, new()
+    where TLabel : BaseLabelGeometry, new()
+{ }
+
+[XamlClass(typeof(TreemapSeries<,,>), TVisual = typeof(RoundedRectangleGeometry))]
+public partial class XamlTreemapSeries<TModel, TVisual, TLabel> : XamlSeries, ITreemapSeries, IInternalSeries
+    where TModel : class
+    where TVisual : BoundedDrawnGeometry, new()
     where TLabel : BaseLabelGeometry, new()
 { }
 
@@ -118,6 +149,23 @@ public partial class XamlStackedColumnSeries<TModel, TVisual, TLabel> : XamlSeri
 
 [XamlClass(typeof(StackedRowSeries<,,>), TVisual = typeof(RoundedRectangleGeometry))]
 public partial class XamlStackedRowSeries<TModel, TVisual, TLabel> : XamlSeries, IBarSeries, IInternalSeries
+    where TVisual : BoundedDrawnGeometry, new()
+    where TLabel : BaseLabelGeometry, new()
+{ }
+
+// TModel = typeof(SankeyNode) makes the non-generic short-form
+// <lvc:XamlSankeySeries/> default to TModel = SankeyNode. Required because
+// the Links property is typed IEnumerable<SankeyLink<TModel>>?, and
+// generic class type parameters are invariant — SankeyLink<SankeyNode> is
+// NOT castable to SankeyLink<object>, so the default System.Object TModel
+// would crash MapChangeToBaseType when the user binds the typed array.
+// (Treemap doesn't hit this because its TModel only appears as
+// IEnumerable<TModel> which is covariant via the out modifier.)
+// Users with custom node types declare the wrapper explicitly:
+// <lvc:XamlSankeySeries x:TypeArguments="MyNode">.
+[XamlClass(typeof(SankeySeries<,,>), TVisual = typeof(ColoredRoundedRectangleGeometry), TModel = typeof(SankeyNode))]
+public partial class XamlSankeySeries<TModel, TVisual, TLabel> : XamlSeries, ISankeySeries, IInternalSeries
+    where TModel : class
     where TVisual : BoundedDrawnGeometry, new()
     where TLabel : BaseLabelGeometry, new()
 { }
@@ -166,6 +214,32 @@ public partial class XamlGaugeSeries<TVisual, TLabel> : XamlSeries, IPieSeries, 
         // we map the change manually.
         MapChangeToBaseType(change.Property.Name);
         OnXamlPropertyChanged(change);
+    }
+
+    /// <inheritdoc />
+    public override void EndInit()
+    {
+        base.EndInit();
+
+        // Avalonia skips OnPropertyChanged when SetValue assigns a value equal to the
+        // property's default (e.g. CornerRadius="0" where the DP default is also 0).
+        // MapChangeToBaseType then never runs for that property, _userSets stays empty,
+        // and a theme rule (HasRuleForGaugeSeries setting CornerRadius=8) silently
+        // overrides the user's explicit value (issue #2008). Series controls don't
+        // get rooted in the visual tree (they're collected by Series, not Children),
+        // so OnInitialized never fires for them — but EndInit does, after the XAML
+        // parser has applied every value.
+        //
+        // Walk the registered DPs and sync any property whose value source isn't the
+        // default. MapChangeToBaseType pushes the value into the wrapped CorePieSeries
+        // and SetProperty there records the property in _userSets, blocking subsequent
+        // theme overrides. Properties at default source are skipped so theme defaults
+        // still apply for unspecified properties.
+        foreach (var prop in global::Avalonia.AvaloniaPropertyRegistry.Instance.GetRegistered(GetType()))
+        {
+            if (IsSet(prop))
+                MapChangeToBaseType(prop.Name);
+        }
     }
 #endif
 }

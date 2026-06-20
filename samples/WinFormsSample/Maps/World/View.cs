@@ -11,6 +11,8 @@ namespace WinFormsSample.Maps.World;
 
 public partial class View : UserControl
 {
+    public GeoMap Chart;
+
     public View()
     {
         InitializeComponent();
@@ -49,6 +51,7 @@ public partial class View : UserControl
         };
 
         Controls.Add(chart);
+        Chart = chart;
 
         _ = DoRandomChanges(series[0]);
     }

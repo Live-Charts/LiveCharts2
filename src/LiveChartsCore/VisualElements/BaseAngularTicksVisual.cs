@@ -243,7 +243,10 @@ public abstract class BaseAngularTicksVisual<TArcGeometry, TLineGeometry, TLabel
             LabelsPaint?.RemoveGeometryFromPaintTask(chart.Canvas, visual.Label);
             Stroke?.RemoveGeometryFromPaintTask(chart.Canvas, visual.Tick);
             foreach (var subtick in visual.Subseparator)
+            {
+                if (subtick is null) continue;
                 Stroke?.RemoveGeometryFromPaintTask(chart.Canvas, subtick);
+            }
             _ = _visuals.Remove(key);
         }
     }

@@ -2,42 +2,26 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <LangVersion>$(GlobalLangVersion)</LangVersion>
-    <Nullable>enable</Nullable>
-    <TargetFrameworks>netstandard2.0;netstandard2.1;</TargetFrameworks>
+    
+    <TargetFrameworks>netstandard2.0;</TargetFrameworks>
+
     <AssemblyName>LiveChartsCore.SkiaSharpView.Eto</AssemblyName>
     <RootNamespace>LiveChartsCore.SkiaSharpView.Eto</RootNamespace>
-    <Version>$(LiveChartsVersion)</Version>
-    <PackageIcon>icon.png</PackageIcon>
-    <Description>Simple, flexible, interactive and powerful data visualization for Eto.Forms.</Description>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Authors>$(LiveChartsAuthors)</Authors>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <RepositoryUrl>https://github.com/beto-rodriguez/LiveCharts2</RepositoryUrl>
 
-    <Deterministic>true</Deterministic>
-    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <PathToPackAssets>../../../</PathToPackAssets>
   </PropertyGroup>
 
-  <Import Project="..\_Shared\_Shared.projitems" Label="Shared" />
-
+  <Import Project="../../../nuget.props" />
   <PropertyGroup>
-    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
+    <Description>
+      $(Description) This package includes all the required code and dependencies for rendering charts in Eto.Forms with SkiaSharp.
+    </Description>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\LiveChartsCore.SkiaSharp\LiveChartsCore.SkiaSharpView.csproj" />
-  </ItemGroup>
+  <Import Project="../../../build/SharedLinks.Build.props" />
 
   <ItemGroup>
-    <None Include="images\icon.png" Pack="true" PackagePath="\" />
+    <ProjectReference Include="../LiveChartsCore.SkiaSharp/LiveChartsCore.SkiaSharpView.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -45,15 +29,8 @@
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
   </ItemGroup>
 
-  <ItemGroup Condition="$(UseNuGetForGenerator)">
-    <PackageReference Include="LiveChartsGenerators" Version="$(LiveChartsCodeGenVersion)">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>analyzers</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup Condition="!$(UseNuGetForGenerator)">
-    <ProjectReference Include="..\..\..\generators\LiveChartsGenerators\LiveChartsGenerators.csproj">
+  <ItemGroup>
+    <ProjectReference Include="../../../generators/LiveChartsGenerators/LiveChartsGenerators.csproj">
       <OutputItemType>Analyzer</OutputItemType>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>

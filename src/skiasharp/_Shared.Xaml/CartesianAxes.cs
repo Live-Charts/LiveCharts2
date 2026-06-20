@@ -88,6 +88,10 @@ public partial class XamlDateTimeAxis : BaseXamlAxis<DateTimeAxis>
 {
     static UIProperty<TimeSpan>                 interval =      new(TimeSpan.FromDays(1), XamlGeneration.OnAxisIntervalChanged);
     static UIProperty<Func<DateTime, string>>   dateFormatter = new(null, XamlGeneration.OnDateTimeAxisDateFormatterChanged);
+    static UIProperty<bool>                     groupTimeUnits = new(false, OnGroupTimeUnitsChanged);
+
+    private static void OnGroupTimeUnitsChanged(IXamlWrapper<ICartesianAxis> axis, bool oldValue, bool newValue) =>
+        ((DateTimeAxis)axis.WrappedObject).GroupTimeUnits = newValue;
 
 #if AVALONIA_LVC
     /// <inheritdoc />
@@ -107,6 +111,10 @@ public partial class XamlTimeSpanAxis : BaseXamlAxis<TimeSpanAxis>
 {
     static UIProperty<TimeSpan>                 interval =      new(TimeSpan.FromSeconds(1), XamlGeneration.OnAxisIntervalChanged);
     static UIProperty<Func<TimeSpan, string>>   timeFormatter = new(null, XamlGeneration.OnTimeSpanAxisFormatterChanged);
+    static UIProperty<bool>                     groupTimeUnits = new(false, OnGroupTimeUnitsChanged);
+
+    private static void OnGroupTimeUnitsChanged(IXamlWrapper<ICartesianAxis> axis, bool oldValue, bool newValue) =>
+        ((TimeSpanAxis)axis.WrappedObject).GroupTimeUnits = newValue;
 
 #if AVALONIA_LVC
     /// <inheritdoc />

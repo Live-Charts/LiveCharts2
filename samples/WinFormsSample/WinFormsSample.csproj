@@ -2,10 +2,12 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows10.0.19041</TargetFramework>
+
+    <TargetFramework Condition="$(IsTestBuild) == ''">net10.0-windows10.0.19041.0</TargetFramework>
+    <TargetFramework Condition="$(IsTestBuild) == 'true'">$(TestBuildTargetFramework)</TargetFramework>
+
     <UseWindowsForms>true</UseWindowsForms>
     <IsPackable>false</IsPackable>
-    <LangVersion>$(GlobalLangVersion)</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,6 +20,25 @@
 
   <ItemGroup Condition="!$(UseNuGetForSamples)">
     <ProjectReference Include="..\..\src\skiasharp\LiveChartsCore.SkiaSharp.WinForms\LiveChartsCore.SkiaSharpView.WinForms.csproj" />
+  </ItemGroup>
+
+  <!-- UI test setup -->
+  <Import Condition="$(UITesting) == 'true'" Project="..\..\build\UITestsLinks.Build.props" />
+
+  <PropertyGroup Condition="$(UITesting) == 'true'">
+    <NoWarn>$(NoWarnUITests)</NoWarn>
+    <DefineConstants>$(DefineConstants);UI_TESTING;WINFORMS_UI_TESTING</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup Condition="$(UITesting) == 'true'">
+    <PackageReference Include="Factos.WinForms" Version="$(FactosVersion)" />
+  </ItemGroup>
+
+  <!--
+  The next examples are not included in net462 because they use features not available in .Net framework
+  -->
+  <ItemGroup Condition="$(TargetFramework) == 'net462'">
+    <Compile Remove="General\VisualElements\*.cs" />
   </ItemGroup>
 
 </Project>

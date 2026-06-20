@@ -153,7 +153,10 @@ public class PieChartEngine(
         IndexBounds = new Bounds();
         PushoutBounds = new Bounds();
 
-        foreach (var series in VisibleSeries.Cast<IPieSeries>())
+        // iterate Series (not VisibleSeries) so invisible series still get their theme
+        // applied; the legend can still request their miniature when IsVisibleAtLegend is
+        // true (its default), and a missing paint would otherwise crash on draw.
+        foreach (var series in Series.Cast<IPieSeries>())
         {
             if (series.SeriesId == -1) series.SeriesId = GetNextSeriesId();
 
@@ -163,6 +166,12 @@ public class PieChartEngine(
             {
                 theme.ApplyStyleToSeries(series);
                 ce._theme = themeId;
+            }
+
+            if (!series.IsVisible)
+            {
+                ce._isInternalSet = false;
+                continue;
             }
 
             var seriesBounds = series.GetBounds(this);
@@ -205,9 +214,19 @@ public class PieChartEngine(
 
         SetDrawMargin(ControlSize, actualMargin);
 
-        // invalid dimensions, probably the chart is too small
-        // or it is initializing in the UI and has no dimensions yet
-        if (DrawMarginSize.Width <= 0 || DrawMarginSize.Height <= 0) return;
+        // invalid dimensions, probably the chart is too small or it is initializing in the UI and
+        // has no dimensions yet. Don't just return — the canvas would keep painting the previous
+        // frame's geometry at its old transform (the series looks frozen at the prior size). Hide the
+        // plot instead; a resize back to a valid size resets the clips below and re-measures.
+        if (DrawMarginSize.Width <= 0 || DrawMarginSize.Height <= 0)
+        {
+            HidePlotZones();
+            Canvas.Invalidate();
+            return;
+        }
+
+        // pie doesn't clip its plot zone, so undo a previous collapse-hide before drawing.
+        ResetPlotZoneClips();
 
         if (View.Title is not null) AddTitleToChart();
 

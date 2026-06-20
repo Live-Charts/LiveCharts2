@@ -1,12 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-    <Nullable>enable</Nullable>
-    <LangVersion>$(GlobalLangVersion)</LangVersion>
-    <TargetFrameworks>net9.0-android;net9.0-ios;net9.0-maccatalyst</TargetFrameworks>
-    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net9.0-windows10.0.19041.0</TargetFrameworks>
-    <!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
-    <!-- <TargetFrameworks>$(TargetFrameworks);net8.0-tizen</TargetFrameworks> -->
+  <PropertyGroup>
+    <TargetFrameworks>
+      net10.0-android;
+    </TargetFrameworks>
+    <TargetFrameworks Condition="!$([MSBuild]::IsOSPlatform('linux'))">
+      $(TargetFrameworks);
+      net10.0-ios;net10.0-maccatalyst
+    </TargetFrameworks>
+    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">
+      $(TargetFrameworks);
+      net10.0-windows10.0.19041.0
+    </TargetFrameworks>
 
     <!-- Note for MacCatalyst:
 		The default runtime is maccatalyst-x64, except in Release config, in which case the default is maccatalyst-x64;maccatalyst-arm64.
@@ -15,22 +20,25 @@
 		either BOTH runtimes must be indicated or ONLY macatalyst-x64. -->
     <!-- For example: <RuntimeIdentifiers>maccatalyst-x64;maccatalyst-arm64</RuntimeIdentifiers> -->
 
-		<OutputType>Exe</OutputType>
-		<RootNamespace>MauiSample</RootNamespace>
-		<UseMaui>true</UseMaui>
-		<SingleProject>true</SingleProject>
-		<ImplicitUsings>enable</ImplicitUsings>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>MauiSample</RootNamespace>
+    <UseMaui>true</UseMaui>
+    <SingleProject>true</SingleProject>
+    <ImplicitUsings>enable</ImplicitUsings>
 
-		<!-- Display name -->
-		<ApplicationTitle>MauiSample</ApplicationTitle>
+    <!-- Display name -->
+    <ApplicationTitle>MauiSample</ApplicationTitle>
 
-		<!-- App Identifier -->
-		<ApplicationId>com.companyname.mauisample</ApplicationId>
-		<ApplicationIdGuid>e0049276-8cb3-4a16-85d6-8dd07de43eb8</ApplicationIdGuid>
+    <!-- App Identifier -->
+    <ApplicationId>com.companyname.mauisample</ApplicationId>
+    <ApplicationIdGuid>e0049276-8cb3-4a16-85d6-8dd07de43eb8</ApplicationIdGuid>
 
-		<!-- Versions -->
-		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
-		<ApplicationVersion>1</ApplicationVersion>
+    <!-- Versions -->
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
+
+    <!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
+    <WindowsPackageType>None</WindowsPackageType>
 
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">12.2</SupportedOSPlatformVersion>
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">15.0</SupportedOSPlatformVersion>
@@ -38,7 +46,7 @@
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
     <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
-	</PropertyGroup>
+  </PropertyGroup>
 
   <ItemGroup>
     <!-- App Icon -->
@@ -57,12 +65,11 @@
     <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 
-	<ItemGroup>
-	  <ProjectReference Include="..\ViewModelsSamples\ViewModelsSamples.csproj" />
-    <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.90" />
-    <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.90" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
-	</ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ViewModelsSamples\ViewModelsSamples.csproj" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
+    <!--<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="$(MauiVersion)" />-->
+  </ItemGroup>
 
   <ItemGroup Condition="$(UseNuGetForSamples)">
     <PackageReference Include="LiveChartsCore.SkiaSharpView.Maui" Version="$(LiveChartsVersion)" />
@@ -71,5 +78,17 @@
   <ItemGroup Condition="!$(UseNuGetForSamples)">
     <ProjectReference Include="..\..\src\skiasharp\LiveChartsCore.SkiaSharpView.Maui\LiveChartsCore.SkiaSharpView.Maui.csproj" />
   </ItemGroup>
+
+  <!-- UI test setup -->
+  <Import Condition="$(UITesting) == 'true'" Project="..\..\build\UITestsLinks.Build.props" />
+
+  <ItemGroup Condition="$(UITesting) == 'true'">
+    <PackageReference Include="Factos.MAUI" Version="$(FactosVersion)" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="$(UITesting) == 'true'">
+    <NoWarn>$(NoWarnUITests)</NoWarn>
+    <DefineConstants>$(DefineConstants);UI_TESTING;XAML_UI_TESTING;MAUI_UI_TESTING</DefineConstants>
+  </PropertyGroup>
 
 </Project>

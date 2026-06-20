@@ -1,9 +1,14 @@
+<!--
+To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/master/docs/readme.md
+content is normally pulled from the examples in the repository.
+-->
+
 # Customize default legends
 
 You can use the chart `LegendPosition`, `LegendTextPaint`, `LegendBackgroundPaint` and `LegendTextSize` to 
 define the legend look (full example [here](https://github.com/beto-rodriguez/LiveCharts2/blob/master/samples/{{ samples_folder }}/Axes/Multiple{{ view_extension }})).
 
-![custom]({{ assets_url }}/docs/_assets/legend-custom-style.png)
+![custom](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/legend-custom-style.png)
 
 # Override the default legend behavior
 
@@ -25,10 +30,10 @@ in the next example we set a larger miniature compared with the default size.
 #### View
 
 ```
-{{~ render $"~/../samples/{samples_folder}/General/TemplatedLegends{view_extension}" ~}}
+{{~ render $"~/../samples/{platform_samples_folder}/General/TemplatedLegends{view_extension}" ~}}
 ```
 
-![custom legend]({{ assets_url }}/docs/_assets/legend-custom-template.png)
+![custom legend](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/legend-custom-template.png)
 
 # Legend control from scratch
 

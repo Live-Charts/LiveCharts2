@@ -1,6 +1,6 @@
-<div id="edit-this-article-source">
-    {{ edit_source | replace_local_to_server}}
-</div>
+<!--
+To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/master/docs/readme.md
+-->
 
 # {{ name | to_title_case }}
 
@@ -13,7 +13,7 @@
 If the stroke property is not set, then LiveCharts will create it based on the series position in your series collection
 and the current theme.
 
-![image]({{ assets_url }}/docs/_assets/piestroke.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/piestroke.png)
 
 {{~ if xaml ~}}
 ```csharp
@@ -106,7 +106,7 @@ a look at the [Paints article]({{ website_url }}/docs/{{ platform }}/{{ version 
 If the fill property is not set, then LiveCharts will create it based on the series position in your series collection
 and the current theme.
 
-![image]({{ assets_url }}/docs/_assets/piefill.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/piefill.png)
 
 {{~ if xaml ~}}
 ```csharp
@@ -207,7 +207,7 @@ var pieSeries = new PieSeries<int>
 };
 ```
 
-![image]({{ assets_url }}/docs/_assets/piepushout.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/piepushout.png)
 
 ## MaxRadialColumnWidth
 
@@ -221,7 +221,7 @@ var pieSeries = new PieSeries<int>
 };
 ```
 
-![image]({{ assets_url }}/docs/_assets/pieMaxRadialCW.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/pieMaxRadialCW.png)
 
 ## InnerRadius property
 
@@ -237,7 +237,7 @@ var pieSeries = new PieSeries<int>
 };
 ```
 
-![image]({{ assets_url }}/docs/_assets/pieInnerRadius.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/pieInnerRadius.png)
 
 ## OuterRadiusOffset property
 
@@ -251,6 +251,6 @@ var pieSeries = new PieSeries<int>
 };
 ```
 
-![image]({{ assets_url }}/docs/_assets/pieOuterRadiusOffset.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/pieOuterRadiusOffset.png)
 
 {{ render "~/shared/series2.md" }}

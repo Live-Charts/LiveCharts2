@@ -47,6 +47,7 @@ public class CoreMotionCanvas : IDisposable
     private double _totalSeconds = 0;
     internal long _lastFrameTimestamp;
     internal TimeSpan _nextFrameDelay = s_baseFrameDelay;
+    private readonly List<(Paint Task, IDrawnElement Geometry)> _toRemoveGeometries = [];
     private static readonly double s_ticksPerMillisecond = Stopwatch.Frequency / 1000d;
     private static readonly TimeSpan s_baseFrameDelay = TimeSpan.FromMilliseconds(1000d / LiveCharts.RenderingSettings.LiveChartsRenderLoopFPS);
     private static readonly long s_jitterThreshold = s_baseFrameDelay.Ticks / 2;
@@ -84,22 +85,21 @@ public class CoreMotionCanvas : IDisposable
     /// <summary>
     /// Gets the clock elapsed time in milliseconds.
     /// </summary>
-    public static long ElapsedMilliseconds
-    {
-        get
-        {
-#if DEBUG
-            if (DebugElapsedMilliseconds > -1)
-                return DebugElapsedMilliseconds;
-#endif
-            return s_clock.ElapsedMilliseconds;
-        }
-    }
+    public static long ElapsedMilliseconds =>
+        DebugElapsedMilliseconds > -1
+            ? DebugElapsedMilliseconds
+            : s_clock.ElapsedMilliseconds;
 
-#if DEBUG
     internal static long DebugElapsedMilliseconds { get; set; } = -1;
     internal static bool IsTesting { get; set; }
-#endif
+
+    // Lets a platform view announce that the chart is visible again after a period
+    // off-screen (e.g., scrolled into view, tab activated). Bumping the frame
+    // timestamp prevents Chart.IsRendering() from suppressing the next measure
+    // request that would otherwise be blocked because the canvas has not painted.
+    // Used by the Avalonia view; see https://github.com/Live-Charts/LiveCharts2/issues/1986
+    internal void NotifyPlatformVisible() =>
+        _lastFrameTimestamp = s_clock.ElapsedTicks;
 
     internal bool DisableAnimations { get; set; }
 
@@ -130,6 +130,11 @@ public class CoreMotionCanvas : IDisposable
     public object Sync { get; internal set => field = value ?? new object(); } = new();
 
     /// <summary>
+    /// Gets the name of the renderer associated with the current canvas instance.
+    /// </summary>
+    public string RendererName => s_rendererName ?? "unknown renderer";
+
+    /// <summary>
     /// Draws the frame.
     /// </summary>
     /// <param name="context">The context.</param>
@@ -153,8 +158,9 @@ public class CoreMotionCanvas : IDisposable
 
             var isValid = true;
 
-            var toRemoveGeometries = new List<Tuple<Paint, IDrawnElement>>();
-
+            // _toRemoveGeometries is a reusable scratch list; cleared at the end of each draw
+            // pass. Per-frame allocation here showed up as easy waste in perf profiling — in
+            // steady state nothing is removed.
             foreach (var zone in Zones)
             {
                 context.OnBeginZone(zone);
@@ -182,8 +188,7 @@ public class CoreMotionCanvas : IDisposable
                         isValid = isValid && geometry.IsValid;
 
                         if (geometry.IsValid && geometry.RemoveOnCompleted)
-                            toRemoveGeometries.Add(
-                                new Tuple<Paint, IDrawnElement>(task, geometry));
+                            _toRemoveGeometries.Add((task, geometry));
                     }
 
                     isValid = isValid && task.IsValid;
@@ -197,14 +202,16 @@ public class CoreMotionCanvas : IDisposable
                 context.OnEndZone(zone);
             }
 
-            foreach (var tuple in toRemoveGeometries)
+            for (var i = 0; i < _toRemoveGeometries.Count; i++)
             {
-                tuple.Item1.RemoveGeometryFromPaintTask(this, tuple.Item2);
+                var (task, geometry) = _toRemoveGeometries[i];
+                task.RemoveGeometryFromPaintTask(this, geometry);
 
                 // if we removed at least one geometry, we need to redraw the control
                 // to ensure it is not present in the next frame
                 isValid = false;
             }
+            _toRemoveGeometries.Clear();
 
             if (showFps)
             {
@@ -310,18 +317,44 @@ public class CoreMotionCanvas : IDisposable
     }
 
     /// <summary>
-    /// Adds a geometry (or geometries) to the canvas.
+    /// Adds a geometry (or geometries) to the canvas in the <see cref="CanvasZone.NoClip"/> zone.
     /// </summary>
     /// <returns>
     /// The task created to manage the geometries.
     /// </returns>
-    public DrawnTask AddGeometry(params IDrawnElement[] geometries)
+    public DrawnTask AddGeometry(params IDrawnElement[] geometries) =>
+        AddGeometry(CanvasZone.NoClip, geometries);
+
+    /// <summary>
+    /// Adds a geometry (or geometries) to the canvas in the given zone.
+    /// </summary>
+    /// <param name="zone">The canvas zone to add the task to.</param>
+    /// <param name="geometries">The geometries to add.</param>
+    /// <returns>
+    /// The task created to manage the geometries.
+    /// </returns>
+    public DrawnTask AddGeometry(int zone, params IDrawnElement[] geometries)
     {
         var task = new DrawnTask(this, geometries);
 
-        Zones[CanvasZone.NoClip].AddTask(task);
+        if (!TryGetValue(zone, out var canvasZone))
+            throw new ArgumentOutOfRangeException(nameof(zone), zone, "The canvas zone does not exist.");
+
+        canvasZone.AddTask(task);
 
         return task;
+    }
+
+    private bool TryGetValue(int zone, out CanvasZone canvasZone)
+    {
+        if ((uint)zone < (uint)Zones.Length)
+        {
+            canvasZone = Zones[zone];
+            return true;
+        }
+
+        canvasZone = null!;
+        return false;
     }
 
     /// <summary>
@@ -330,10 +363,10 @@ public class CoreMotionCanvas : IDisposable
     /// <param name="task">The task.</param>
     public void RemovePaintTask(Paint task)
     {
-        var geometriesWithOwnPaints = task.GetGeometries(this)
-                .Where(x => (x.Fill ?? x.Stroke ?? x.Paint) is not null);
-
-        foreach (var geometry in geometriesWithOwnPaints)
+        // DisposePaints fires the OnDisposed hook — needed for geometries that hold cached
+        // native resources (e.g. VectorGeometry's SKPath) even if they don't own their own
+        // paints. DisposePaints null-checks the paints internally.
+        foreach (var geometry in task.GetGeometries(this))
             geometry.DisposePaints();
 
         task.ReleaseCanvas(this);
@@ -412,10 +445,9 @@ public class CoreMotionCanvas : IDisposable
         {
             foreach (var task in zone.EnumerateTasks())
             {
-                var geometriesWithOwnPaints = task.GetGeometries(this)
-                    .Where(x => (x.Fill ?? x.Stroke ?? x.Paint) is not null);
-
-                foreach (var geometry in geometriesWithOwnPaints)
+                // See RemovePaintTask: DisposePaints reaches OnDisposed on geometries with
+                // cached native resources regardless of paint ownership.
+                foreach (var geometry in task.GetGeometries(this))
                     geometry.DisposePaints();
 
                 task.DisposeTask();

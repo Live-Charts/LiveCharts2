@@ -1,85 +1,41 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Nullable>enable</Nullable>
-    <LangVersion>$(GlobalLangVersion)</LangVersion>
-
     <TargetFrameworks>
-      netstandard2.0;netstandard2.1;
-      net8.0;net8.0-android;net8.0-ios;net8.0-maccatalyst;
-    </TargetFrameworks>
-    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">
-      $(TargetFrameworks);
       net462;
-      net6.0-windows10.0.19041.0;
-      net8.0-windows10.0.19041.0;
+      netstandard2.0;
+      net8.0;
+      net8.0-windows; <!-- https://github.com/Live-Charts/LiveCharts2/issues/1772  -->
     </TargetFrameworks>
-
-    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">11.0</SupportedOSPlatformVersion>
-    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">13.1</SupportedOSPlatformVersion>
-    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
-    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
-    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
-    <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
-    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">7.0</SupportedOSPlatformVersion>
 
     <AssemblyName>LiveChartsCore</AssemblyName>
     <RootNamespace>LiveChartsCore</RootNamespace>
-    <Version>$(LiveChartsVersion)</Version>
-    <PackageIcon>icon.png</PackageIcon>
-    <Description>Simple, flexible, interactive and powerful data visualization for .Net, this is the core package probably you need another package also unless you are building your own backed.</Description>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Authors>$(LiveChartsAuthors)</Authors>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <RepositoryUrl>https://github.com/beto-rodriguez/LiveCharts2</RepositoryUrl>
-
-    <Deterministic>true</Deterministic>
-    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <PathToPackAssets>../../</PathToPackAssets>
   </PropertyGroup>
 
+  <Import Project="../../nuget.props" />  
   <PropertyGroup>
-    <CheckEolTargetFramework>false</CheckEolTargetFramework>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
-    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <Description>
+      $(Description) This package contains only the core of the library, you probably need another package that is compatible with you UI framework, unless you are building a custom package.
+    </Description>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Geo\world-robinson.geojson" />
-    <None Remove="Geo\world.geojson" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="Geo\world.geojson">
+    <EmbeddedResource Include="Geo/world.geojson">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>
 
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net462'">
+    <DefineConstants>$(DefineConstants);STRONG_NAMED_ASSEMBLIES</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
-    <None Include="images\icon.png" Pack="true" PackagePath="\" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <PackageReference Condition="'$(TargetFramework)' == 'net462' OR '$(TargetFramework)' == 'netstandard2.0' OR '$(TargetFramework)' == 'netstandard2.1'" Include="System.Text.Json" Version="8.0.5" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+    <PackageReference Condition="'$(TargetFramework)' == 'net462' OR '$(TargetFramework)' == 'netstandard2.0'" Include="System.Text.Json" Version="8.0.5" />
   </ItemGroup>
 
-  <ItemGroup Condition="$(UseNuGetForGenerator)">
-    <PackageReference Include="LiveChartsGenerators" Version="$(LiveChartsCodeGenVersion)">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>analyzers</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup Condition="!$(UseNuGetForGenerator)">
-    <ProjectReference Include="..\..\generators\LiveChartsGenerators\LiveChartsGenerators.csproj" >
+  <ItemGroup>
+    <ProjectReference Include="../../generators/LiveChartsGenerators/LiveChartsGenerators.csproj">
       <OutputItemType>Analyzer</OutputItemType>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>

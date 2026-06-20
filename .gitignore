@@ -344,9 +344,6 @@ healthchecksdb
 samples/XamarinSample/XamarinSample/XamarinSample.Android/XamarinSample.Android.csproj
 samples/XamarinSample/XamarinSample/XamarinSample.Android/Resources/Resource.designer.cs
 nuget.exe
-
-# Yes it is recommended to share the *.snk, but there are few reasons
-# other than the ones mentioned in the next link that makes me want to keep this private, also singed.
-# https://learn.microsoft.com/en-us/dotnet/standard/library-guidance/strong-naming#create-strong-named-net-libraries
-*LiveCharts.snk
-build/pack.singed.ps1
+/.claude/settings.local.json
+/.claude/screenshots/
+/.claude/worktrees/

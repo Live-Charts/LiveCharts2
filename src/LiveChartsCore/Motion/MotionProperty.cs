@@ -127,6 +127,31 @@ public abstract class MotionProperty<T>(T defaultValue) : IMotionProperty
         var deltaTime = _endTime - _startTime;
         var p = (globalTime - _startTime) / deltaTime;
 
+        // A repeating animation usually OVERSHOOTS its end (real frames rarely land exactly on a
+        // cycle boundary, so p jumps past 1). Advance the window by the whole elapsed cycles so the
+        // loop stays seamless and phase-continuous, instead of completing. RepeatTimes defaults to 0,
+        // so one-shot animations skip this; the exact p == 1 boundary is still handled below unchanged.
+        if (deltaTime > 0 && p > 1 &&
+            (Animation.RepeatTimes == int.MaxValue || Animation.RepeatTimes > Animation.RepeatCount))
+        {
+            var cycles = (int)((globalTime - _startTime) / deltaTime); // floor (elapsed is positive)
+
+            if (Animation.RepeatTimes != int.MaxValue)
+            {
+                // Never fast-forward past the remaining repeats: a long frame stall must still
+                // complete on time, not run forever. (Infinite repeats skip the counter to avoid
+                // RepeatCount overflowing over a long-running animation.)
+                var remaining = Animation.RepeatTimes - Animation.RepeatCount;
+                if (cycles > remaining) cycles = remaining;
+                Animation.RepeatCount += cycles;
+            }
+
+            _startTime += cycles * deltaTime;
+            _endTime = _startTime + Animation.Duration;
+            deltaTime = _endTime - _startTime;
+            p = (globalTime - _startTime) / deltaTime; // > 1 if it should complete (cycles was clamped)
+        }
+
         if (deltaTime <= 0 || p > 1)
         {
             // when deltaTime is <= 0:

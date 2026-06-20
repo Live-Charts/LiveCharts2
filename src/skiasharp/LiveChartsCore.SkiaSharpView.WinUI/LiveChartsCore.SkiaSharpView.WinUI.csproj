@@ -1,8 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  
   <PropertyGroup>
-    <LangVersion>$(GlobalLangVersion)</LangVersion>
-    <Nullable>enable</Nullable>
-
     <TargetFrameworks>
       net6.0-windows10.0.19041.0;
       net8.0-windows10.0.19041.0;
@@ -16,35 +14,24 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
     <RootNamespace>LiveChartsCore.SkiaSharpView.WinUI</RootNamespace>
-    <Version>$(LiveChartsVersion)</Version>
-    <PackageIcon>icon.png</PackageIcon>
-    <Description>Simple, flexible, interactive and powerful data visualization for WindowsAppSDK.</Description>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Authors>$(LiveChartsAuthors)</Authors>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <RepositoryUrl>https://github.com/beto-rodriguez/LiveCharts2</RepositoryUrl>
-
-    <Deterministic>true</Deterministic>
-    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <AssemblyName>LiveChartsCore.SkiaSharpView.WinUI</AssemblyName>
+    <PathToPackAssets>../../../</PathToPackAssets>
   </PropertyGroup>
 
-  <Import Project="..\..\_Shared.Native\_Shared.Native.projitems" Label="Shared" />
-  <Import Project="..\_Shared\_Shared.projitems" Label="Shared" />
-  <Import Project="..\_Shared.WinUI\_Shared.WinUI.projitems" Label="Shared" />
-  <Import Project="..\_Shared.Xaml\_Shared.Xaml.projitems" Label="Shared" />
+  <Import Project="../../../nuget.props" />
+  <PropertyGroup>
+    <Description>
+      $(Description) This package includes all the required code and dependencies for rendering charts in WinUI with SkiaSharp.
+    </Description>
+  </PropertyGroup>
+
+  <Import Project="..\..\..\build\WinUISharedLinks.Build.props" />
+  <Import Project="..\..\..\build\SharedLinks.Build.props" />
+  <Import Project="..\..\..\build\XamlSharedLinks.Build.props" />
+  <Import Project="..\..\..\build\NativeSharedLinks.Build.props" />
 
   <PropertyGroup>
     <DefineConstants>$(DefineConstants);WINUI_LVC;XAML_LVC</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile></DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -52,15 +39,8 @@
     <NoWarn>$(NoWarn);NETSDK1206</NoWarn>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
-    <GenerateDocumentationFile>True</GenerateDocumentationFile>
-  </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250606001" />
-    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.22621.756" />
     <PackageReference Include="SkiaSharp.Views.WinUI" Version="$(LatestSkiaSharpVersion)" />
     <PackageReference Include="SkiaSharp.HarfBuzz" Version="$(LatestSkiaSharpVersion)" />
   </ItemGroup>
@@ -70,28 +50,11 @@
     <ProjectReference Include="..\LiveChartsCore.SkiaSharp\LiveChartsCore.SkiaSharpView.csproj" />
   </ItemGroup>
 
-  <ItemGroup Condition="$(UseNuGetForGenerator)">
-    <PackageReference Include="LiveChartsGenerators" Version="$(LiveChartsCodeGenVersion)">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>analyzers</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup Condition="!$(UseNuGetForGenerator)">
+  <ItemGroup>
     <ProjectReference Include="..\..\..\generators\LiveChartsGenerators\LiveChartsGenerators.csproj">
       <OutputItemType>Analyzer</OutputItemType>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="images\icon.png" Pack="true" PackagePath="\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Update="images\icon.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
 
 </Project>

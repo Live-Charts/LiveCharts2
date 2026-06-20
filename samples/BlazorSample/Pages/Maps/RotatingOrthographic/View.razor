@@ -1,0 +1,24 @@
+@page "/Maps/RotatingOrthographic"
+@using LiveChartsCore.SkiaSharpView.Blazor
+@using LiveChartsCore.Geo
+@using ViewModelsSamples.Maps.RotatingOrthographic
+@implements IDisposable
+
+<GeoMap
+    @ref="Chart"
+    Series="@_vm.Series"
+    MapProjection="LiveChartsCore.Geo.MapProjection.Orthographic">
+</GeoMap>
+
+@code {
+    private readonly ViewModel _vm = new();
+    public GeoMap Chart;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+            _vm.Start((lon, lat) => InvokeAsync(() => Chart.CoreChart.RotateTo(lon, lat)));
+    }
+
+    public void Dispose() => _vm.Stop();
+}

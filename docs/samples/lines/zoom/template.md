@@ -1,3 +1,8 @@
+<!--
+To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/master/docs/readme.md
+content is normally pulled from the examples in the repository.
+-->
+
 {{ render "~/shared/genericSampleJustGifHeader.md" }}
 
 Zooming and panning is disabled by default, you can enable it by setting the `ZoomMode` property, this property is of type
@@ -34,7 +39,7 @@ On **Mobile** and touch screens:
 ## {{~ view_title ~}}
 
 ```
-{{ full_name | get_view_from_docs }}
+{{ render_current_directory_view }}
 ```
 
 # Options
@@ -43,15 +48,21 @@ You can enable zooming and panning by setting the `ZoomMode` property, this prop
 [ZoomAndPanMode](https://lvcharts.com/api/{{ version }}/LiveChartsCore.Measure.ZoomAndPanMode) and the options are:
 
 - `None`: Disables zooming and panning.
-- `X`: Enables zooming and panning on the X axis.
-- `Y`: Enables zooming and panning on the Y axis.
+- `PanX`: Enables panning on the X axis.
+- `ZoomX`: Enables zooming on the X axis (wheel, pinch and zoom by section).
+- `PanY`: Enables panning on the Y axis.
+- `ZoomY`: Enables zooming on the Y axis (wheel, pinch and zoom by section).
+- `X`: Enables zooming and panning on the X axis. Equivalent to `PanX | ZoomX`.
+- `Y`: Enables zooming and panning on the Y axis. Equivalent to `PanY | ZoomY`.
 - `Both`: Enables zooming and panning on both axes.
-- `NoFit`: Disables the "Fit to Bounds" feature that forces the the chart to bounce back to the data bounds when zooming and panning finishes.
+- `NoFit`: Disables the "Fit to Bounds" feature that forces the chart to bounce back to the data bounds when zooming and panning finishes.
 - `NoZoomBySection`: Disables the "Zoom by Section" feature, this feature selects an area and zooms to this area, normally by right clicking or double tapping and then dragging to the end of the section.
 - `InvertPanningPointerTrigger`: Inverts the panning and zoom by section pointer triggers, when the flag is present, panning is triggered by right clicking the chart, and zoom by section by left clicking (or inverts single/double taps on mobile).
 
+Because each gesture has its own flag you can mix and match — for example `ZoomMode = ZoomAndPanMode.ZoomX | ZoomAndPanMode.PanY` enables zoom on the X axis and panning on the Y axis only, and `ZoomMode = ZoomAndPanMode.ZoomX` enables zoom on the X axis with no panning at all (useful on mobile where pan gestures can hide tooltips).
+
 The [ZoomAndPanMode](https://lvcharts.com/api/{{ version }}/LiveChartsCore.Measure.ZoomAndPanMode) type is a flag enum,
-so you can combine the options, for example, if you want to enable zooming on the `Both` axes and disable "Fit top Bounds"
+so you can combine the options, for example, if you want to enable zooming on the `Both` axes and disable "Fit to Bounds"
 you could set the `ZoomMode` property to:
 
 
@@ -75,7 +86,7 @@ myChart.ZoomMode = flags;
 
 
 <div class="text-center sample-img">
-    <img src="{{ assets_url }}/docs/{{ unique_name }}/zoom-both-nofit.gif" alt="sample image" />
+    <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/{{ unique_name }}/zoom-both-nofit.gif" alt="sample image" />
 </div>
 
 # Bouncing distance
@@ -115,7 +126,7 @@ when zooming is enabled, this feature is also enabled by default, you can also c
 find more info [here](https://lvcharts.com/docs/{{ platform }}/{{ version }}/CartesianChart.Axes%20properties#zooming-and-panning).
 
 <div class="text-center sample-img">
-    <img src="{{ assets_url }}/docs/{{ unique_name }}/selection-zoom.gif" alt="sample image" />
+    <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/{{ unique_name }}/selection-zoom.gif" alt="sample image" />
 </div>
 
 

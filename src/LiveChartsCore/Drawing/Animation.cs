@@ -88,18 +88,18 @@ public class Animation
     /// <summary>
     /// Gets or sets the easing function.
     /// </summary>
-    public Func<float, float>? EasingFunction { get; }
+    public Func<float, float>? EasingFunction { get; set; }
 
     /// <summary>
     /// Gets or sets the duration of the transition in Milliseconds.
     /// </summary>
-    public long Duration { get; }
+    public long Duration { get; set; }
 
     /// <summary>
-    /// Gets or sets how many times the animation needs to repeat before it is completed, 
+    /// Gets or sets how many times the animation needs to repeat before it is completed,
     /// use int.MaxValue to repeat it indefinitely number of times.
     /// </summary>
-    public int RepeatTimes { get; }
+    public int RepeatTimes { get; set; }
 
     internal int RepeatCount { get; set; } = 0;
 }

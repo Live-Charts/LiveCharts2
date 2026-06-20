@@ -22,11 +22,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using LiveChartsCore.Drawing;
 using LiveChartsCore.Kernel;
 using LiveChartsCore.Kernel.Events;
+using LiveChartsCore.Kernel.Providers;
 using LiveChartsCore.Kernel.Sketches;
 using LiveChartsCore.Measure;
 using LiveChartsCore.Motion;
@@ -58,14 +60,20 @@ public abstract class Chart
     private LvcPoint _pointerPanningPosition = new(-10, -10);
     private LvcPoint _pointerPreviousPanningPosition = new(-10, -10);
     internal bool _isPanning = false;
+    internal bool _isPointerDown = false;
+    // Squared pixel distance the pointer must travel after pressing before pan
+    // engages. Below this threshold a press+move is treated as a tooltip-only
+    // gesture (matters most on touch, where pan and tooltip share one finger;
+    // see issue #1957). Mirrors the threshold already used by GeoMapChart.
+    private const float PanEngageThresholdSq = 25f;
     private readonly HashSet<ChartPoint> _activePoints = [];
     private LvcSize _previousSize = new();
     private int _nextSeriesId = 0;
     private long _lastMeasureTimeStamp = -1;
 
 #if NET5_0_OR_GREATER
-    private readonly bool _isMobile;
-    private bool _isTooltipCanceled;
+    internal bool _isMobile;
+    internal bool _isTooltipCanceled;
 #endif
 
     #endregion
@@ -95,7 +103,12 @@ public abstract class Chart
 
 #if NET5_0_OR_GREATER
 
-        _isMobile = OperatingSystem.IsOSPlatform("Android") || OperatingSystem.IsOSPlatform("iOS");
+        // Mac Catalyst reports as iOS via OperatingSystem.IsOSPlatform("iOS") but is
+        // a desktop UX (hover, cursor, click). Treating it as mobile would cause
+        // InvokePointerUp to leave _isTooltipCanceled set, blocking hover-after-pan
+        // tooltips for the rest of the chart's lifetime.
+        _isMobile = OperatingSystem.IsOSPlatform("Android")
+                    || (OperatingSystem.IsOSPlatform("iOS") && !OperatingSystem.IsMacCatalyst());
 
 #endif
     }
@@ -149,6 +162,14 @@ public abstract class Chart
     /// The drawable series.
     /// </value>
     public abstract IEnumerable<ISeries> Series { get; }
+
+    /// <summary>
+    /// Enumerates the chart's series that contribute a heat gradient to the
+    /// legend. Default reads <see cref="Series"/>; chart engines whose series
+    /// don't satisfy <see cref="ISeries"/> (the geo map) override this.
+    /// </summary>
+    public virtual IEnumerable<IHeatLegendSource> EnumerateHeatLegendSources() =>
+        Series.OfType<IHeatLegendSource>();
 
     /// <summary>
     /// Gets the view.
@@ -228,20 +249,45 @@ public abstract class Chart
     public IChartTooltip? Tooltip { get; protected set; }
 
     /// <summary>
-    /// Gets the animations speed.
+    /// Gets the animations speed. Setting this also refreshes <see cref="Animation"/> so
+    /// already-created chart-default geometries pick up the new duration without recreation.
     /// </summary>
     /// <value>
     /// The animations speed.
     /// </value>
-    public TimeSpan ActualAnimationsSpeed { get; protected set; }
+    public TimeSpan ActualAnimationsSpeed
+    {
+        get;
+        protected set
+        {
+            field = value;
+            Animation.Duration = (long)value.TotalMilliseconds;
+        }
+    }
 
     /// <summary>
-    /// Gets the easing function.
+    /// Gets the easing function. Setting this also refreshes <see cref="Animation"/> so
+    /// already-created chart-default geometries pick up the new function without recreation.
     /// </summary>
     /// <value>
     /// The easing function.
     /// </value>
-    public Func<float, float>? ActualEasingFunction { get; protected set; } = EasingFunctions.QuadraticOut;
+    public Func<float, float>? ActualEasingFunction
+    {
+        get;
+        protected set
+        {
+            field = value;
+            Animation.EasingFunction = value;
+        }
+    } = EasingFunctions.QuadraticOut;
+
+    /// <summary>
+    /// Shared animation reference used by chart-default geometries (geometries that don't
+    /// have a per-element override). Mutated in-place by <see cref="ActualAnimationsSpeed"/>
+    /// and <see cref="ActualEasingFunction"/> so existing visuals pick up new settings.
+    /// </summary>
+    internal Animation Animation { get; } = new(EasingFunctions.QuadraticOut, TimeSpan.Zero);
 
     /// <summary>
     /// Gets the visual elements.
@@ -296,7 +342,7 @@ public abstract class Chart
             strategy = Series.GetFindingStrategy();
 
         return Series.SelectMany(series =>
-            series.FindHitPoints(this, new(point), strategy, FindPointFor.HoverEvent));
+            HitTestSeries(series, new(point), strategy, findPointFor));
     }
 
     /// <inheritdoc cref="IChartView.GetVisualsAt(LvcPointD)"/>
@@ -309,6 +355,13 @@ public abstract class Chart
     /// </summary>
     public virtual void Load()
     {
+        // At design time GetTheme below would JIT-load SkiaSharp paint types via
+        // ThemesExtensions.AddDefaultTheme initializers, which crashes the .NET
+        // Framework WinForms designer host on strong-name binding (#2182).
+        // SkiaSharp's SKElement/SKControl already short-circuit paint at design
+        // time, so there's nothing to set up.
+        if (View.DesignerMode) return;
+
         IsLoaded = true;
         _isFirstDraw = true;
         var theme = GetTheme();
@@ -322,6 +375,7 @@ public abstract class Chart
     /// </summary>
     public virtual void Unload()
     {
+        _lastMeasureTimeStamp = -1;
         IsLoaded = false;
         _everMeasuredElements.Clear();
         _toDeleteElements.Clear();
@@ -329,15 +383,29 @@ public abstract class Chart
         Canvas.Dispose();
     }
 
+    // Whether panning gestures actually move the chart. False on the base
+    // Chart (Pie / Polar / GeoMap have no pan in the core pipeline);
+    // CartesianChartEngine overrides to true when ZoomMode includes PanX or
+    // PanY. Used to gate the press deadzone in InvokePointerMove — without
+    // this, a >5px drag on a non-pannable chart would cancel the tooltip
+    // (because _isPanning gets set) even though no pan actually happens.
+    internal virtual bool IsPanEnabled => false;
+
     /// <summary>
     /// Invokes the pointer down event.
     /// </summary>
     /// <param name="point">The pointer position.</param>
-    /// <param name="isSecondaryAction">Flags the action as secondary (normally rigth click or double tap on mobile)</param>
+    /// <param name="isSecondaryAction">Flags the action as secondary (normally right click or double tap on mobile)</param>
     protected internal virtual void InvokePointerDown(LvcPoint point, bool isSecondaryAction)
     {
-        _isPanning = true;
+        _isPointerDown = true;
         _pointerPreviousPanningPosition = point;
+        // Seed _pointerPosition/_isPointerIn so the tooltip throttler called below
+        // can draw at the press location even on platforms whose press doesn't
+        // emit a synthetic Move (iOS UILongPressGestureRecognizer fires Began→Ended
+        // with no Changed when the finger doesn't move).
+        _pointerPosition = point;
+        _isPointerIn = true;
 
         lock (Canvas.Sync)
         {
@@ -355,14 +423,14 @@ public abstract class Chart
             {
                 if (!series.RequiresFindClosestOnPointerDown) continue;
 
-                var points = series.FindHitPoints(this, point, strategy, FindPointFor.PointerDownEvent);
+                var points = HitTestSeries(series, point, strategy, FindPointFor.PointerDownEvent);
                 if (!points.Any()) continue;
 
                 series.OnDataPointerDown(View, points, point);
             }
 
             // fire the chart event.
-            var iterablePoints = VisibleSeries.SelectMany(x => x.FindHitPoints(this, point, strategy, FindPointFor.PointerDownEvent));
+            var iterablePoints = VisibleSeries.SelectMany(x => HitTestSeries(x, point, strategy, FindPointFor.PointerDownEvent));
             View.OnDataPointerDown(iterablePoints, point);
 
             // fire the visual elements event.
@@ -379,6 +447,11 @@ public abstract class Chart
 
         // experimental events from the chart engine.
         PointerDown?.Invoke(this, point);
+
+        // Render the tooltip on press so a static tap opens it on every platform,
+        // not only platforms whose native press also emits a Move (Android does,
+        // iOS does not — see _pointerPosition seed above).
+        _tooltipThrottler.Call();
     }
 
     /// <summary>
@@ -389,7 +462,28 @@ public abstract class Chart
     {
         _pointerPosition = point;
         _isPointerIn = true;
-        _tooltipThrottler.Call();
+
+        // Pan engagement deadzone: with a finger down, defer pan until the pointer
+        // has moved past PanEngageThresholdSq pixels from the press point. Without
+        // this, every touch+move on mobile fires both tooltip and pan throttlers
+        // simultaneously and the tooltip cannot lock on as the data scrolls
+        // underneath the finger (issue #1957). On desktop the threshold is below
+        // perceptible movement so click+drag still pans as before.
+        if (_isPointerDown && !_isPanning && IsPanEnabled)
+        {
+            var pdx = point.X - _pointerPreviousPanningPosition.X;
+            var pdy = point.Y - _pointerPreviousPanningPosition.Y;
+            if (pdx * pdx + pdy * pdy > PanEngageThresholdSq)
+            {
+                _isPanning = true;
+#if NET5_0_OR_GREATER
+                _isTooltipCanceled = true;
+#endif
+                View.InvokeOnUIThread(CloseTooltip);
+            }
+        }
+
+        if (!_isPanning) _tooltipThrottler.Call();
 
         // experimental events from the chart engine.
         PointerMove?.Invoke(this, point);
@@ -403,9 +497,11 @@ public abstract class Chart
     /// Invokes the pointer up event.
     /// </summary>
     /// <param name="point">The pointer position.</param>
-    /// <param name="isSecondaryAction">Flags the action as secondary (normally rigth click or double tap on mobile)</param>
+    /// <param name="isSecondaryAction">Flags the action as secondary (normally right click or double tap on mobile)</param>
     protected internal virtual void InvokePointerUp(LvcPoint point, bool isSecondaryAction)
     {
+        _isPointerDown = false;
+
 #if NET5_0_OR_GREATER
         if (_isMobile)
         {
@@ -415,6 +511,12 @@ public abstract class Chart
             }
 
             View.InvokeOnUIThread(CloseTooltip);
+        }
+        else
+        {
+            // Clear the pan-engagement tooltip suppression on desktop so the next
+            // hover after a drag-pan can show a tooltip again.
+            _isTooltipCanceled = false;
         }
 #endif
 
@@ -463,6 +565,36 @@ public abstract class Chart
     }
 
     /// <summary>
+    /// Hides the plot content by clipping the draw-margin and crosshair zones to a zero-area
+    /// rectangle. Used by every chart engine when the draw margin collapses (the reserved margins
+    /// exceed the control), so the previous, now-invalid frame is not left painted at its old
+    /// transform. A constructed (location, size) rectangle is NOT <see cref="LvcRectangle.Empty"/> —
+    /// Empty means "no clip / draw everywhere" — so even at the origin this reliably clips out all
+    /// pixels. The legend, title and labels live in the NoClip zone and are intentionally untouched.
+    /// </summary>
+    protected void HidePlotZones()
+    {
+        var hidden = new LvcRectangle(new LvcPoint(), new LvcSize(0, 0));
+        Canvas.Zones[CanvasZone.DrawMargin].Clip = hidden;
+        Canvas.Zones[CanvasZone.XCrosshair].Clip = hidden;
+        Canvas.Zones[CanvasZone.YCrosshair].Clip = hidden;
+    }
+
+    /// <summary>
+    /// Resets the plot zone clips back to <see cref="LvcRectangle.Empty"/> (no clip). Engines that do
+    /// not otherwise manage their clips (pie, polar, treemap, sankey) call this on a valid measure so
+    /// a previous <see cref="HidePlotZones"/> is undone and the plot becomes visible again. Engines
+    /// that set real clips on every valid measure (cartesian via RegisterClipZones, geo map) restore
+    /// themselves and don't need it.
+    /// </summary>
+    protected void ResetPlotZoneClips()
+    {
+        Canvas.Zones[CanvasZone.DrawMargin].Clip = LvcRectangle.Empty;
+        Canvas.Zones[CanvasZone.XCrosshair].Clip = LvcRectangle.Empty;
+        Canvas.Zones[CanvasZone.YCrosshair].Clip = LvcRectangle.Empty;
+    }
+
+    /// <summary>
     /// Saves the previous size of the chart.
     /// </summary>
     protected void SetPreviousSize() => _previousSize = ControlSize;
@@ -505,9 +637,21 @@ public abstract class Chart
         {
             View.InvokeOnUIThread(() =>
             {
-                lock (Canvas.Sync)
+                try
                 {
-                    Measure();
+                    lock (Canvas.Sync)
+                    {
+                        Measure();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // The measure runs inside a fire-and-forget Task.Run, so an unhandled
+                    // exception here disappears into the unobserved-task pipeline. Surface
+                    // it via Trace so users with a TraceListener attached (Visual Studio's
+                    // Output window, file/EventLog listeners in production) get a signal
+                    // instead of a silently blank chart. See issue #1826.
+                    Trace.WriteLine($"[LiveCharts] chart update failed: {ex}");
                 }
             });
         });
@@ -520,11 +664,28 @@ public abstract class Chart
         _toDeleteElements = [.. _everMeasuredElements];
 
     /// <summary>
+    /// Hit-tests a series, giving a provider render override the chance to answer instead
+    /// of the per-point fetch. Falls back to the series' own hit-test.
+    /// </summary>
+    internal IEnumerable<ChartPoint> HitTestSeries(
+        ISeries series, LvcPoint pointerPosition, FindingStrategy strategy, FindPointFor findPointFor)
+        => LiveCharts.DefaultSettings.GetProvider().GetRenderOverride(series)
+               ?.TryFindHitPoints(series, this, pointerPosition, strategy, findPointFor)
+           ?? series.FindHitPoints(this, pointerPosition, strategy, findPointFor);
+
+    /// <summary>
     /// Adds a visual element to the chart.
     /// </summary>
     public void AddVisual(IChartElement element)
     {
-        element.Invalidate(this);
+        if (element is not ISeries s ||
+            LiveCharts.DefaultSettings.GetProvider().GetRenderOverride(s) is not { } renderOverride ||
+            !renderOverride.TryRender(s, this))
+        {
+            element.Invalidate(this);
+        }
+        // else: the override took over rendering this series and owns its visuals.
+
         element.RemoveOldPaints(View);
         _ = _everMeasuredElements.Add(element);
         _ = _toDeleteElements.Remove(element);
@@ -608,6 +769,10 @@ public abstract class Chart
         {
             if (visual is ISeries series)
             {
+                // Let a provider render override release any resources it allocated
+                // for this series before the series itself is disposed.
+                LiveCharts.DefaultSettings.GetProvider().GetRenderOverride(series)?.OnRemoved(View, series);
+
                 // series delete softly and animate as they leave the UI.
                 // UPDATE
                 // actually series are not even removed sofly.. this is only disposing things
@@ -801,12 +966,9 @@ public abstract class Chart
         // rendered the last frame, if both timestamps are different it means the canvas is rendering
         // and we are safe to keep measuring, otherwise we skip measuring until the canvas renders a new frame.
 
-#if DEBUG
-        // hack.
-        // a flag to to remove this check in unit tests.
+        // hack. a flag to remove this check in unit tests.
         if (CoreMotionCanvas.IsTesting)
             return true;
-#endif
 
         var canMeasure = Canvas._lastFrameTimestamp != _lastMeasureTimeStamp;
 
@@ -839,7 +1001,10 @@ public abstract class Chart
         return removed;
     }
 
-    private Task TooltipThrottlerUnlocked()
+    // internal (not private) so CoreTests can synchronously drive the hover
+    // pipeline without waiting on the 50ms ActionThrottler delay; production
+    // call sites only reach this through _tooltipThrottler.
+    internal Task TooltipThrottlerUnlocked()
     {
         return Task.Run(() =>
              View.InvokeOnUIThread(() =>
@@ -857,7 +1022,12 @@ public abstract class Chart
              }));
     }
 
-    private Task PanningThrottlerUnlocked()
+    /// <summary>
+    /// Called when the panning throttler fires. The base implementation handles
+    /// cartesian pan; subclasses (GeoMapChart) override to plug in their own
+    /// panning strategy while still reusing the base throttler + deadzone.
+    /// </summary>
+    protected virtual Task PanningThrottlerUnlocked()
     {
         return Task.Run(() =>
             View.InvokeOnUIThread(() =>

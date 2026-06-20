@@ -1,0 +1,30 @@
+<Page x:Class="UnoPlatformSample.MainPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+  <Grid x:Name="grid">
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="250" />
+      <ColumnDefinition Width="*" />
+    </Grid.ColumnDefinitions>
+
+    <!-- Sample list (mirrors WinUISample.MainWindow) -->
+    <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" Padding="16,12">
+      <ItemsControl ItemsSource="{Binding Samples}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Border Padding="0,7" Background="Transparent" PointerPressed="Border_PointerPressed">
+              <TextBlock Text="{Binding}" FontSize="15" />
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+
+    <!-- Selected sample -->
+    <ContentControl x:Name="content" Grid.Column="1"
+                    HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
+                    Margin="8" />
+  </Grid>
+</Page>

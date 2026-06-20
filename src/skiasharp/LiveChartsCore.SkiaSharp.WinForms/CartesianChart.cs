@@ -25,12 +25,14 @@ using LiveChartsCore.Kernel.Sketches;
 namespace LiveChartsCore.SkiaSharpView.WinForms;
 
 // ==============================================================================
-// 
-// use the LiveChartsGeneratedCode.SourceGenCartesianChart class to add winforms specific
-// code, this class is just to expose the CartesianChart class in this namespace.
-// 
+// this file exposes the control at this namespace.
+// to see the code expand this file in the solution explorer, it will include 3 files:
+//    - *.uiFramework.cs:   The UI framework specific code
+//    - *.shared.cs:        shared code between all UI frameworks
+//    - *.sgp.cs:           the source generated properties
 // ==============================================================================
 
 /// <inheritdoc cref="ICartesianChartView" />
+[System.ComponentModel.DesignerCategory("")]
 public partial class CartesianChart : LiveChartsGeneratedCode.SourceGenCartesianChart
 { }

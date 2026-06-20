@@ -45,7 +45,8 @@ public abstract partial class SourceGenSKChart : InMemorySkiaSharpChart
     /// Initializes a new instance of the <see cref="SourceGenSKChart"/> class.
     /// </summary>
     /// <param name="chartView">The chart view to generate the image from.</param>
-    public SourceGenSKChart(IChartView? chartView = null) : base(chartView)
+    public SourceGenSKChart(IChartView? chartView = null)
+        : base(chartView)
     {
         EasingFunction = null;
         AutoUpdateEnabled = false;
@@ -57,10 +58,17 @@ public abstract partial class SourceGenSKChart : InMemorySkiaSharpChart
         CoreChart?.Load();
     }
 
-    bool IChartView.DesignerMode => false;
+    /// <summary>
+    /// Whether this in-memory chart reports itself as running in a designer
+    /// host. Always <c>false</c> in production; test fixtures override to
+    /// exercise the design-time short-circuit in <see cref="Chart.Load"/>.
+    /// </summary>
+    protected virtual bool IsDesignerMode => false;
+
+    bool IChartView.DesignerMode => IsDesignerMode;
     bool IChartView.IsDarkMode => false;
     LvcColor IChartView.BackColor => Background.AsLvcColor();
-    LvcSize IChartView.ControlSize => new() { Width = Width, Height = Height };
+    LvcSize IDrawnView.ControlSize => new() { Width = Width, Height = Height };
 
     void IChartView.InvokeOnUIThread(Action action) =>
         action();

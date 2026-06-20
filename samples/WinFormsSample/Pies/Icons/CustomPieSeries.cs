@@ -1,4 +1,3 @@
-using Microsoft.UI.Xaml;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Drawing.Geometries;
 using ViewModelsSamples.Pies.Icons;

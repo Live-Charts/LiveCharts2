@@ -1,0 +1,12 @@
+<Project>
+
+  <!--
+  Overrides (empties) the validation target from uno.winui's
+  buildTransitive/uno.winui.runtime-replace.targets. Directory.Build.targets
+  is imported after NuGet package targets, so this definition wins. Only
+  imported for the LvcUnoNativeRenderer + UITesting configuration — see
+  Directory.Build.targets for why.
+  -->
+  <Target Name="_UnoValidateReferencesUnoRuntimeIdentifier" />
+
+</Project>

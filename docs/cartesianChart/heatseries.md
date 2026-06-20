@@ -1,6 +1,6 @@
-<div id="edit-this-article-source">
-    {{ edit_source | replace_local_to_server}}
-</div>
+<!--
+To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/master/docs/readme.md
+-->
 
 # {{ name | to_title_case }}
 
@@ -15,7 +15,7 @@ where the first element in the array is the the smallest or coldest and the last
 any value between the chart limits will be interpolated lineally to create a new color, you can add as many colors as you need 
 to define the gradient.
 
-![image]({{ assets_url }}/docs/_assets/heathm.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/heathm.png)
 
 ```csharp
 using SkiaSharp;
@@ -44,7 +44,7 @@ go from 0 to 1, where 0 is the "coldest" and 1 the "hottest", notice in the foll
 black to blue gradient is only used in the last 10 percent of the gradient, while the yellow to black is
 used in the remaining 90% of the gradient.
 
-![image]({{ assets_url }}/docs/_assets/heatcs.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/heatcs.png)
 
 ```csharp
 using SkiaSharp;
@@ -75,7 +75,7 @@ Series = new ISeries[]
 
 Defines the padding for every point in the series.
 
-![image]({{ assets_url }}/docs/_assets/heatp.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/heatp.png)
 
 ```csharp
 Series = new ISeries[]

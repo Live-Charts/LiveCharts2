@@ -1,0 +1,20 @@
+@page "/Test/AspectRatio"
+
+@using LiveChartsCore
+@using LiveChartsCore.SkiaSharpView
+@using LiveChartsCore.SkiaSharpView.Blazor
+
+<div style="height: 150px; width: 100%;">
+    <CartesianChart
+        @ref="Chart"
+        Series="@series">
+    </CartesianChart>
+</div>
+
+@code {
+    private ISeries[] series = [
+        new LineSeries<int> { Values = [5, 10, 8, 4] }
+    ];
+
+    public CartesianChart Chart = null!;
+}

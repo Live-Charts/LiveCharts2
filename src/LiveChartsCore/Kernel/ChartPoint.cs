@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 using LiveChartsCore.Drawing;
+using LiveChartsCore.Kernel.Drawing;
 using LiveChartsCore.Kernel.Sketches;
 using LiveChartsCore.Measure;
 
@@ -52,6 +53,11 @@ public class ChartPoint
     private ChartPoint()
     {
         Context = new ChartPointContext();
+    }
+
+    internal ChartPoint(IChartView chart, object dataSource, HoverArea? hoverArea)
+    {
+        Context = new ChartPointContext(chart, dataSource, hoverArea);
     }
 
     internal (double, double) HoverKey { get; set; }

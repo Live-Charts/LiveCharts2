@@ -1,12 +1,12 @@
-<div id="edit-this-article-source">
-    {{ edit_source | replace_local_to_server}}
-</div>
+<!--
+To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/master/docs/readme.md
+-->
 
 # Legends
 
 A legend is a visual element that displays a list with the name, stroke and fills of the series in a chart:
 
-![legends]({{ assets_url }}/docs/_assets/legend.png)
+![legends](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/legend.png)
 
 You can place a legend at `Top`, `Bottom`, `Left`, `Right` or `Hidden` positions, notice the `Hidden` position will 
 disable legends in a chart, default value is `Hidden`.
@@ -73,12 +73,12 @@ cartesianChart1.LegendPosition = LiveChartsCore.Measure.LegendPosition.Bottom; /
 You can use the chart `LegendPosition`, `LegendTextPaint`, `LegendBackgroundPaint` and `LegendTextSize` to 
 define the legend look (full example [here](https://github.com/beto-rodriguez/LiveCharts2/blob/master/samples/{{ samples_folder }}/Axes/Multiple{{ view_extension }})).
 
-![custom]({{ assets_url }}/docs/_assets/legend-custom-style.png)
+![custom](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/legend-custom-style.png)
 
-## Tooltip control from scratch
+## Custom legend control
 
-You can also create your own legend, the recommended way is to use the LiveCharts API (example below) but you can
-use anything as tooltip as soon as it implements the `IChartLegend<T>` interface. At the following example we build
+You can also create your own legend. The recommended way is to use the LiveCharts API (example below), but you can
+use anything as a legend as long as it implements the `IChartLegend<T>` interface. In the following example we build
 a custom control to render legends in our charts using the LiveCharts API.
 
 ## CustomLegend.cs
@@ -90,7 +90,7 @@ a custom control to render legends in our charts using the LiveCharts API.
 ## View
 
 ```
-{{~ render $"~/../samples/{samples_folder}/General/TemplatedLegends{view_extension}" ~}}
+{{~ render $"~/../samples/{platform_samples_folder}/General/TemplatedLegends{view_extension}" ~}}
 ```
 
-![custom tooltip]({{ assets_url }}/docs/_assets/legend-custom-template.png)
+![custom tooltip](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/legend-custom-template.png)

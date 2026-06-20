@@ -1,0 +1,59 @@
+@page "/Maps/OrthographicWorld"
+@using LiveChartsCore.SkiaSharpView.Blazor
+@using LiveChartsCore.Geo
+@using LiveChartsCore.SkiaSharpView
+@using LiveChartsCore.SkiaSharpView.Drawing.Geometries
+
+<div>
+    <span>Rotate to:</span>
+    <button type="button" class="btn btn-primary" @onclick="() => RotateTo(-95, 35)">Americas</button>
+    <button type="button" class="btn btn-primary" @onclick="() => RotateTo(15, 50)">Europe</button>
+    <button type="button" class="btn btn-primary" @onclick="() => RotateTo(100, 35)">Asia</button>
+    <button type="button" class="btn btn-primary" @onclick="() => RotateTo(20, 5)">Africa</button>
+    <button type="button" class="btn btn-primary" @onclick="() => RotateTo(135, -25)">Oceania</button>
+</div>
+
+<GeoMap
+    @ref="Chart"
+    Series="@_series"
+    MapProjection="LiveChartsCore.Geo.MapProjection.Orthographic">
+</GeoMap>
+
+@code {
+    public GeoMap Chart;
+
+    private HeatLandSeries[] _series;
+
+    protected override void OnInitialized()
+    {
+        var lands = new HeatLand[]
+        {
+            new() { Name = "bra", Value = 13 },
+            new() { Name = "mex", Value = 10 },
+            new() { Name = "usa", Value = 15 },
+            new() { Name = "can", Value = 8 },
+            new() { Name = "ind", Value = 12 },
+            new() { Name = "deu", Value = 13 },
+            new() { Name = "jpn", Value = 15 },
+            new() { Name = "chn", Value = 14 },
+            new() { Name = "rus", Value = 11 },
+            new() { Name = "fra", Value = 8 },
+            new() { Name = "esp", Value = 7 },
+            new() { Name = "kor", Value = 10 },
+            new() { Name = "zaf", Value = 12 },
+            new() { Name = "are", Value = 13 },
+            new() { Name = "aus", Value = 9 },
+            new() { Name = "arg", Value = 6 },
+            new() { Name = "egy", Value = 7 },
+            new() { Name = "nga", Value = 11 },
+            new() { Name = "gbr", Value = 9 }
+        };
+
+        _series = [new HeatLandSeries { Lands = lands }];
+    }
+
+    private void RotateTo(double lon, double lat)
+    {
+        Chart.CoreChart.RotateTo(lon, lat);
+    }
+}

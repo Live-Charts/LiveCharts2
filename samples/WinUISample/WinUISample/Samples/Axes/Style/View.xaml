@@ -22,14 +22,9 @@
     <lvc:CartesianChart
         Background="#303030"
         Margin="20"
-            
+        DrawMarginFrame="{lvc:Frame Stroke={lvc:SolidColorPaint Color={StaticResource gray}, StrokeWidth=2}}"
         ZoomMode="Both"
         TooltipPosition="Hidden">
-
-        <!--
-        Nested extensions are not working in Uno
-        DrawMarginFrame="{lvc:Frame Stroke={lvc:SolidColorPaint Color={StaticResource gray}, StrokeWidth=2}}"
-        -->
 
         <lvc:CartesianChart.Series>
             <lvc:SeriesCollection>
@@ -49,17 +44,12 @@
                     NamePaint="{lvc:SolidColorPaint Color={StaticResource gray1}}"
                     TextSize="18"
                     LabelsPaint="{lvc:SolidColorPaint Color={StaticResource gray}}"
-                        
+                    SeparatorsPaint="{lvc:SolidColorPaint Color={StaticResource gray}, StrokeWidth=1, PathEffect={lvc:Dashed Array='3,3'}}"
                     SubseparatorsPaint="{lvc:SolidColorPaint Color={StaticResource gray2}, StrokeWidth=0.5}"
                     SubseparatorsCount="9"
                     ZeroPaint="{lvc:SolidColorPaint Color={StaticResource gray1}, StrokeWidth=2}"
                     TicksPaint="{lvc:SolidColorPaint Color={StaticResource gray}, StrokeWidth=1.5}"
                     SubticksPaint="{lvc:SolidColorPaint Color={StaticResource gray}, StrokeWidth=1}"/>
-
-                <!--
-                Nested extensions are not working in Uno
-                SeparatorsPaint="{lvc:SolidColorPaint Color={StaticResource gray}, StrokeWidth=1, PathEffect={lvc:Dashed Array='3,3'}}"
-                -->
             </lvc:AxesCollection>
         </lvc:CartesianChart.XAxes>
 
@@ -70,17 +60,12 @@
                     NamePaint="{lvc:SolidColorPaint Color={StaticResource gray1}}"
                     TextSize="18"
                     LabelsPaint="{lvc:SolidColorPaint Color={StaticResource gray}}"
-                        
+                    SeparatorsPaint="{lvc:SolidColorPaint Color={StaticResource gray}, StrokeWidth=1, PathEffect={lvc:Dashed Array='3,3'}}"
                     SubseparatorsPaint="{lvc:SolidColorPaint Color={StaticResource gray2}, StrokeWidth=0.5}"
                     SubseparatorsCount="9"
                     ZeroPaint="{lvc:SolidColorPaint Color={StaticResource gray1}, StrokeWidth=2}"
                     TicksPaint="{lvc:SolidColorPaint Color={StaticResource gray}, StrokeWidth=1.5}"
                     SubticksPaint="{lvc:SolidColorPaint Color={StaticResource gray}, StrokeWidth=1}"/>
-
-                <!--
-                Nested extensions are not working in Uno
-                SeparatorsPaint="{lvc:SolidColorPaint Color={StaticResource gray}, StrokeWidth=1, PathEffect={lvc:Dashed Array='3,3'}}"
-                -->
             </lvc:AxesCollection>
         </lvc:CartesianChart.YAxes>
 

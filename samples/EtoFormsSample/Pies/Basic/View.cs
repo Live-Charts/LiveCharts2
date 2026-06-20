@@ -10,11 +10,11 @@ namespace EtoFormsSample.Pies.Basic;
 
 public class View : Panel
 {
-    private readonly PieChart pieChart;
+    public readonly PieChart Chart;
 
     public View()
     {
-        pieChart = new PieChart
+        Chart = new PieChart
         {
             Series = new[] { 2, 4, 1, 4, 3 }.AsPieSeries(),
             Title = new DrawnLabelVisual(
@@ -27,6 +27,6 @@ public class View : Panel
                 })
         };
 
-        Content = pieChart;
+        Content = Chart;
     }
 }

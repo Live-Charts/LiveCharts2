@@ -21,7 +21,7 @@
             <Button Margin="6" Command="{Binding UpdateAllCommand}" Content="Update Series"/>
         </StackPanel>
 
-        <lvc:PieChart Grid.Row="1" SeriesSource="{Binding Data}">
+        <lvc:PieChart Grid.Row="1" SeriesSource="{Binding Data}" x:Name="chart">
             <lvc:PieChart.SeriesTemplate>
                 <DataTemplate>
                     <lvc:XamlPieSeries

@@ -1,0 +1,41 @@
+﻿@page "/Axes/DateTimeScaled"
+@using LiveChartsCore.SkiaSharpView.Blazor
+@using LiveChartsCore;
+@using LiveChartsCore.Defaults;
+@using LiveChartsCore.SkiaSharpView;
+
+<CartesianChart
+    Series="@series"
+    XAxes="@xAxes">
+</CartesianChart>
+
+@code {
+    private static DateTimePoint[] values = new DateTimePoint[]
+    {
+        new() { DateTime = new DateTime(2021, 1, 1), Value = 3 },
+        new() { DateTime = new DateTime(2021, 1, 2), Value = 6 },
+        new() { DateTime = new DateTime(2021, 1, 3), Value = 5 },
+        new() { DateTime = new DateTime(2021, 1, 4), Value = 3 },
+        new() { DateTime = new DateTime(2021, 1, 5), Value = 5 },
+        new() { DateTime = new DateTime(2021, 1, 6), Value = 8 },
+        new() { DateTime = new DateTime(2021, 1, 7), Value = 6 }
+    };
+
+    private static string Formatter(DateTime date) => date.ToString("MMMM dd");
+
+    private ISeries[] series = new ISeries[]
+    {
+        new ColumnSeries<DateTimePoint> { Values = values }
+    };
+
+    private Axis[] xAxes;
+
+    // for simplicity we use the page constructor
+    public View()
+    {
+        xAxes = new Axis[]
+        {
+            new DateTimeAxis(TimeSpan.FromDays(1), Formatter)
+        };
+    }
+}

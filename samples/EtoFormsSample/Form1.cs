@@ -18,10 +18,10 @@ public class Form1 : Form
         var listbox = new ListBox() { DataStore = ViewModelsSamples.Index.Samples };
         listbox.SelectedIndexChanged += listBox1_SelectedIndexChanged;
 
-        var image = new ImageView() { Image = Bitmap.FromResource("EtoFormsSample.Images.livecharts.png") };
+        //var image = new ImageView() { Image = Bitmap.FromResource("EtoFormsSample.Images.livecharts.png") };
 
         _leftside = new DynamicLayout(
-            new DynamicRow(image),
+            //new DynamicRow(image),
             new DynamicRow(listbox)
             );
 

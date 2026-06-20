@@ -20,7 +20,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using System;
 using Avalonia;
 using Avalonia.Collections;
 using Avalonia.Controls;
@@ -30,7 +29,6 @@ using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
 using Avalonia.Threading;
-using LiveChartsCore.Kernel.Sketches;
 using LiveChartsCore.Motion;
 using LiveChartsCore.SkiaSharpView.Drawing;
 using SkiaSharp;
@@ -100,7 +98,9 @@ public class MotionCanvas : UserControl
     }
 
     private SKColor GetBackground() =>
-        (Parent as IChartView)?.BackColor.AsSKColor() ?? SKColor.Empty;
+        // on avalonia always skip cleaning the background, this is handled by the UI frameowork see
+        // https://github.com/Live-Charts/LiveCharts2/issues/1984
+        SKColor.Empty;
 
     // based on:
     // https://github.com/AvaloniaUI/Avalonia/blob/release/11.0.0/samples/RenderDemo/Pages/CustomSkiaPage.cs
@@ -118,7 +118,8 @@ public class MotionCanvas : UserControl
             using var lease = leaseFeature.Lease();
 
             motionCanvas.DrawFrame(
-                new SkiaSharpDrawingContext(motionCanvas, lease.SkCanvas, background));
+                new SkiaSharpDrawingContext(
+                    motionCanvas, lease.SkCanvas, background, clearCanvasOnNewFrame: false));
         }
 
         public void Dispose() { }

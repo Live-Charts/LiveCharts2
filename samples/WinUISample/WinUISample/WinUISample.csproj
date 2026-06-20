@@ -1,15 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <RootNamespace>WinUISample</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <Platforms>x86;x64;ARM64</Platforms>
-    <RuntimeIdentifiers Condition="$([MSBuild]::GetTargetFrameworkVersion('$(TargetFramework)')) &gt;= 8">win-x86;win-x64;win-arm64</RuntimeIdentifiers>
-    <RuntimeIdentifiers Condition="$([MSBuild]::GetTargetFrameworkVersion('$(TargetFramework)')) &lt; 8">win10-x86;win10-x64;win10-arm64</RuntimeIdentifiers>
+    <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
     <PublishProfile>win-$(Platform).pubxml</PublishProfile>
     <UseWinUI>true</UseWinUI>
+    <WinUISDKReferences>false</WinUISDKReferences>
     <EnableMsixTooling>true</EnableMsixTooling>
   </PropertyGroup>
 
@@ -24,8 +24,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250606001" />
-    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.22621.756" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.250907003" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.7175" />
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
 
@@ -56,5 +56,23 @@
   <ItemGroup Condition="!$(UseNuGetForSamples)">
     <ProjectReference Include="..\..\..\src\skiasharp\LiveChartsCore.SkiaSharpView.WinUI\LiveChartsCore.SkiaSharpView.WinUI.csproj" />
   </ItemGroup>
+
+  <!-- UI test setup -->
+  <!--<Import Project="..\..\build\UITestsLinks.Build.props" />-->
+  <!--in winui we do not use the UITestsLinks because the uno folder is different.-->
+  <ItemGroup Condition="$(UITesting) == 'true'">
+      <Compile Include="..\..\..\tests\SharedUITests\**\*.cs">
+          <Link>UITests\%(RecursiveDir)%(Filename).cs</Link>
+      </Compile>
+  </ItemGroup>
+
+  <ItemGroup Condition="$(UITesting) == 'true'">
+    <PackageReference Include="Factos.WinUI" Version="$(FactosVersion)" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="$(UITesting) == 'true'">
+    <NoWarn>$(NoWarnUITests)</NoWarn>
+    <DefineConstants>$(DefineConstants);UI_TESTING;XAML_UI_TESTING;WINUI_UI_TESTING</DefineConstants>
+  </PropertyGroup>
 
 </Project>

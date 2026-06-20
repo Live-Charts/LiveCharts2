@@ -1,4 +1,4 @@
-﻿// The MIT License(MIT)
+// The MIT License(MIT)
 //
 // Copyright(c) 2021 Alberto Rodriguez Orozco & LiveCharts Contributors
 //
@@ -22,4 +22,7 @@
 
 using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("LiveChartsCore.BackersPackage")]
+// SharedUITests sources are linked into MauiSample when UITesting=true (see
+// build/UITestsLinks.Build.props), so Factos UI tests are compiled into
+// MauiSample.dll and need access to internals such as PointerController.
+[assembly: InternalsVisibleTo("MauiSample")]

@@ -1,6 +1,6 @@
-<div id="edit-this-article-source">
-    {{ edit_source | replace_local_to_server}}
-</div>
+<!--
+To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/master/docs/readme.md
+-->
 
 # {{ name | to_title_case }}
 
@@ -13,7 +13,7 @@
 If the stroke property is not set, then LiveCharts will create it based on the series position in your series collection
 and the current theme.
 
-![image]({{ assets_url }}/docs/_assets/stackedstepstroke.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/stackedstepstroke.png)
 
 ```csharp
 Series = new ISeries[]
@@ -51,7 +51,7 @@ and the current theme.
 
 The alpha channel enables transparency, it goes from 0 to 255, 0 is transparent and 255 disables transparency completely.
 
-![image]({{ assets_url }}/docs/_assets/stackedstepfill.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/stackedstepfill.png)
 
 ```csharp
 Series = new ISeries[]
@@ -88,7 +88,7 @@ The geometry is the circle shape (by default) that the line series draws for eve
 the fill and stroke of this shape, if none of these properties are set then LiveCharts will create them based on 
 the series position in your series collection and the current theme.
 
-![image]({{ assets_url }}/docs/_assets/stackedstepgs.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/stackedstepgs.png)
 
 ```csharp
 Series = new ISeries[]
@@ -126,7 +126,7 @@ a look at the [Paints article]({{ website_url }}/docs/{{ platform }}/{{ version 
 
 Determines the size of the geometry, if this property is not set, then the library will decide it based on the theme.
 
-![image]({{ assets_url }}/docs/_assets/stackedstepgss.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/stackedstepgss.png)
 
 ```csharp
 Series = new ISeries[]

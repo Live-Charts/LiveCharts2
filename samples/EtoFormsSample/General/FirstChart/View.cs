@@ -28,4 +28,8 @@ public class View : Panel
             ]
         };
     }
+
+#if UI_TESTING
+    public CartesianChart Chart => (CartesianChart)Content;
+#endif
 }

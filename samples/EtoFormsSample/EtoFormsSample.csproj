@@ -1,4 +1,4 @@
-﻿<Project Sdk="Eto.Forms/2.6.0">
+﻿<Project Sdk="Eto.Forms/2.10.2">
 
   <!--
     Set the BuildPlatform property to the Eto platform you wish to build for.
@@ -8,12 +8,11 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <!--
     <BuildPlatform>Windows</BuildPlatform>
     <BuildPlatform>Gtk</BuildPlatform>
     -->
-    <LangVersion>$(GlobalLangVersion)</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -40,4 +39,16 @@
     <ProjectReference Include="..\..\src\skiasharp\LiveChartsCore.SkiaSharpView.Eto\LiveChartsCore.SkiaSharpView.Eto.csproj" />
   </ItemGroup>
 
+  <!-- UI test setup -->
+  <Import Condition="$(UITesting) == 'true'" Project="..\..\build\UITestsLinks.Build.props" />
+
+  <ItemGroup Condition="$(UITesting) == 'true'">
+    <PackageReference Include="Factos.Eto" Version="$(FactosVersion)" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="$(UITesting) == 'true'">
+    <NoWarn>$(NoWarnUITests)</NoWarn>
+    <DefineConstants>$(DefineConstants);UI_TESTING;ETO_UI_TESTING</DefineConstants>
+  </PropertyGroup>
+  
 </Project>

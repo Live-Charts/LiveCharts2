@@ -1,3 +1,8 @@
+<!--
+To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/master/docs/readme.md
+content is normally pulled from the examples in the repository.
+-->
+
 ## Legends
 
 {{~ if name != "Cartesian chart control" ~}}
@@ -15,7 +20,7 @@ This is a brief sample about how to use the main features of the `IChartLegend<T
 <b>Go to the full legends article</b>
 </a>
 
-![legends]({{ assets_url }}/docs/_assets/legend.png)
+![legends](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/legend.png)
 
 You can place a legend at `Top`, `Bottom`, `Left`, `Right` or `Hidden` positions, notice the `Hidden` position will 
 disable legends in a chart, default value is `Hidden`.

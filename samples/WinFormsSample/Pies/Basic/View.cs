@@ -10,14 +10,14 @@ namespace WinFormsSample.Pies.Basic;
 
 public partial class View : UserControl
 {
-    private readonly PieChart pieChart;
+    public readonly PieChart Chart;
 
     public View()
     {
         InitializeComponent();
         Size = new System.Drawing.Size(50, 50);
 
-        pieChart = new PieChart
+        Chart = new PieChart
         {
             Series = new[] { 2, 4, 1, 4, 3 }.AsPieSeries(),
             Title = new DrawnLabelVisual(
@@ -33,6 +33,6 @@ public partial class View : UserControl
             Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom
         };
 
-        Controls.Add(pieChart);
+        Controls.Add(Chart);
     }
 }

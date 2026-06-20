@@ -1,0 +1,59 @@
+name: Publish
+permissions:
+  contents: read
+
+on:
+  push:
+    tags:
+      - '**'
+
+jobs:
+
+  pack: 
+    runs-on: windows-2025
+    strategy:
+      matrix:
+        include:
+          - short-name: core
+            project: src/LiveChartsCore
+          - short-name: skiasharp
+            project: src/skiasharp/LiveChartsCore.SkiaSharp
+          - short-name: avalonia-skiasharp
+            project: src/skiasharp/LiveChartsCore.SkiaSharp.Avalonia
+            workloads: wasm-tools, maui
+          - short-name: blazor-skiasharp
+            project: src/skiasharp/LiveChartsCore.SkiaSharpView.Blazor
+          - short-name: eto-skiasharp
+            project: src/skiasharp/LiveChartsCore.SkiaSharpView.Eto
+          - short-name: maui-skiasharp
+            project: src/skiasharp/LiveChartsCore.SkiaSharpView.Maui
+            workloads: maui
+          - short-name: uno-skiasharp
+            project: src/skiasharp/LiveChartsCore.SkiaSharpView.Uno.WinUI
+            workloads: wasm-tools, maui
+          - short-name: winui-skiasharp
+            project: src/skiasharp/LiveChartsCore.SkiaSharpView.WinUI
+          - short-name: winforms-skiasharp            
+            project: src/skiasharp/LiveChartsCore.SkiaSharp.WinForms
+          - short-name: wpf-skiasharp
+            project: src/skiasharp/LiveChartsCore.SkiaSharp.WPF
+          - short-name: console
+            project: samples/ConsoleEngineSample/LiveChartsCore.Console
+          - short-name: console-cli
+            project: samples/ConsoleEngineSample/Lvc.Cli
+    steps:
+      - name: Checkout 
+        uses: actions/checkout@v6.0.1
+
+      - name: Setup .NET and Workloads
+        uses: ./.github/actions/setup-dotnet-and-workloads
+        with:
+          workloads: ${{ matrix.workloads }}
+
+      - name: Pack
+        run: 
+          dotnet pack ${{ matrix.project }} -c Release -o artifacts /p:IsPacking=true /p:LiveChartsVersion=${{ github.ref_name }}
+
+      - name: Publish to NuGet
+        run:
+          dotnet nuget push **/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate

@@ -37,5 +37,8 @@ public partial class View : UserControl
         };
 
         Controls.Add(cartesianChart);
+        Chart = cartesianChart;
     }
+
+    public CartesianChart Chart;
 }

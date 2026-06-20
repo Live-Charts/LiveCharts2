@@ -22,18 +22,24 @@
 
 using System.Runtime.CompilerServices;
 
-#if !DEBUG && NET462
+#if STRONG_NAMED_ASSEMBLIES
 using System.Reflection;
 
 [assembly: AssemblyKeyFile("./../../LiveCharts.snk")]
+[assembly: InternalsVisibleTo("LiveChartsCore.BackersPackage, PublicKey=0024000004800000940000000602000000240000525341310004000001000100d53791eaa0d98b405ca858f39169be6af36ceb7a1bca3ca76c6905fd22fddf8c5e4ef2778a5d7a77ad12f08da711fecfc44795c7923739a2acac946b3f1719a6dfc238695bc69cf5d959b3fb6bc4d18d57a97ff8ed897e6b22a6b8155401ee368d77431e74178104b4adca73520b058b9be28d4ec129beb54871778167afa5ce")]
 [assembly: InternalsVisibleTo("LiveChartsCore.SkiaSharpView, PublicKey=0024000004800000940000000602000000240000525341310004000001000100d53791eaa0d98b405ca858f39169be6af36ceb7a1bca3ca76c6905fd22fddf8c5e4ef2778a5d7a77ad12f08da711fecfc44795c7923739a2acac946b3f1719a6dfc238695bc69cf5d959b3fb6bc4d18d57a97ff8ed897e6b22a6b8155401ee368d77431e74178104b4adca73520b058b9be28d4ec129beb54871778167afa5ce")]
 [assembly: InternalsVisibleTo("LiveChartsCore.SkiaSharpView.WinForms, PublicKey=0024000004800000940000000602000000240000525341310004000001000100d53791eaa0d98b405ca858f39169be6af36ceb7a1bca3ca76c6905fd22fddf8c5e4ef2778a5d7a77ad12f08da711fecfc44795c7923739a2acac946b3f1719a6dfc238695bc69cf5d959b3fb6bc4d18d57a97ff8ed897e6b22a6b8155401ee368d77431e74178104b4adca73520b058b9be28d4ec129beb54871778167afa5ce")]
 [assembly: InternalsVisibleTo("LiveChartsCore.SkiaSharpView.WPF, PublicKey=0024000004800000940000000602000000240000525341310004000001000100d53791eaa0d98b405ca858f39169be6af36ceb7a1bca3ca76c6905fd22fddf8c5e4ef2778a5d7a77ad12f08da711fecfc44795c7923739a2acac946b3f1719a6dfc238695bc69cf5d959b3fb6bc4d18d57a97ff8ed897e6b22a6b8155401ee368d77431e74178104b4adca73520b058b9be28d4ec129beb54871778167afa5ce")]
+[assembly: InternalsVisibleTo("CoreTests, PublicKey=0024000004800000940000000602000000240000525341310004000001000100d53791eaa0d98b405ca858f39169be6af36ceb7a1bca3ca76c6905fd22fddf8c5e4ef2778a5d7a77ad12f08da711fecfc44795c7923739a2acac946b3f1719a6dfc238695bc69cf5d959b3fb6bc4d18d57a97ff8ed897e6b22a6b8155401ee368d77431e74178104b4adca73520b058b9be28d4ec129beb54871778167afa5ce")]
 
 #else
 
+[assembly: InternalsVisibleTo("CoreTests")]
+[assembly: InternalsVisibleTo("SnapshotTests")]
+[assembly: InternalsVisibleTo("Benchmarks")]
 [assembly: InternalsVisibleTo("LiveChartsCore.SkiaSharpView")]
 [assembly: InternalsVisibleTo("LiveChartsCore.Behaviours")]
+[assembly: InternalsVisibleTo("LiveChartsCore.BackersPackage")]
 [assembly: InternalsVisibleTo("LiveChartsCore.SkiaSharpView.WinForms")]
 [assembly: InternalsVisibleTo("LiveChartsCore.SkiaSharpView.WPF")]
 [assembly: InternalsVisibleTo("LiveChartsCore.SkiaSharpView.Avalonia")]
@@ -44,8 +50,8 @@ using System.Reflection;
 [assembly: InternalsVisibleTo("LiveChartsCore.SkiaSharpView.Eto")]
 [assembly: InternalsVisibleTo("LiveChartsCore.SkiaSharpView.Blazor")]
 [assembly: InternalsVisibleTo("LiveChartsCore.SkiaSharpView.Maui")]
-[assembly: InternalsVisibleTo("LiveChartsCore.BackersPackage")]
-[assembly: InternalsVisibleTo("LiveChartsCore.UnitTesting")]
 [assembly: InternalsVisibleTo("LiveChartsCore.Vortice")]
+[assembly: InternalsVisibleTo("LiveChartsCore.Console")]
+[assembly: InternalsVisibleTo("ConsoleTests")]
 
 #endif

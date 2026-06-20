@@ -1,3 +1,8 @@
+<!--
+To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/master/docs/readme.md
+content is normally pulled from the examples in the repository.
+-->
+
 In this example, both axes `X` and `Y` use the same scale, it means that the amount of space in the UI
 is the same for both axes per data unit. We use the `ICartesianChartView`.`MatchAxesScreenDataRatio` property, 
 this will set the scale up for us, but we can also build custom scales if necessary.
@@ -7,18 +12,18 @@ this will set the scale up for us, but we can also build custom scales if necess
 When the `ICartesianChartView`.`MatchAxesScreenDataRatio` is `true`,  both axes will take the same number of pixels per data unit.
 
 ```
-{{ full_name | get_view_from_docs }}
+{{ render_current_directory_view }}
 ```
 
 ```
-{{ full_name | get_vm_from_docs }}
+{{ render_current_directory_view_model }}
 ```
 
-Now both axes use the same scale, we can easily notice this in the grid drawn by the axes separators, this grid is composed by perfect rectangles,
-no mater if we zoom in/out (or use the panning feature).
+Now both axes use the same scale. We can easily notice this in the grid drawn by the axes separators. This grid is composed of perfect rectangles,
+no matter if we zoom in/out (or use the panning feature).
 
 <div class="text-center sample-img">
-    <img src="{{ assets_url }}/docs/{{ unique_name }}/matchsdr.gif" alt="sample image" />
+    <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/{{ unique_name }}/matchsdr.gif" alt="sample image" />
 </div>
 
 ## Custom Axis scale
@@ -41,7 +46,7 @@ CustomScaleExtensions.DoubleY(myChart);
 Once we run our app again, we can see that our scale works as expected:
 
 <div class="text-center sample-img">
-    <img src="{{ assets_url }}/docs/{{ unique_name }}/doubley.png" alt="sample image" />
+    <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/{{ unique_name }}/doubley.png" alt="sample image" />
 </div>
 
 ## Scale separators to 1 inch sample
@@ -69,7 +74,7 @@ And that's it, now our separators will be one inch long always, no matter the ch
 and panning level.
 
 <div class="text-center sample-img">
-    <img src="{{ assets_url }}/docs/{{ unique_name }}/inch-long-separator.jpg" alt="sample image" style="max-width: 650px" />
+    <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/{{ unique_name }}/inch-long-separator.jpg" alt="sample image" style="max-width: 650px" />
 </div>
 
 {{ render "~/shared/relatedTo.md" }}

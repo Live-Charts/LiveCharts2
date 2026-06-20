@@ -1,0 +1,18 @@
+<UserControl x:Class="WPFSample.Maps.CustomMap.View"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
+             xmlns:vms="clr-namespace:ViewModelsSamples.Maps.CustomMap;assembly=ViewModelsSamples">
+    <UserControl.DataContext>
+        <vms:ViewModel/>
+    </UserControl.DataContext>
+    <lvc:GeoMap
+        x:Name="geoMap"
+        Series="{Binding Series}"
+        ActiveMap="{Binding ActiveMap}"
+        MapProjection="Mercator"
+        MinLatitude="13"
+        MaxLatitude="33"
+        MinLongitude="-120"
+        MaxLongitude="-85"/>
+</UserControl>

@@ -1,0 +1,32 @@
+<UserControl x:Class="WinUISample.Maps.OrthographicWorld.View"
+            xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+            xmlns:lvc="using:LiveChartsCore.SkiaSharpView.WinUI"
+            xmlns:vms="using:ViewModelsSamples.Maps.OrthographicWorld"
+            mc:Ignorable="d">
+    <UserControl.DataContext>
+        <vms:ViewModel/>
+    </UserControl.DataContext>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="8">
+            <TextBlock Text="Rotate to:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            <Button x:Name="AmericasBtn" Content="Americas" Margin="4" Click="AmericasBtn_Click"/>
+            <Button x:Name="EuropeBtn" Content="Europe" Margin="4" Click="EuropeBtn_Click"/>
+            <Button x:Name="AsiaBtn" Content="Asia" Margin="4" Click="AsiaBtn_Click"/>
+            <Button x:Name="AfricaBtn" Content="Africa" Margin="4" Click="AfricaBtn_Click"/>
+            <Button x:Name="OceaniaBtn" Content="Oceania" Margin="4" Click="OceaniaBtn_Click"/>
+        </StackPanel>
+
+        <lvc:GeoMap Grid.Row="1"
+                    x:Name="geoMap"
+                    Series="{Binding Series}"
+                    MapProjection="Orthographic"/>
+    </Grid>
+</UserControl>

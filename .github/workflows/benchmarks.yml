@@ -1,0 +1,87 @@
+name: Benchmarks
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    paths:
+      - 'src/LiveChartsCore/**'
+      - 'src/skiasharp/LiveChartsCore.SkiaSharp/**'
+      - 'tests/Benchmarks/**'
+      - '.github/workflows/benchmarks.yml'
+
+jobs:
+  benchmarks:
+    # Windows to match the rest of the repo's SkiaSharp testing (test-core, test-snapshot)
+    # and avoid the libSkiaSharp native-dependency minefield on Linux.
+    runs-on: windows-2025
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout PR HEAD
+        uses: actions/checkout@v6.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: ./.github/actions/setup-dotnet-and-workloads
+
+      - name: Run benchmarks on PR HEAD
+        run: |
+          dotnet run -c Release --project tests/Benchmarks/Benchmarks.csproj -- \
+            --filter '*' --artifacts bench-head
+          mkdir -p bench-head-results
+          cp -r bench-head/results/. bench-head-results/
+
+      - name: Checkout base ref into a worktree and run there
+        id: base-run
+        continue-on-error: true
+        run: |
+          git worktree add -d .base-tree "origin/${{ github.base_ref }}"
+          if [ ! -f .base-tree/tests/Benchmarks/Benchmarks.csproj ]; then
+            echo "Base ref has no benchmarks project — skipping baseline."
+            echo "has_base=false" >> "$GITHUB_OUTPUT"
+            mkdir -p bench-base-results
+            exit 0
+          fi
+          (cd .base-tree && dotnet run -c Release --project tests/Benchmarks/Benchmarks.csproj -- \
+            --filter '*' --artifacts ../bench-base)
+          mkdir -p bench-base-results
+          cp -r bench-base/results/. bench-base-results/
+          echo "has_base=true" >> "$GITHUB_OUTPUT"
+
+      - name: Compare results
+        id: compare
+        run: |
+          dotnet run -c Release --project tests/Benchmarks/Benchmarks.csproj --no-build -- \
+            compare bench-base-results bench-head-results delta.md
+          echo "--- delta.md ---"
+          cat delta.md
+
+      - name: Upload delta for PR comment
+        if: steps.compare.outputs.has_interesting == 'true'
+        uses: actions/upload-artifact@v6.0.0
+        with:
+          name: benchmark-delta
+          path: delta.md
+          retention-days: 7
+
+      - name: Upload raw artifacts
+        if: always()
+        uses: actions/upload-artifact@v6.0.0
+        with:
+          name: benchmark-results
+          path: |
+            bench-head/
+            bench-base/
+            delta.md
+          retention-days: 30
+
+      - name: Fail job if a benchmark regressed beyond the noise gate
+        if: steps.compare.outputs.has_regression == 'true'
+        run: |
+          echo "::error::One or more benchmarks regressed beyond the noise gate (>15% AND >3x combined standard error). See the PR comment for details."
+          exit 1

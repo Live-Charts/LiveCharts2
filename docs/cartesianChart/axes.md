@@ -1,12 +1,12 @@
-<div id="edit-this-article-source">
-    {{ edit_source | replace_local_to_server}}
-</div>
+<!--
+To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/master/docs/readme.md
+-->
 
 # Axes
 
 The following diagram illustrates an axis and its main components:
 
-![image]({{ assets_url }}/docs/_assets/1.7.diagram.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/1.7.diagram.png)
 
 The cartesian chart control has the `XAxes` and `YAxes` properties, both of type `IEnumerable<IAxis>` by default
 when you do not set these properties, they will be an array containing only one element of the `Axis` class 
@@ -22,15 +22,21 @@ Zooming and panning is disabled by default, you can enable it by setting the `Zo
 [ZoomAndPanMode](https://lvcharts.com/api/{{ version }}/LiveChartsCore.Measure.ZoomAndPanMode) and the options are:
 
 - `None`: Disables zooming and panning.
-- `X`: Enables zooming and panning on the X axis.
-- `Y`: Enables zooming and panning on the Y axis.
+- `PanX`: Enables panning on the X axis.
+- `ZoomX`: Enables zooming on the X axis (wheel, pinch and zoom by section).
+- `PanY`: Enables panning on the Y axis.
+- `ZoomY`: Enables zooming on the Y axis (wheel, pinch and zoom by section).
+- `X`: Enables zooming and panning on the X axis. Equivalent to `PanX | ZoomX`.
+- `Y`: Enables zooming and panning on the Y axis. Equivalent to `PanY | ZoomY`.
 - `Both`: Enables zooming and panning on both axes.
-- `NoFit`: Disables the "Fit to Bounds" feature that forces the the chart to bounce back to the data bounds when zooming and panning finishes.
+- `NoFit`: Disables the "Fit to Bounds" feature that forces the chart to bounce back to the data bounds when zooming and panning finishes.
 - `NoZoomBySection`: Disables the "Zoom by Section" feature, this feature selects an area and zooms to this area, normally by right clicking or double tapping and then dragging to the end of the section.
 - `InvertPanningPointerTrigger`: Inverts the panning and zoom by section pointer triggers, when the flag is present, panning is triggered by right clicking the chart, and zoom by section by left clicking (or inverts single/double taps on mobile).
 
+Because each gesture has its own flag you can mix and match — for example `ZoomMode = ZoomAndPanMode.ZoomX | ZoomAndPanMode.PanY` enables zoom on the X axis and panning on the Y axis only, and `ZoomMode = ZoomAndPanMode.ZoomX` enables zoom on the X axis with no panning at all (useful on mobile where pan gestures can hide tooltips).
+
 The [ZoomAndPanMode](https://lvcharts.com/api/{{ version }}/LiveChartsCore.Measure.ZoomAndPanMode) type is a flag enum,
-so you can combine the options, for example, if you want to enable zooming on the `X` axis and disable "Fit top Bounds"
+so you can combine the options, for example, if you want to enable zooming on the `X` axis and disable "Fit to Bounds"
 and "Zoom by Section" you can set the `ZoomMode` property to:
 
 ```csharp
@@ -42,7 +48,7 @@ Here are a few examples of the different zoom modes:
 
 **X Mode:**
 
-When the user interacts with the chart, He/She/* is only moving the chart in the X axis direction, the Y axis range is calculated automatically
+When the user interacts with the chart, they are only moving the chart in the X axis direction. The Y axis range is calculated automatically
 by the library to fit all the visible points in the X axis.
 
 {{~ if xaml ~}}
@@ -70,11 +76,11 @@ cartesianChart1.ZoomMode = LiveChartsCore.Measure.ZoomAndPanMode.X;
 ```
 {{~ end ~}}
 
-![image]({{ assets_url }}/docs/_assets/zoom-x.gif)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/zoom-x.gif)
 
 **Y Mode:**
 
-When the user interacts with the chart, He/She/* is only moving the chart in the Y axis direction, the X axis range is calculated automatically
+When the user interacts with the chart, they are only moving the chart in the Y axis direction. The X axis range is calculated automatically
 by the library to fit all the visible points in the Y axis.
 
 {{~ if xaml ~}}
@@ -102,7 +108,7 @@ cartesianChart1.ZoomMode = LiveChartsCore.Measure.ZoomAndPanMode.Y;
 ```
 {{~ end ~}}
 
-![image]({{ assets_url }}/docs/_assets/zoom-y.gif)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/zoom-y.gif)
 
 **Both Mode:**
 
@@ -134,7 +140,7 @@ cartesianChart1.ZoomMode = LiveChartsCore.Measure.ZoomAndPanMode.Both;
 ```
 {{~ end ~}}
 
-![image]({{ assets_url }}/docs/_assets/zoom-both.gif)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/zoom-both.gif)
 
 ## MaxLimit and MinLimit properties
 
@@ -184,10 +190,10 @@ xAxis.PropertyChanged += (object sender, System.ComponentModel.PropertyChangedEv
 myChart.XAxes = new List<Axis>{ xAxis };
 ```
 
-Finally notice what when the chart loads, by default both of these properties are `null`, and `null` means that the library will
-calculate the value of both, so when you need to read the initial value of an axis you can access the `Axis.DataBounds` or
-`Axis.VisibleDataBounds` properties, these properties are loaded until the chart is measured, there are multiple options to wait
-for the chart to be measured, in this example we will use the `Chart.UpdateStarted` event that happens when the chart is already measured
+Finally notice that when the chart loads, by default both of these properties are `null`, and `null` means that the library will
+calculate the value of both. So when you need to read the initial value of an axis, you can access the `Axis.DataBounds` or
+`Axis.VisibleDataBounds` properties. These properties are loaded until the chart is measured. There are multiple options to wait
+for the chart to be measured. In this example we will use the `Chart.UpdateStarted` event that happens when the chart is already measured
 and the draw in the UI is about to start.
 
 ```csharp
@@ -208,14 +214,14 @@ chartControl.UpdateStarted +=
 
 ## Clearing the current zooming or panning
 
-Setting `MinLimit` and `MaxLimit` properties to `null` or `double.NaN` will clear the current limits and fit the the data to the viewport.
+Setting `MinLimit` and `MaxLimit` properties to `null` or `double.NaN` will clear the current limits and fit the data to the viewport.
 
 ## MinStep property
 
-The `Step` defines the interval or distance between every separator and label in the axis, LiveCharts will calculate it automatically 
-based on the chart data and the chart size size, but you can configure the minimum value this property could be, for example in the case
-where you don't want decimal separations in the axis labels, you could set the `MinStep` property to `1`, this way, when the calculated 
-step is less that `1` the library will force it to be `1`.
+The `Step` defines the interval or distance between every separator and label in the axis. LiveCharts will calculate it automatically 
+based on the chart data and the chart size, but you can configure the minimum value this property could be. For example, in the case
+where you don't want decimal separations in the axis labels, you could set the `MinStep` property to `1`. This way, when the calculated 
+step is less than `1`, the library will force it to be `1`.
 
 ```csharp
 new Axis
@@ -226,6 +232,24 @@ new Axis
     MinStep = 1
 }
 ```
+
+## MinSeparators property
+
+The auto-step calculation snaps the computed step up to a "nice" number (1, 2, 5 or 10 × magnitude). On short charts with awkward 
+ranges that snap can leap a whole tier and leave only one or two separators on screen, which makes the axis hard to read. The 
+`MinSeparators` property is a floor on the number of separators the auto-step is allowed to produce — when the snap-up would yield 
+fewer separators than this value, the library subdivides further (10 → 5 → 2 → 1 → 0.5 → ...) until the floor is met. Default is `3`.
+
+```csharp
+new Axis
+{
+    // Make sure the axis always renders at least 5 separators when the step is calculated automatically.
+    MinSeparators = 5
+}
+```
+
+Set `MinSeparators = 0` to opt out and restore the original snap-up only behavior. The floor is also ignored when `ForceStepToMin = true`,
+since in that case you have explicitly pinned the step.
 
 ## Position property
 
@@ -243,7 +267,7 @@ YAxes = new List<Axis>
 };
 ```
 
-![image]({{ assets_url }}/docs/_assets/1.7.position.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/1.7.position.png)
 
 ## LabelsPaint and SeparatorsPaint properties
 
@@ -401,7 +425,7 @@ cartesianChart1.YAxes = new Axis[]
 ```
 {{~ end ~}}
 
-![image]({{ assets_url }}/docs/_assets/axes-paints.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/axes-paints.png)
 
 :::info
 Paints can create gradients, dashed lines and more, if you need help using the `Paint` instances take 
@@ -418,7 +442,7 @@ collection, the label is mapped to the chart based on the position of the label 
 if the axis requires a label outside the bounds of the labels collection, then the index will be returned as the label,
 default value is null.
 
-![image]({{ assets_url }}/docs/_assets/1.7.labels.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/1.7.labels.png)
 
 ```csharp
 Series = new ObservableCollection<ISeries>
@@ -471,14 +495,14 @@ YAxes = new List<Axis>
 };
 ```
 
-![image]({{ assets_url }}/docs/_assets/1.7.rotation.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/1.7.rotation.png)
 
 ## Multiple axes
 
 Both of these properties are collections because the library supports to have more than one axis, the following sample illustrates
 how to create a chart that uses multiple axes:
 
-![image]({{ assets_url }}/docs/_assets/1.7.multiple.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/1.7.multiple.png)
 
 ```csharp
 var blue = new SKColor(25, 118, 210);
@@ -571,7 +595,46 @@ public Axis[] YAxes { get; set; } =
     };
 ```
 
-![image]({{ assets_url }}/docs/samples/axes/customSeparatorsInterval/result.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/samples/axes/customSeparatorsInterval/result.png)
+
+## AlternatingBandsPaint property
+
+Fills every other gap between the axis separators with a rectangle behind the series — alternating
+(zebra) bands. For a `Y` axis each band is a draw-margin-wide stripe one step tall, for an `X` axis a
+draw-margin-tall stripe one step wide. The bands follow the axis' active separators (calculated,
+custom or grouped), so on a `DateTimeAxis` with `GroupTimeUnits` they re-tier with the zoom,
+animating through the transition. Panning never swaps the band colors: parity is anchored to the
+cell value, not to its on-screen position.
+
+```csharp
+public Axis[] YAxes { get; set; } =
+    {
+        new Axis
+        {
+            // a subtle, semi-transparent fill works best — the bands
+            // draw behind the series, the separators and the labels
+            AlternatingBandsPaint = new SolidColorPaint(SKColors.Black.WithAlpha(16))
+        }
+    };
+```
+
+## GroupTimeUnits property (DateTimeAxis)
+
+When a `DateTimeAxis` sets `GroupTimeUnits` to `true`, the axis groups its time units into adaptive,
+multi-level labels: a fine unit on the first line (seconds, minutes, hours, days, months or years —
+whichever fits the visible range) and a coarser context on the second line, shown where the fine tick
+opens a new coarse bucket (the year at each January, the date at each midnight, and so on). As you
+zoom, the visible span changes and the tier re-adapts.
+
+```csharp
+public Axis[] XAxes { get; set; } =
+    {
+        new DateTimeAxis(TimeSpan.FromDays(1), date => date.ToString("MMM dd"))
+        {
+            GroupTimeUnits = true
+        }
+    };
+```
 
 ## Labels Density
 
@@ -581,7 +644,7 @@ the number of separators and distance between each one, based on the data, the s
 any value greater than 0 will make the labels to be more separated, values less than 0 will make the labels to overlap 
 (labels rotation could prevent overlapping). Default value is 0.85.
 
-![image]({{ assets_url }}/docs/_assets/labelsdensity.gif)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/labelsdensity.gif)
 
 ## Inverted property
 

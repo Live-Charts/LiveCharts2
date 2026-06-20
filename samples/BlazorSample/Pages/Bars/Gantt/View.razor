@@ -1,0 +1,44 @@
+@page "/Bars/Gantt"
+@using System
+@using LiveChartsCore
+@using LiveChartsCore.SkiaSharpView
+@using LiveChartsCore.SkiaSharpView.Blazor
+
+<CartesianChart
+    Series="@series"
+    XAxes="@xAxes"
+    YAxes="@yAxes">
+</CartesianChart>
+
+@code {
+    // Blazor is code-only — no XAML wrappers. Reuse the same VM for raw data
+    // + formatters and instantiate the chart objects locally.
+    private readonly ViewModelsSamples.Bars.Gantt.ViewModel vm = new();
+
+    private ISeries[] series;
+    private Axis[] xAxes;
+    private Axis[] yAxes;
+
+    protected override void OnInitialized()
+    {
+        series =
+        [
+            new RangeRowSeries<LiveChartsCore.Defaults.RangeValue>
+            {
+                Name = "Project",
+                Values = vm.Tasks,
+                YToolTipLabelFormatter = vm.TaskTooltipFormatter,
+            },
+        ];
+
+        xAxes =
+        [
+            new DateTimeAxis(TimeSpan.FromDays(2), vm.DateFormatter) { Name = "Date" },
+        ];
+
+        yAxes =
+        [
+            new Axis { Labels = vm.TaskNames },
+        ];
+    }
+}

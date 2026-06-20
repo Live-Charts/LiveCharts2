@@ -1,0 +1,22 @@
+@page "/Maps/CustomMap"
+@using LiveChartsCore.SkiaSharpView.Blazor
+@using LiveChartsCore.Geo
+@using LiveChartsCore.SkiaSharpView
+@using LiveChartsCore.SkiaSharpView.Drawing.Geometries
+@using ViewModelsSamples.Maps.CustomMap
+
+<GeoMap
+    @ref="Chart"
+    Series="@vm.Series"
+    ActiveMap="@vm.ActiveMap"
+    MapProjection="LiveChartsCore.Geo.MapProjection.Mercator"
+    MinLatitude="13"
+    MaxLatitude="33"
+    MinLongitude="-120"
+    MaxLongitude="-85">
+</GeoMap>
+
+@code {
+    public GeoMap Chart;
+    private readonly ViewModel vm = new();
+}

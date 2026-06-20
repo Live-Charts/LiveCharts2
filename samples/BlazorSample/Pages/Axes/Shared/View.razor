@@ -1,0 +1,86 @@
+﻿@page "/Axes/Shared"
+@using LiveChartsCore.SkiaSharpView.Blazor
+@using LiveChartsCore;
+@using LiveChartsCore.SkiaSharpView;
+@using LiveChartsCore.SkiaSharpView.Painting;
+@using SkiaSharp;
+@using LiveChartsCore.Measure;
+
+<div style="max-width: 400px">
+    <CartesianChart
+        Series="@series1"
+        XAxes="@x1"
+        ZoomMode="LiveChartsCore.Measure.ZoomAndPanMode.X">
+    </CartesianChart>
+</div>
+
+<div style="max-width: 400px">
+    <CartesianChart
+        Series="@series2"
+        XAxes="@x2"
+        ZoomMode="LiveChartsCore.Measure.ZoomAndPanMode.X">
+    </CartesianChart>
+</div>
+
+
+@code {
+    private int[] values1;
+    private int[] values2;
+    private Axis sharedXAxis;
+    private Axis sharedXAxis2;
+    private Axis[] x1;
+    private Axis[] x2;
+    private ISeries[] series1;
+    private ISeries[] series2;
+    private int max;
+
+    // for simplicity we use the page constructor
+    public View()
+    {
+        values1 = Fetch(100);
+        values2 = Fetch(50);
+        max = Math.Max(values1.Length, values2.Length);
+
+        static string labeler(double value) => value.ToString("N2");
+
+        sharedXAxis = new Axis
+        {
+            Labeler = labeler,
+            MaxLimit = max,
+            CrosshairPaint = new SolidColorPaint(SKColors.Red, 2),
+            CrosshairLabelsBackground = SKColors.Red.AsLvcColor(),
+            CrosshairLabelsPaint = new SolidColorPaint(SKColors.White)
+        };
+        sharedXAxis2 = new Axis
+        {
+            Labeler = labeler,
+            MaxLimit = max,
+            CrosshairPaint = new SolidColorPaint(SKColors.Red, 2)
+        };
+        LiveChartsCore.SharedAxes.Set(sharedXAxis, sharedXAxis2);
+
+        x1 = new[] { sharedXAxis };
+        x2 = new[] { sharedXAxis2 };
+        series1 = new ISeries[]
+        {
+            new LineSeries<int> { Values = values1 }
+        };
+        series2 = new ISeries[]
+        {
+            new ColumnSeries<int> { Values = values2 }
+        };
+    }
+
+    private static int[] Fetch(int length = 50)
+    {
+        var values = new int[length];
+        var r = new Random();
+        var t = 0;
+        for (var i = 0; i < length; i++)
+        {
+            t += r.Next(-90, 100);
+            values[i] = t;
+        }
+        return values;
+    }
+}

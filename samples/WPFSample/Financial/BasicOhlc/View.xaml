@@ -1,0 +1,27 @@
+<UserControl
+    x:Class="WPFSample.Financial.BasicOhlc.View"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
+    xmlns:vms="clr-namespace:ViewModelsSamples.Financial.BasicOhlc;assembly=ViewModelsSamples">
+
+    <UserControl.DataContext>
+        <vms:ViewModel/>
+    </UserControl.DataContext>
+
+    <lvc:CartesianChart>
+        <lvc:CartesianChart.Series>
+            <lvc:SeriesCollection>
+                <lvc:XamlOhlcSeries Values="{Binding Values}"/>
+            </lvc:SeriesCollection>
+        </lvc:CartesianChart.Series>
+        <lvc:CartesianChart.XAxes>
+            <lvc:AxesCollection>
+                <lvc:XamlDateTimeAxis
+                    Interval="1.00:00:00"
+                    DateFormatter="{Binding DateFormatter}"
+                    LabelsRotation="0"/>
+            </lvc:AxesCollection>
+        </lvc:CartesianChart.XAxes>
+    </lvc:CartesianChart>
+</UserControl>

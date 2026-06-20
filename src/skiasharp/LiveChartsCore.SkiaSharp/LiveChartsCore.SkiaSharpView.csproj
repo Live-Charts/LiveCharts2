@@ -1,90 +1,50 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Nullable>enable</Nullable>
-    <LangVersion>$(GlobalLangVersion)</LangVersion>
-
     <TargetFrameworks>
-      netstandard2.0;netstandard2.1;
-      net8.0;net8.0-android;net8.0-ios;net8.0-maccatalyst;
-    </TargetFrameworks>
-    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">
-      $(TargetFrameworks);
       net462;
-      net8.0-windows10.0.19041.0;
-      net8.0-windows10.0.20348.0;
-  </TargetFrameworks>
-
-    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">11.0</SupportedOSPlatformVersion>
-    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">13.1</SupportedOSPlatformVersion>
-    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
-    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
-    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
-    <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
-    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">7.0</SupportedOSPlatformVersion>
+      netstandard2.0;
+      net8.0;
+      net8.0-windows; <!-- https://github.com/Live-Charts/LiveCharts2/issues/1772  -->
+    </TargetFrameworks>
 
     <AssemblyName>LiveChartsCore.SkiaSharpView</AssemblyName>
     <RootNamespace>LiveChartsCore.SkiaSharpView</RootNamespace>
-    <Version>$(LiveChartsVersion)</Version>
-    <PackageIcon>icon.png</PackageIcon>
-    <Description>Simple, flexible, interactive and powerful data visualization for .Net, this package contains the SkiaSharp backend.</Description>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Authors>$(LiveChartsAuthors)</Authors>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <RepositoryUrl>https://github.com/beto-rodriguez/LiveCharts2</RepositoryUrl>
-
-    <Deterministic>true</Deterministic>
-    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <PathToPackAssets>../../../</PathToPackAssets>
   </PropertyGroup>
 
-  <Import Project="..\_Shared\_Shared.projitems" Label="Shared" />
+  <Import Project="../../../nuget.props" />
+  <PropertyGroup>
+    <Description>
+      $(Description) This package renders charts using SkiaSharp, this is enough if you only need to render images otherwise you probably need another package that is compatible with your UI framework.
+    </Description>
+  </PropertyGroup>
 
+  <Import Project="../_Shared/_Shared.projitems" Label="Shared" />
   <Import Project="./../../../build/RenderSettings.Build.props" />
 
   <PropertyGroup>
     <DefineConstants>$(DefineConstants);SKIA_IMAGE_LVC;</DefineConstants>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <CheckEolTargetFramework>false</CheckEolTargetFramework>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
-    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-  </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
     <PackageReference Include="SkiaSharp" Version="$(MinSkiaSharpVersion)" />
     <PackageReference Include="SkiaSharp.HarfBuzz" Version="$(MinSkiaSharpVersion)" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\LiveChartsCore\LiveChartsCore.csproj" />
+    <ProjectReference Include="../../LiveChartsCore/LiveChartsCore.csproj" />
   </ItemGroup>
 
-  <ItemGroup Condition="$(UseNuGetForGenerator)">
-    <PackageReference Include="LiveChartsGenerators" Version="$(LiveChartsCodeGenVersion)">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>analyzers</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net462'">
+    <DefineConstants>$(DefineConstants);STRONG_NAMED_ASSEMBLIES</DefineConstants>
+  </PropertyGroup>
 
-  <ItemGroup Condition="!$(UseNuGetForGenerator)">
-    <ProjectReference Include="..\..\..\generators\LiveChartsGenerators\LiveChartsGenerators.csproj">
+  <ItemGroup>
+    <ProjectReference Include="../../../generators/LiveChartsGenerators/LiveChartsGenerators.csproj">
       <OutputItemType>Analyzer</OutputItemType>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="images\icon.png" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>

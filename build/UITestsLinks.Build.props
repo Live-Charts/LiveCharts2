@@ -1,0 +1,7 @@
+<Project>
+  <ItemGroup>
+    <Compile Include="..\..\tests\SharedUITests\**\*.cs">
+      <Link>UITests\%(RecursiveDir)%(Filename).cs</Link>
+    </Compile>
+  </ItemGroup>
+</Project>

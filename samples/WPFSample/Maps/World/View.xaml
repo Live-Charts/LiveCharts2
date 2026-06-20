@@ -6,5 +6,9 @@
     <UserControl.DataContext>
         <vms:ViewModel/>
     </UserControl.DataContext>
-    <lvc:GeoMap Series="{Binding Series}" MapProjection="Mercator"/>
+    <lvc:GeoMap
+        x:Name="geoMap"
+        Series="{Binding Series}"
+        MapProjection="Mercator">
+    </lvc:GeoMap>
 </UserControl>

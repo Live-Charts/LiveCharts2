@@ -1,3 +1,8 @@
+<!--
+To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/master/docs/readme.md
+content is normally pulled from the examples in the repository.
+-->
+
 :::tip
 This article adds geometries directly to the canvas, this is intended to explain how geometries and animations
 are handled in the library, but in general the recommended way to draw a custom element in the chart is to use the 
@@ -27,14 +32,14 @@ the control is measured, a LiveCharts control is measured when the data or the c
 ## View model
 
 ```csharp
-{{ full_name | get_vm_from_docs }}
+{{ render_current_directory_view_model }}
 ```
 {{~ end ~}}
 
 ## {{~ view_title ~}}
 
 ```
-{{ full_name | get_view_from_docs }}
+{{ render_current_directory_view }}
 ```
 
 In the previous case we inherited from `Geometry`, this class already contains some useful properties that we

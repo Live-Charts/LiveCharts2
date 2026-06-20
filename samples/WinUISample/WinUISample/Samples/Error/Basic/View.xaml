@@ -53,7 +53,7 @@
                 <lvc:AxesCollection>
                     <!--
                     To get more help about DateTime axes see:
-                    https://livecharts.dev/docs/winui/latest/samples.axes.dateTimeScaled
+                    https://livecharts.dev/docs/winui/{{ version }}/samples.axes.dateTimeScaled
                     -->
                     <lvc:XamlDateTimeAxis
                         Interval="1.00:00:00"

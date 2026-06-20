@@ -1,3 +1,8 @@
+<!--
+To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/master/docs/readme.md
+content is normally pulled from the examples in the repository.
+-->
+
 ## Plotting custom types
 
 You can plot any type of data, please see the [mappers article]({{ website_url }}/docs/{{ platform }}/{{ version }}/Overview.Mappers) for more information.
@@ -18,8 +23,8 @@ Indicates if the series is visible in the user interface.
 
 ## DataPadding
 
-The data padding is the minimum distance from the edges of the series to the axis limits, it is of type `System.Drawing.PointF` 
-both coordinates (X and Y) goes from 0 to 1, where 0 is nothing and 1 is the axis tick an axis tick is the separation between
+The data padding is the minimum distance from the edges of the series to the axis limits. It is of type `System.Drawing.PointF`. 
+Both coordinates (X and Y) go from 0 to 1, where 0 is nothing and 1 is the axis tick. An axis tick is the separation between
 every label or separator (even if they are not visible).
 
 If this property is not set, the library will set it according to the series type, take a look at the following samples:
@@ -37,7 +42,7 @@ new LineSeries<double>
 
 Produces the following result:
 
-![image]({{ assets_url }}/docs/_assets/1.8.padding00.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/1.8.padding00.png)
 
 But you can remove the padding only from an axis, for example:
 
@@ -52,7 +57,7 @@ new LineSeries<double>
 }
 ```
 
-![image]({{ assets_url }}/docs/_assets/1.8.padding50.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/1.8.padding50.png)
 
 Or you can increase the distance:
 
@@ -67,4 +72,4 @@ new LineSeries<double>
 }
 ```
 
-![image]({{ assets_url }}/docs/_assets/1.8.padding22.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/1.8.padding22.png)

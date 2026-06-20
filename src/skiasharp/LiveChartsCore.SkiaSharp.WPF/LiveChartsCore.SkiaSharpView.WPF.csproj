@@ -1,72 +1,56 @@
-<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
   <PropertyGroup>
-    <Nullable>enable</Nullable>
-    <LangVersion>$(GlobalLangVersion)</LangVersion>
     <UseWPF>true</UseWPF>
 
     <TargetFrameworks>
       net462;
-      net6.0-windows10.0.19041;
-      net8.0-windows10.0.19041
+      net8.0-windows10.0.19041;
+      net8.0-windows; <!-- https://github.com/Live-Charts/LiveCharts2/issues/1772  -->
     </TargetFrameworks>
+    
     <AssemblyName>LiveChartsCore.SkiaSharpView.WPF</AssemblyName>
     <RootNamespace>LiveChartsCore.SkiaSharpView.WPF</RootNamespace>
-    <Version>$(LiveChartsVersion)</Version>
-    <PackageIcon>icon.png</PackageIcon>
-    <Description>Simple, flexible, interactive and powerful data visualization for WPF.</Description>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Authors>$(LiveChartsAuthors)</Authors>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <RepositoryUrl>https://github.com/beto-rodriguez/LiveCharts2</RepositoryUrl>
-
-    <Deterministic>true</Deterministic>
-    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <PathToPackAssets>../../../</PathToPackAssets>
   </PropertyGroup>
 
-  <Import Project="..\_Shared\_Shared.projitems" Label="Shared" />
-  <Import Project="..\_Shared.Xaml\_Shared.Xaml.projitems" Label="Shared" />
+  <PropertyGroup>
+     <!-- https://github.com/Live-Charts/LiveCharts2/issues/1772, we should also warn the user about this, but there should be no issue. -->
+    <NoWarn>$(NoWarn);NU1701</NoWarn>
+  </PropertyGroup>
+
+  <Import Project="../../../nuget.props" />
+  <PropertyGroup>
+    <Description>
+      $(Description) This package includes all the required code and dependencies for rendering charts in WPF with SkiaSharp.
+    </Description>
+  </PropertyGroup>
+
+  <Import Project="../../../build/SharedLinks.Build.props" />
+  <Import Project="../../../build/XamlSharedLinks.Build.props" />
 
   <PropertyGroup>
     <DefineConstants>$(DefineConstants);WPF_LVC;XAML_LVC</DefineConstants>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
-    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-  </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
     <PackageReference Include="SkiaSharp.Views.WPF" Version="$(LatestSkiaSharpVersion)" />
     <PackageReference Include="SkiaSharp.HarfBuzz" Version="$(LatestSkiaSharpVersion)" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\LiveChartsCore.SkiaSharp\LiveChartsCore.SkiaSharpView.csproj" />
+    <ProjectReference Include="../LiveChartsCore.SkiaSharp/LiveChartsCore.SkiaSharpView.csproj" />
   </ItemGroup>
 
-  <ItemGroup Condition="$(UseNuGetForGenerator)">
-    <PackageReference Include="LiveChartsGenerators" Version="$(LiveChartsCodeGenVersion)">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>analyzers</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net462'">
+    <DefineConstants>$(DefineConstants);STRONG_NAMED_ASSEMBLIES</DefineConstants>
+  </PropertyGroup>
 
-  <ItemGroup Condition="!$(UseNuGetForGenerator)">
-    <ProjectReference Include="..\..\..\generators\LiveChartsGenerators\LiveChartsGenerators.csproj">
+  <ItemGroup>
+    <ProjectReference Include="../../../generators/LiveChartsGenerators/LiveChartsGenerators.csproj">
       <OutputItemType>Analyzer</OutputItemType>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="images\icon.png" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>

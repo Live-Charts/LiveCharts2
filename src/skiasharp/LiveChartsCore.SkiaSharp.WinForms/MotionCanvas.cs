@@ -20,12 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using System;
 using System.ComponentModel;
-using System.Windows.Forms;
 using LiveChartsCore.Kernel.Sketches;
 using LiveChartsCore.Motion;
 using LiveChartsCore.SkiaSharpView.Drawing;
+using LiveChartsCore.SkiaSharpView.WinForms.Rendering;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
 
@@ -35,6 +34,7 @@ namespace LiveChartsCore.SkiaSharpView.WinForms;
 /// The motion canvas control for windows forms, <see cref="CoreMotionCanvas"/>.
 /// </summary>
 /// <seealso cref="UserControl" />
+[DesignerCategory("")]
 public partial class MotionCanvas : UserControl, IRenderMode
 {
     private IFrameTicker _ticker = null!;
@@ -66,7 +66,9 @@ public partial class MotionCanvas : UserControl, IRenderMode
     protected override void CreateHandle()
     {
         base.CreateHandle();
-        _ticker = new AsyncLoopTicker();
+        _ticker = LiveCharts.RenderingSettings.TryUseVSync
+            ? new ApplicationIdleTicker()
+            : new AsyncLoopTicker();
         _ticker.InitializeTicker(CanvasCore, this);
         _skControl?.Invalidate();
         _skglControl?.Invalidate();
@@ -89,7 +91,7 @@ public partial class MotionCanvas : UserControl, IRenderMode
             new SkiaSharpDrawingContext(CanvasCore, e.Surface.Canvas, GetBackground()));
 
     private SKColor GetBackground() =>
-        ((IChartView)Parent!)?.BackColor.AsSKColor() ?? SKColor.Empty;
+        (Parent as IChartView)?.BackColor.AsSKColor() ?? SKColor.Empty;
 
     void IRenderMode.InitializeRenderMode(CoreMotionCanvas canvas) =>
         throw new NotImplementedException();

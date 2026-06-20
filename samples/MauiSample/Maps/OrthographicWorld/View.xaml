@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="MauiSample.Maps.OrthographicWorld.View"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Maui;assembly=LiveChartsCore.SkiaSharpView.Maui"
+             xmlns:vms="clr-namespace:ViewModelsSamples.Maps.OrthographicWorld;assembly=ViewModelsSamples"
+             x:DataType="vms:ViewModel">
+    <ContentPage.BindingContext>
+        <vms:ViewModel/>
+    </ContentPage.BindingContext>
+    <Grid RowDefinitions="Auto, *">
+        <StackLayout Grid.Row="0" Orientation="Horizontal" Margin="8">
+            <Label Text="Rotate to:" VerticalOptions="Center" Margin="0,0,8,0"/>
+            <Button x:Name="AmericasBtn" Text="Americas" Margin="4" Clicked="AmericasBtn_Clicked"/>
+            <Button x:Name="EuropeBtn" Text="Europe" Margin="4" Clicked="EuropeBtn_Clicked"/>
+            <Button x:Name="AsiaBtn" Text="Asia" Margin="4" Clicked="AsiaBtn_Clicked"/>
+            <Button x:Name="AfricaBtn" Text="Africa" Margin="4" Clicked="AfricaBtn_Clicked"/>
+            <Button x:Name="OceaniaBtn" Text="Oceania" Margin="4" Clicked="OceaniaBtn_Clicked"/>
+        </StackLayout>
+
+        <lvc:GeoMap Grid.Row="1"
+                    x:Name="geoMap"
+                    Series="{Binding Series}"
+                    MapProjection="Orthographic"/>
+    </Grid>
+</ContentPage>

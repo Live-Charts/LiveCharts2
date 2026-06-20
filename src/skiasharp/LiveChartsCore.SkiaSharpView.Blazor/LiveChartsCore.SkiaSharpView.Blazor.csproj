@@ -1,33 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
-    <LangVersion>$(GlobalLangVersion)</LangVersion>
-    <Nullable>enable</Nullable>
+    <TargetFrameworks>
+      net6.0;
+      net8.0;
+    </TargetFrameworks>
 
-    <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
-
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Version>$(LiveChartsVersion)</Version>
-    <PackageIcon>icon.png</PackageIcon>
-    <Description>Simple, flexible, interactive and powerful data visualization for Blazor.</Description>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Authors>$(LiveChartsAuthors)</Authors>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <RepositoryUrl>https://github.com/beto-rodriguez/LiveCharts2</RepositoryUrl>
-    <GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
-    <GenerateDocumentationFile>True</GenerateDocumentationFile>
-
-    <Deterministic>true</Deterministic>
-    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <AssemblyName>LiveChartsCore.SkiaSharpView.Blazor</AssemblyName>
+    <RootNamespace>LiveChartsCore.SkiaSharpView.Blazor</RootNamespace>
+    <PathToPackAssets>../../../</PathToPackAssets>
   </PropertyGroup>
 
-  <Import Project="..\_Shared\_Shared.projitems" Label="Shared" />
+  <Import Project="../../../nuget.props" />
+  <PropertyGroup>
+    <Description>
+      $(Description) This package includes all the required code and dependencies for rendering charts in Blazor WASM with SkiaSharp.
+    </Description>
+  </PropertyGroup>
+  
+  <Import Project="../../../build/SharedLinks.Build.props" />
 
   <PropertyGroup>
     <DefineConstants>$(DefineConstants);BLAZOR_LVC</DefineConstants>
@@ -47,31 +38,26 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="SkiaSharp.Views.Blazor" Version="$(LatestSkiaSharpVersion)" />
-    <PackageReference Include="HarfBuzzSharp.NativeAssets.WebAssembly" Version="$(HarfBuzzWASMVersion)" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+    <None Include="build\LiveChartsCore.SkiaSharpView.Blazor.targets"
+          Pack="true"
+          PackagePath="buildTransitive\$(AssemblyName).targets" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\LiveChartsCore\LiveChartsCore.csproj" />
-    <ProjectReference Include="..\LiveChartsCore.SkiaSharp\LiveChartsCore.SkiaSharpView.csproj" />
+    <PackageReference Include="SkiaSharp.Views.Blazor" Version="$(LatestSkiaSharpVersion)" />
+    <PackageReference Include="HarfBuzzSharp.NativeAssets.WebAssembly" Version="$(HarfBuzzWASMVersion)" />
   </ItemGroup>
 
-  <ItemGroup Condition="$(UseNuGetForGenerator)">
-    <PackageReference Include="LiveChartsGenerators" Version="$(LiveChartsCodeGenVersion)">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>analyzers</IncludeAssets>
-    </PackageReference>
+  <ItemGroup>
+    <ProjectReference Include="../../LiveChartsCore/LiveChartsCore.csproj" />
+    <ProjectReference Include="../LiveChartsCore.SkiaSharp/LiveChartsCore.SkiaSharpView.csproj" />
   </ItemGroup>
 
-  <ItemGroup Condition="!$(UseNuGetForGenerator)">
-    <ProjectReference Include="..\..\..\generators\LiveChartsGenerators\LiveChartsGenerators.csproj">
+  <ItemGroup>
+    <ProjectReference Include="../../../generators/LiveChartsGenerators/LiveChartsGenerators.csproj">
       <OutputItemType>Analyzer</OutputItemType>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>
 
-  <ItemGroup>
-    <None Include="images\icon.png" Pack="true" PackagePath="\" />
-  </ItemGroup>
 </Project>

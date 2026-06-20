@@ -22,6 +22,7 @@
 
 using System;
 using LiveChartsCore.Drawing;
+using LiveChartsCore.Measure;
 
 namespace LiveChartsCore.Geo;
 
@@ -49,4 +50,20 @@ public interface IMapFactory : IDisposable
     /// <param name="sender">The sender.</param>
     /// <param name="delta">The delta.</param>
     void Pan(GeoMapChart sender, LvcPoint delta);
+
+    /// <summary>
+    /// Zooms the map.
+    /// </summary>
+    /// <param name="sender">The sender.</param>
+    /// <param name="pivot">The pivot point in control coordinates.</param>
+    /// <param name="direction">The zoom direction.</param>
+    void Zoom(GeoMapChart sender, LvcPoint pivot, ZoomDirection direction);
+
+    /// <summary>
+    /// Sets the viewport directly to the given zoom and pan values.
+    /// </summary>
+    /// <param name="sender">The sender.</param>
+    /// <param name="zoom">The zoom level.</param>
+    /// <param name="panOffset">The pan offset.</param>
+    void SetViewport(GeoMapChart sender, float zoom, LvcPoint panOffset);
 }

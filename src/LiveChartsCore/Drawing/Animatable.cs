@@ -97,11 +97,19 @@ public abstract class Animatable
     /// </param>
     public virtual void CompleteTransition(params PropertyDefinition[]? properties)
     {
-        var propertiesEnumerable = properties is null || properties.Length == 0
-            ? GetPropertyDefinitions().Values
-            : (IEnumerable<PropertyDefinition>)properties;
+        if (properties is null || properties.Length == 0)
+        {
+            foreach (var property in GetPropertyDefinitions().Values)
+            {
+                var motionProperty = property.GetMotion(this);
+                if (motionProperty is null) continue;
 
-        foreach (var property in propertiesEnumerable)
+                motionProperty.Finish();
+            }
+            return;
+        }
+
+        foreach (var property in properties)
         {
             var motionProperty = property.GetMotion(this);
             if (motionProperty is null) continue;

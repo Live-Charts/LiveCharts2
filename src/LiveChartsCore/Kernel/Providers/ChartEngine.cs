@@ -39,6 +39,30 @@ public abstract class ChartEngine
     public virtual DataFactory<TModel> GetDefaultDataFactory<TModel>() => new();
 
     /// <summary>
+    /// Optionally returns an override that takes over drawing, bounds and hit-testing
+    /// for the given <paramref name="series"/> (bypassing its per-point pipeline). Returns
+    /// <see langword="null"/> (the default) to let the series handle itself.
+    /// <para>
+    /// Consulted frequently — once per measure pass for rendering and bounds, and
+    /// again on every pointer move/down for hit-testing, plus on series removal — and
+    /// not cached by the engine. Implementations should make this cheap (e.g. a
+    /// dictionary keyed by series) rather than allocating per call.
+    /// </para>
+    /// </summary>
+    public virtual ISeriesRenderOverride? GetRenderOverride(ISeries series) => null;
+
+    /// <summary>
+    /// Gets the render override for the given cartesian axis, if any. The override takes over how the
+    /// axis lays out its separators and labels; the engine decides which axes are overridden — e.g.
+    /// by the axis' concrete type and its own opt-in flags, like GroupTimeUnits on the DateTime axis
+    /// (consulted while measuring; the axis caches the result by the visible range, so it re-runs on
+    /// zoom/pan but is skipped while the range is unchanged). Return <see langword="null"/> (the
+    /// default) to let the axis lay itself out as usual. Consulted on every measure pass, so
+    /// implementations should be cheap (e.g. a type check + flag read) rather than allocating per call.
+    /// </summary>
+    public virtual IAxisRenderOverride? GetAxisRenderOverride(ICartesianAxis axis) => null;
+
+    /// <summary>
     /// Gets a new instance of the default map factory.
     /// </summary>
     /// <returns></returns>

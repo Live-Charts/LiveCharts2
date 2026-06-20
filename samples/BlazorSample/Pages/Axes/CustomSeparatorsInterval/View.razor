@@ -1,0 +1,30 @@
+﻿@page "/Axes/CustomSeparatorsInterval"
+@using LiveChartsCore.SkiaSharpView.Blazor
+@using LiveChartsCore;
+@using LiveChartsCore.SkiaSharpView;
+
+<CartesianChart
+    Series="@series"
+    YAxes="@yAxes">
+</CartesianChart>
+
+@code {
+    private ISeries[] series = new ISeries[]
+    {
+        new LineSeries<int> { Values = new int[] { 10, 55, 45, 68, 60, 70, 75, 78 } }
+    };
+
+    private Axis yAxis;
+    private Axis[] yAxes;
+
+    // for simplicity we use the page constructor
+    public View()
+    {
+        var customSeparators = new double[] { 0, 10, 25, 50, 100 };
+        yAxis = new Axis
+        {
+            CustomSeparators = customSeparators
+        };
+        yAxes = new[] { yAxis };
+    }
+}

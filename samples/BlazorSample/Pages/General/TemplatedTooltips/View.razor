@@ -1,0 +1,41 @@
+﻿@page "/General/TemplatedTooltips"
+@using LiveChartsCore.Drawing
+@using LiveChartsCore.SkiaSharpView.Blazor
+@using LiveChartsCore;
+@using LiveChartsCore.SkiaSharpView;
+@using ViewModelsSamples.General.TemplatedTooltips
+
+<CartesianChart
+    Series="@series"
+    Tooltip="@CustomTooltip">
+</CartesianChart>
+
+@code {
+    // for simplicity we configure the mapping here
+    static View()
+    {
+        LiveCharts.Configure(config =>
+            config.HasMap<GeometryPoint>((dataPoint, index) => new(index, dataPoint.Value)));
+    }
+
+    private GeometryPoint[] values = new GeometryPoint[]
+    {
+        new GeometryPoint { Value = 4, Geometry = SVGPoints.Star },
+        new GeometryPoint { Value = 2, Geometry = SVGPoints.Square },
+        new GeometryPoint { Value = 6, Geometry = SVGPoints.Circle },
+        new GeometryPoint { Value = 3, Geometry = SVGPoints.Cross },
+        new GeometryPoint { Value = 5, Geometry = SVGPoints.Diamond }
+    };
+
+    private ISeries[] series;
+
+    public CustomTooltip CustomTooltip { get; set; } = new();
+
+    protected override void OnInitialized()
+    {
+        series = new ISeries[]
+        {
+            new ColumnSeries<GeometryPoint> { Values = values }
+        };
+    }
+}

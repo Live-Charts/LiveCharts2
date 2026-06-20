@@ -7,8 +7,7 @@
     xmlns:scg="clr-namespace:System.Collections.Generic;assembly=netstandard">
 
     <lvc:CartesianChart
-        LegendPosition="Right">
-        
+        LegendPosition="Right">        
         <lvc:CartesianChart.Series>
             <lvc:XamlLineSeries
                 SeriesName="Mary"

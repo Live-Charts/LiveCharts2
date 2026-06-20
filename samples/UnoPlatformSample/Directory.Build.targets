@@ -1,2 +1,15 @@
 ﻿<Project>
+
+  <!--
+  Factos.Uno ships a single Skia-built assembly, and Uno's runtime-identifier
+  validator rejects it at build time in native-renderer builds — even though
+  on WASM the assembly runs fine under either renderer (LiveCharts' own Uno
+  package is in the same situation and only passes the validator by accident
+  of assembly-metadata ordering; see PR #2334). Skip the validation for the
+  native-renderer TEST build only, until Factos publishes renderer-neutral or
+  multi-flavor packaging.
+  -->
+  <Import Project="SkipUnoRuntimeIdentifierValidation.targets"
+          Condition="'$(LvcUnoNativeRenderer)' == 'true' and '$(UITesting)' == 'true'" />
+
 </Project>

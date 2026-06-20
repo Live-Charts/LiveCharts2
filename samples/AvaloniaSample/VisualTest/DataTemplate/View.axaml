@@ -1,28 +1,41 @@
-<UserControl x:Class="AvaloniaSample.VisualTest.DataTemplate.View"
-             xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
-             xmlns:vms="using:ViewModelsSamples.VisualTest.DataTemplate"
-             x:DataType="vms:ViewModel">
+<UserControl
+    x:Class="AvaloniaSample.VisualTest.DataTemplate.View"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
+    xmlns:vms="using:ViewModelsSamples.VisualTest.DataTemplate"
+    x:DataType="vms:ViewModel">
+
     <UserControl.DataContext>
         <vms:ViewModel/>
     </UserControl.DataContext>
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
 
-        <ItemsControl ItemsSource="{Binding Models}">
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <lvc:CartesianChart Series="{Binding .}" />
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <UniformGrid />
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-        </ItemsControl>
-    </Grid>
+    <ItemsControl ItemsSource="{Binding Departments}">
+        <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vms:DepartmentInfo">
+                <Grid RowDefinitions="Auto,300">
+
+                    <Label
+                        Grid.Row="0"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"
+                        Content="{Binding DepartmentName}"/>
+
+                    <lvc:CartesianChart
+                        Grid.Row="1"
+                        SeriesSource="{Binding Data}">
+
+                        <lvc:CartesianChart.SeriesTemplate>
+                            <DataTemplate x:DataType="vms:ChartData">
+                                <lvc:XamlLineSeries
+                                    SeriesName="{Binding SeriesName}"
+                                    Values="{Binding Values}"/>
+                            </DataTemplate>
+                        </lvc:CartesianChart.SeriesTemplate>
+
+                    </lvc:CartesianChart>
+                </Grid>
+            </DataTemplate>
+        </ItemsControl.ItemTemplate>
+    </ItemsControl>
 </UserControl>

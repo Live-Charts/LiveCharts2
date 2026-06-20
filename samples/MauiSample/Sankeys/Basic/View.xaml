@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="MauiSample.Sankeys.Basic.View"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Maui;assembly=LiveChartsCore.SkiaSharpView.Maui"
+    xmlns:vms="clr-namespace:ViewModelsSamples.Sankeys.Basic;assembly=ViewModelsSamples"
+    x:DataType="vms:ViewModel">
+
+    <ContentPage.BindingContext>
+        <vms:ViewModel/>
+    </ContentPage.BindingContext>
+
+    <lvc:SankeyChart>
+        <lvc:SankeyChart.Series>
+            <lvc:SeriesCollection>
+                <lvc:XamlSankeySeries
+                    Values="{Binding Nodes}"
+                    Links="{Binding Links}"
+                    NodeWidth="14"
+                    NodePadding="10"
+                    Fill="{lvc:SolidColorPaint Color='#608ada'}"
+                    DataLabelsPaint="{lvc:SolidColorPaint Color='#45454d'}"
+                    DataLabelsSize="13"/>
+            </lvc:SeriesCollection>
+        </lvc:SankeyChart.Series>
+    </lvc:SankeyChart>
+
+</ContentPage>

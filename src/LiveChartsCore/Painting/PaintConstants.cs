@@ -63,6 +63,12 @@ internal static class PaintConstants
     /// </summary>
     internal const double AxisZeroPaintZIndex = -1;
 
+    /// <summary>
+    /// Default z-index for axis bands paint — above the draw margin frame fill (-3),
+    /// below sections (-2.5), separators and series.
+    /// </summary>
+    internal const double AxisBandsPaintZIndex = -2.8;
+
     // Crosshair-related z-index constants
     /// <summary>
     /// Default z-index for crosshair paint.
@@ -75,11 +81,6 @@ internal static class PaintConstants
     internal const double CrosshairLabelsPaintZIndex = 1050;
 
     // Series-related z-index constants
-    /// <summary>
-    /// Base z-index for stacked series.
-    /// </summary>
-    internal const double StackedSeriesBaseZIndex = 1000;
-
     /// <summary>
     /// Z-index offset for series fill paint.
     /// </summary>

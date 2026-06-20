@@ -1,0 +1,29 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="AvaloniaSample.Maps.OrthographicWorld.View"
+             xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
+             xmlns:vms="using:ViewModelsSamples.Maps.OrthographicWorld"
+             x:DataType="vms:ViewModel">
+    <UserControl.DataContext>
+        <vms:ViewModel/>
+    </UserControl.DataContext>
+    <Grid RowDefinitions="Auto,*">
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="8">
+            <TextBlock Text="Rotate to:" VerticalAlignment="Center"/>
+            <Button Content="Americas" x:Name="AmericasBtn"/>
+            <Button Content="Europe" x:Name="EuropeBtn"/>
+            <Button Content="Asia" x:Name="AsiaBtn"/>
+            <Button Content="Africa" x:Name="AfricaBtn"/>
+            <Button Content="Oceania" x:Name="OceaniaBtn"/>
+        </StackPanel>
+
+        <lvc:GeoMap Grid.Row="1"
+                    x:Name="geoMap"
+                    Series="{Binding Series}"
+                    MapProjection="Orthographic"/>
+    </Grid>
+</UserControl>

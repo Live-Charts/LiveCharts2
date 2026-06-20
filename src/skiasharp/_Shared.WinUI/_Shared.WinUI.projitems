@@ -9,16 +9,22 @@
     <Import_RootNamespace>_Shared.WinUI</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)GeoMap.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CartesianChart.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)LiveChartsGeneratedCode\SourceGenCartesianChart.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)LiveChartsGeneratedCode\SourceGenChart.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)LiveChartsGeneratedCode\SourceGenPieChart.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)LiveChartsGeneratedCode\SourceGenPolarChart.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MotionCanvas.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PieChart.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PolarChart.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Rendering\GPURenderMode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Rendering\CPURenderMode.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SourceGenCartesianChart.winui.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SourceGenChart.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SourceGenMapChart.winui.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SourceGenPieChart.winui.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SourceGenPolarChart.winui.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SourceGenSankeyChart.winui.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SankeyChart.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SourceGenTreemapChart.winui.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TreemapChart.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ThemeListener.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)XamlSeries.cs" />
   </ItemGroup>

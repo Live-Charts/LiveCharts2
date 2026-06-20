@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="MauiSample.Lines.Range.View"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Maui;assembly=LiveChartsCore.SkiaSharpView.Maui"
+    xmlns:vms="clr-namespace:ViewModelsSamples.Lines.Range;assembly=ViewModelsSamples"
+    x:DataType="vms:ViewModel">
+
+    <ContentPage.BindingContext>
+        <vms:ViewModel/>
+    </ContentPage.BindingContext>
+
+    <lvc:CartesianChart>
+        <lvc:CartesianChart.Series>
+            <lvc:SeriesCollection>
+                <lvc:XamlRangeLineSeries
+                    Values="{Binding Temperatures}"
+                    SeriesName="Temperature"
+                    YToolTipLabelFormatter="{Binding TempTooltipFormatter}"/>
+            </lvc:SeriesCollection>
+        </lvc:CartesianChart.Series>
+
+        <lvc:CartesianChart.XAxes>
+            <lvc:AxesCollection>
+                <lvc:XamlAxis Labels="{Binding Months}"/>
+            </lvc:AxesCollection>
+        </lvc:CartesianChart.XAxes>
+
+        <lvc:CartesianChart.YAxes>
+            <lvc:AxesCollection>
+                <lvc:XamlAxis Labeler="{Binding TempLabeler}"/>
+            </lvc:AxesCollection>
+        </lvc:CartesianChart.YAxes>
+    </lvc:CartesianChart>
+</ContentPage>

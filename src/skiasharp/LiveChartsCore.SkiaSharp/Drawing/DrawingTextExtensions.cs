@@ -20,10 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Text;
 using LiveChartsCore.Drawing;
 using LiveChartsCore.SkiaSharpView.Drawing.Geometries;
@@ -36,6 +33,7 @@ internal static class DrawingTextExtensions
 {
     internal static readonly PositionedBlob s_newLine = new(SKTextBlob.Create(string.Empty, new()), -1);
     private static readonly Dictionary<string, SKShaper> s_knownShapers = [];
+    private static readonly object s_lock = new();
 
     internal static void DrawLabel(this SKCanvas canvas, LabelGeometry label, float opacity = 1)
     {
@@ -89,8 +87,7 @@ internal static class DrawingTextExtensions
             canvas.DrawRect(rax, ray, size.Width, size.Height, bgPaint);
         }
 
-        var horizontalPadding = label.Padding.Left + label.Padding.Right;
-        var lao = 0f;
+        var contentWidth = size.Width - label.Padding.Left - label.Padding.Right;
 
         foreach (var pb in blobArray.Blobs)
         {
@@ -99,9 +96,15 @@ internal static class DrawingTextExtensions
 
             var blobPosition = pb.Position;
 
-            // line alignmen offset.
-            if (blobArray.IsRTL)
-                lao = size.Width - horizontalPadding - blobArray.LineWidths[pb.Line];
+            // line alignment offset.
+            var lao = blobArray.IsRTL
+                ? contentWidth - blobArray.LineWidths[pb.Line]
+                : label.LinesAlignment switch
+                {
+                    Align.Middle => (contentWidth - blobArray.LineWidths[pb.Line]) * 0.5f,
+                    Align.End => contentWidth - blobArray.LineWidths[pb.Line],
+                    _ => 0f
+                };
 
             canvas.DrawText(
                 pb.Blob,
@@ -145,6 +148,10 @@ internal static class DrawingTextExtensions
             var c = text[i];
             int codepoint;
 
+            // CRLF normalization: drop the CR so it does not render as a notdef
+            // glyph; the following LF still produces the line break.
+            if (c == '\r') continue;
+
             // custom "GetRunes", we cant use System.Text.Rune in net462 or netstandard2.0
             if (char.IsHighSurrogate(c) && i + 1 < text.Length && char.IsLowSurrogate(text[i + 1]))
             {
@@ -154,6 +161,22 @@ internal static class DrawingTextExtensions
             else
             {
                 codepoint = c;
+            }
+
+            // Line break: flush the buffer WITHOUT the '\n', then emit "\n" as
+            // its own token so ShapeAndPlace recognises it and returns s_newLine.
+            // Issue #2266: a bare '\n' with no preceding whitespace used to be
+            // glued to the previous token (e.g. "9.4700\n") and shaped as a tofu
+            // glyph instead of breaking the line.
+            if (codepoint == '\n')
+            {
+                if (sb.Length > 0)
+                {
+                    tokens.Add(sb.ToString());
+                    _ = sb.Clear();
+                }
+                tokens.Add("\n");
+                continue;
             }
 
             // Append full character (could be surrogate pair)
@@ -178,7 +201,7 @@ internal static class DrawingTextExtensions
 #endif
             }
 
-            // Token boundary
+            // Token boundary (other whitespace stays glued to the preceding token)
             if (IsTokenBoundary(codepoint) && sb.Length > 0)
             {
                 tokens.Add(sb.ToString());
@@ -269,7 +292,7 @@ internal static class DrawingTextExtensions
                 .Select(token => ShapeAndPlace(token, font, paint))
                 .ToArray();
 
-            var (size, lineWidths) = Measure(blobs, font, maxWidth, padding);
+            var (size, lineWidths) = Measure(blobs, font, maxWidth, padding, tokenResult.IsRTL);
 
             return new BlobArray
             {
@@ -288,10 +311,15 @@ internal static class DrawingTextExtensions
             var typeface = font.Typeface ??
                 throw new Exception("A Typeface is required at this point.");
 
-            if (!s_knownShapers.TryGetValue(typeface.FamilyName, out var shaper))
+            SKShaper? shaper = null;
+
+            lock (s_lock)
             {
-                shaper = new SKShaper(typeface);
-                s_knownShapers[typeface.FamilyName] = shaper;
+                if (!s_knownShapers.TryGetValue(typeface.FamilyName, out shaper))
+                {
+                    shaper = new SKShaper(typeface);
+                    s_knownShapers[typeface.FamilyName] = shaper;
+                }
             }
 
             var result = shaper.Shape(text, paint);
@@ -307,7 +335,7 @@ internal static class DrawingTextExtensions
         }
 
         private static (LvcSize Size, List<float> LineWidths) Measure(
-            PositionedBlob[] blobs, SKFont font, float maxWidth, Padding padding)
+            PositionedBlob[] blobs, SKFont font, float maxWidth, Padding padding, bool isRTL)
         {
             var lineCount = 0;
             var x = 0f;
@@ -318,7 +346,10 @@ internal static class DrawingTextExtensions
             var lineHeight = metrics.Descent - metrics.Ascent + metrics.Leading;
             var widths = new List<float>();
 
-            foreach (var pb in blobs)
+            // For RTL text, reverse the blobs so words are positioned right-to-left
+            var orderedBlobs = isRTL ? ((IEnumerable<PositionedBlob>)blobs).Reverse() : blobs;
+
+            foreach (var pb in orderedBlobs)
             {
                 pb.Line = lineCount;
                 var b = pb.Blob;

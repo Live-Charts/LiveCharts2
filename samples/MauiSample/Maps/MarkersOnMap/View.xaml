@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="MauiSample.Maps.MarkersOnMap.View"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Maui;assembly=LiveChartsCore.SkiaSharpView.Maui"
+             xmlns:vms="clr-namespace:ViewModelsSamples.Maps.MarkersOnMap;assembly=ViewModelsSamples"
+             x:DataType="vms:ViewModel">
+    <ContentPage.BindingContext>
+        <vms:ViewModel/>
+    </ContentPage.BindingContext>
+    <!-- VisualElements is wired up in code-behind because the GeoMap source-gen
+         doesn't currently expose it as a bindable property. -->
+    <lvc:GeoMap
+        x:Name="geoMap"
+        Series="{Binding Series}"
+        MapProjection="Mercator"/>
+</ContentPage>

@@ -21,36 +21,25 @@
 // SOFTWARE.
 
 using LiveChartsCore.Drawing;
-using LiveChartsCore.Measure;
 
 namespace LiveChartsCore.Kernel.Sketches;
 
 /// <summary>
-/// Defines a heat series plot.
+/// Defines a heat series plot. Inherits the heat-legend metadata contract
+/// (<see cref="IHeatLegendSource"/>) and adds the cartesian-side setters.
 /// </summary>
 /// <seealso cref="ISeries" />
-public interface IHeatSeries : ICartesianSeries
+public interface IHeatSeries : ICartesianSeries, IHeatLegendSource
 {
     /// <summary>
     /// Gets or sets the heat map.
     /// </summary>
-    /// <value>
-    /// The heat map.
-    /// </value>
-    LvcColor[] HeatMap { get; set; }
+    new LvcColor[] HeatMap { get; set; }
 
     /// <summary>
     /// Gets or sets the color stops.
     /// </summary>
-    /// <value>
-    /// The color stops.
-    /// </value>
-    double[]? ColorStops { get; set; }
-
-    /// <summary>
-    /// Gets the weight bounds.
-    /// </summary>
-    Bounds WeightBounds { get; }
+    new double[]? ColorStops { get; set; }
 
     /// <summary>
     /// Gets or sets the padding for each point.
@@ -62,12 +51,12 @@ public interface IHeatSeries : ICartesianSeries
     /// this value will be used to calculate the color of the point.
     /// Default is null and means the minimum value in the series.
     /// </summary>
-    double? MinValue { get; set; }
+    new double? MinValue { get; set; }
 
     /// <summary>
     /// Gets or sets the maximum value in the weight axis,
     /// this value will be used to calculate the color of the point.
     /// Default is null and means the maximum value in the series.
     /// </summary>
-    double? MaxValue { get; set; }
+    new double? MaxValue { get; set; }
 }

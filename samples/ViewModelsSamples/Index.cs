@@ -20,6 +20,7 @@ public static class Index
         "Lines/Padding",
         "Lines/XY",
         "Lines/Zoom",
+        "Lines/Range",
 
         "Bars/Basic",
         "Bars/AutoUpdate",
@@ -30,6 +31,8 @@ public static class Index
         "Bars/Race",
         "Bars/RowsWithLabels",
         "Bars/Layered",
+        "Bars/Gantt",
+        "Bars/Waterfall",
 
         "Pies/Basic",
         "Pies/AutoUpdate",
@@ -61,12 +64,15 @@ public static class Index
         "StackedBars/Groups",
 
         "Financial/BasicCandlesticks",
+        "Financial/BasicOhlc",
 
         "Error/Basic",
 
         "Box/Basic",
 
         "Heat/Basic",
+
+        "Treemaps/Basic",
 
         "StepLines/Basic",
         "StepLines/AutoUpdate",
@@ -128,6 +134,12 @@ public static class Index
         "Test/Dispose",
         "Test/MotionCanvasDispose",
 
-        "Maps/World"
+        "Maps/World",
+        "Maps/OrthographicWorld",
+        "Maps/RotatingOrthographic",
+        "Maps/CustomMap",
+        "Maps/MarkersOnMap",
+
+        "Sankeys/Basic"
     ];
 }

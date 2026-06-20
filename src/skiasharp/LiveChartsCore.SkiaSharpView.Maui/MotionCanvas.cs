@@ -38,12 +38,20 @@ public class MotionCanvas : AbsoluteLayout
 
     static MotionCanvas()
     {
+        if (!LiveChartsCoreMauiAppBuilderExtensions.AreHandlersRegistered)
+        {
+            throw new InvalidOperationException(
+                "`.UseLiveCharts()` and `.UseSkiaSharp()` must be " +
+                "chained to `.UseMauiApp<T>()`, in the MauiProgram.cs file. For more info see: " +
+                "https://livecharts.dev/docs/Maui/latest/Overview.Installation");
+        }
+
         _ = LiveChartsSkiaSharp
             .EnsureInitialized()
             .HasRenderingFactory(
-                (settings, forceGPU) =>
+                (settings) =>
                 {
-                    IRenderMode renderMode = forceGPU || settings.UseGPU
+                    IRenderMode renderMode = settings.UseGPU
                         ? new GPURenderMode()
                         : new CPURenderMode();
 
@@ -58,9 +66,9 @@ public class MotionCanvas : AbsoluteLayout
     /// <summary>
     /// Initializes a new instance of the <see cref="MotionCanvas"/> class.
     /// </summary>
-    public MotionCanvas(bool forceGPU)
+    public MotionCanvas()
     {
-        _composer = LiveChartsSkiaSharp.MotionCanvasRenderingFactory(LiveCharts.RenderingSettings, forceGPU);
+        _composer = LiveChartsSkiaSharp.MotionCanvasRenderingFactory(LiveCharts.RenderingSettings);
 
         var view = (View)_composer.RenderMode;
         AbsoluteLayout.SetLayoutBounds(view, new(0, 0, 1, 1));

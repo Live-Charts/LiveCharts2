@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="MauiSample.Treemaps.Basic.View"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Maui;assembly=LiveChartsCore.SkiaSharpView.Maui"
+    xmlns:vms="clr-namespace:ViewModelsSamples.Treemaps.Basic;assembly=ViewModelsSamples"
+    x:DataType="vms:ViewModel">
+
+    <ContentPage.BindingContext>
+        <vms:ViewModel/>
+    </ContentPage.BindingContext>
+
+    <lvc:TreemapChart>
+        <lvc:TreemapChart.Series>
+            <lvc:SeriesCollection>
+                <lvc:XamlTreemapSeries
+                    Values="{Binding Regions}"
+                    Padding="4"
+                    Stroke="{lvc:SolidColorPaint Color='#fff', StrokeWidth=2}"
+                    Fill="{lvc:SolidColorPaint Color='#608ada'}"
+                    DataLabelsPaint="{lvc:SolidColorPaint Color='#fff'}"
+                    DataLabelsSize="16"/>
+            </lvc:SeriesCollection>
+        </lvc:TreemapChart.Series>
+    </lvc:TreemapChart>
+</ContentPage>

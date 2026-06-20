@@ -1,0 +1,27 @@
+<Project Sdk="MSTest.Sdk/4.0.2">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <NoWarn>$(NoWarnUITests);MSTEST0037;MSTEST0023;CS0618</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\samples\ConsoleEngineSample\LiveChartsCore.Console\LiveChartsCore.Console.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Goldens\*.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

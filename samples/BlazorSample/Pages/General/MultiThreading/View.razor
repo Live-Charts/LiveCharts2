@@ -1,0 +1,64 @@
+﻿@page "/General/MultiThreading"
+@using LiveChartsCore.SkiaSharpView.Blazor
+@using LiveChartsCore;
+@using LiveChartsCore.SkiaSharpView;
+@using System.Collections.ObjectModel
+@using System.Threading
+
+<CartesianChart
+    @ref="_chart"
+    Series="@series"
+    SyncContext="_sync">
+</CartesianChart>
+
+@code {
+    private CartesianChart _chart;
+    private ObservableCollection<int> _values;
+    private object _sync = new object();
+    private int _current;
+    private bool _isReading = true;
+    private ISeries[] series;
+
+    protected override void OnInitialized()
+    {
+        var items = new List<int>();
+        for (var i = 0; i < 1500; i++)
+        {
+            _current += new Random().Next(-9, 10);
+            items.Add(_current);
+        }
+        _values = new ObservableCollection<int>(items);
+        series = new ISeries[]
+        {
+            new LineSeries<int>
+            {
+                Values = _values,
+                GeometryFill = null,
+                GeometryStroke = null
+            }
+        };
+        for (var i = 0; i < 10; i++)
+        {
+            _ = Task.Run(ReadData);
+        }
+    }
+
+    private async Task ReadData()
+    {
+        var r = new Random();
+        await Task.Delay(1000);
+        while (_isReading)
+        {
+            await Task.Delay(1);
+            _current = Interlocked.Add(ref _current, r.Next(-9, 10));
+            lock (_sync)
+            {
+                if (_values.Count > 0)
+                {
+                    _values.Add(_current);
+                    _values.RemoveAt(0);
+                }
+            }
+        }
+    }
+}

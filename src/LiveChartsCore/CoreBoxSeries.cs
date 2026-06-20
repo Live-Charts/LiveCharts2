@@ -1,4 +1,4 @@
-﻿// The MIT License(MIT)
+// The MIT License(MIT)
 //
 // Copyright(c) 2021 Alberto Rodriguez Orozco & LiveCharts Contributors
 //
@@ -34,7 +34,7 @@ using LiveChartsCore.Painting;
 namespace LiveChartsCore;
 
 /// <summary>
-/// Defines a candle sticks series.
+/// Defines a box-and-whisker series.
 /// </summary>
 /// <typeparam name="TModel">The type of the model.</typeparam>
 /// <typeparam name="TVisual">The type of the visual.</typeparam>
@@ -82,28 +82,32 @@ public abstract class CoreBoxSeries<TModel, TVisual, TLabel, TMiniatureGeometry>
     /// <inheritdoc cref="IBoxSeries.Padding"/>
     public double Padding { get; set => SetProperty(ref field, value); } = 5;
 
-    /// <inheritdoc cref="ChartElement.Invalidate(Chart)"/>
-    public override void Invalidate(Chart chart)
-    {
-        var cartesianChart = (CartesianChartEngine)chart;
-        var primaryAxis = cartesianChart.GetYAxis(this);
-        var secondaryAxis = cartesianChart.GetXAxis(this);
+    // ---- template method ----------------------------------------------------
 
-        var drawLocation = cartesianChart.DrawMarginLocation;
-        var drawMarginSize = cartesianChart.DrawMarginSize;
-        var secondaryScale = secondaryAxis.GetNextScaler(cartesianChart);
-        var primaryScale = primaryAxis.GetNextScaler(cartesianChart);
-        var previousPrimaryScale = primaryAxis.GetActualScaler(cartesianChart);
-        var previousSecondaryScale = secondaryAxis.GetActualScaler(cartesianChart);
+    /// <summary>
+    /// Builds a per-frame measure context from the chart.
+    /// </summary>
+    protected virtual BoxMeasureContext BeginMeasure(CartesianChartEngine chart)
+    {
+        var primaryAxis = chart.GetYAxis(this);
+        var secondaryAxis = chart.GetXAxis(this);
+
+        var drawLocation = chart.DrawMarginLocation;
+        var drawMarginSize = chart.DrawMarginSize;
+        var secondaryScale = secondaryAxis.GetNextScaler(chart);
+        var primaryScale = primaryAxis.GetNextScaler(chart);
+        var previousPrimaryScale = primaryAxis.GetActualScaler(chart);
+        var previousSecondaryScale = secondaryAxis.GetActualScaler(chart);
 
         var uw = secondaryScale.MeasureInPixels(secondaryAxis.UnitWidth);
         var puw = previousSecondaryScale is null ? 0 : previousSecondaryScale.MeasureInPixels(secondaryAxis.UnitWidth);
         var uwm = 0.5f * uw;
 
-        var helper = new MeasureHelper(secondaryScale, cartesianChart, this, secondaryAxis, primaryScale.ToPixels(pivot),
-            cartesianChart.DrawMarginLocation.Y, cartesianChart.DrawMarginLocation.Y + cartesianChart.DrawMarginSize.Height);
-
-        var tp = chart.TooltipPosition;
+        var helper = new BoxMeasureHelper(
+            secondaryScale, chart, this, secondaryAxis,
+            primaryScale.ToPixels(pivot),
+            chart.DrawMarginLocation.Y,
+            chart.DrawMarginLocation.Y + chart.DrawMarginSize.Height);
 
         if (uw > MaxBarWidth)
         {
@@ -112,187 +116,283 @@ public abstract class CoreBoxSeries<TModel, TVisual, TLabel, TMiniatureGeometry>
             puw = uw;
         }
 
+        var isFirstDraw = !((Chart)chart).IsDrawn(((ISeries)this).SeriesId);
+
+        return new BoxMeasureContext(
+            chart, primaryAxis, secondaryAxis,
+            primaryScale, secondaryScale,
+            previousPrimaryScale, previousSecondaryScale,
+            helper: helper,
+            categoryUnitWidth: uw,
+            previousCategoryUnitWidth: puw,
+            halfCategoryUnitWidth: uwm,
+            tooltipPosition: chart.TooltipPosition,
+            isFirstDraw: isFirstDraw,
+            drawLocation: drawLocation,
+            drawMarginSize: drawMarginSize,
+            dataLabelsSize: (float)DataLabelsSize);
+    }
+
+    /// <summary>
+    /// Computes the final-frame box geometry — body rect + five quartile/extremum
+    /// pixel-Y values.
+    /// </summary>
+    protected virtual BoxLayout MeasureBoxLayout(ChartPoint point, in BoxMeasureContext ctx)
+    {
+        var coordinate = point.Coordinate;
+        var helper = ctx.Helper;
+        var secondary = ctx.SecondaryScale.ToPixels(coordinate.SecondaryValue);
+
+        var high = ctx.PrimaryScale.ToPixels(coordinate.PrimaryValue);
+        var open = ctx.PrimaryScale.ToPixels(coordinate.TertiaryValue);
+        var close = ctx.PrimaryScale.ToPixels(coordinate.QuaternaryValue);
+        var low = ctx.PrimaryScale.ToPixels(coordinate.QuinaryValue);
+        var median = ctx.PrimaryScale.ToPixels(coordinate.SenaryValue);
+
+        var x = secondary - helper.uwm + helper.cp;
+
+        return new BoxLayout(
+            x: x,
+            y: high,
+            width: helper.uw,
+            third: open,
+            first: close,
+            min: low,
+            median: median,
+            categoryHoverX: secondary - helper.actualUw * 0.5f,
+            categoryHoverWidth: helper.actualUw);
+    }
+
+    /// <summary>
+    /// Ensures the visual exists. On first creation initializes it at the box's
+    /// X position with all five quartile/extremum values collapsed to the median,
+    /// so the box expands from a horizontal line.
+    /// </summary>
+    protected virtual TVisual EnsureVisualForPoint(ChartPoint point, in BoxMeasureContext ctx)
+    {
+        var visual = point.Context.Visual as TVisual;
+        if (visual is not null) return visual;
+
+        var coordinate = point.Coordinate;
+        var helper = ctx.Helper;
+        var secondary = ctx.SecondaryScale.ToPixels(coordinate.SecondaryValue);
+        var median = ctx.PrimaryScale.ToPixels(coordinate.SenaryValue);
+
+        var xi = secondary - helper.uwm + helper.cp;
+        var uwi = helper.uw;
+
+        // Mid-life entry: animate from previous frame's position.
+        if (ctx.PreviousSecondaryScale is not null && ctx.PreviousPrimaryScale is not null)
+        {
+            xi = ctx.PreviousSecondaryScale.ToPixels(coordinate.SecondaryValue) - ctx.HalfCategoryUnitWidth;
+            uwi = helper.uw;
+        }
+
+        var r = new TVisual
+        {
+            X = xi,
+            Width = uwi,
+            Y = median,
+            Third = median,
+            First = median,
+            Min = median,
+            Median = median,
+        };
+
+        point.Context.Visual = r;
+        OnPointCreated(point);
+
+        _ = everFetched.Add(point);
+
+        return r;
+    }
+
+    /// <summary>
+    /// Collapses the box to its median-Y line for empty/invisible points.
+    /// </summary>
+    protected virtual void CollapseEmptyVisual(ChartPoint point, in BoxMeasureContext ctx)
+    {
+        var coordinate = point.Coordinate;
+        var helper = ctx.Helper;
+        var secondary = ctx.SecondaryScale.ToPixels(coordinate.SecondaryValue);
+        var median = ctx.PrimaryScale.ToPixels(coordinate.SenaryValue);
+
+        if (point.Context.Visual is TVisual visual)
+        {
+            visual.X = secondary - helper.uwm + helper.cp;
+            visual.Width = ctx.CategoryUnitWidth;
+            visual.Y = median;
+            visual.Third = median;
+            visual.First = median;
+            visual.Min = median;
+            visual.Median = median;
+            visual.RemoveOnCompleted = true;
+            point.Context.Visual = null;
+        }
+
+        if (point.Context.Label is TLabel label)
+        {
+            label.X = secondary - helper.uwm + helper.cp;
+            label.Y = median;
+            label.Opacity = 0;
+            label.RemoveOnCompleted = true;
+            point.Context.Label = null;
+        }
+    }
+
+    /// <summary>
+    /// Sets per-Z-index ordering on Fill / Stroke / DataLabelsPaint and registers
+    /// them as drawable tasks. Box has no error paints.
+    /// </summary>
+    private void InitializePaints(CartesianChartEngine chart)
+    {
         var actualZIndex = ZIndex == 0 ? ((ISeries)this).SeriesId : ZIndex;
 
         if (Stroke is not null && Stroke != Paint.Default)
         {
             Stroke.ZIndex = actualZIndex + PaintConstants.SeriesStrokeZIndexOffset;
-            cartesianChart.Canvas.AddDrawableTask(Stroke, zone: CanvasZone.DrawMargin);
+            chart.Canvas.AddDrawableTask(Stroke, zone: CanvasZone.DrawMargin);
         }
         if (Fill is not null && Fill != Paint.Default)
         {
             Fill.ZIndex = actualZIndex + PaintConstants.SeriesFillZIndexOffset;
-            cartesianChart.Canvas.AddDrawableTask(Fill, zone: CanvasZone.DrawMargin);
+            chart.Canvas.AddDrawableTask(Fill, zone: CanvasZone.DrawMargin);
         }
         if (ShowDataLabels && DataLabelsPaint is not null && DataLabelsPaint != Paint.Default)
         {
             DataLabelsPaint.ZIndex = actualZIndex + PaintConstants.SeriesGeometryFillZIndexOffset;
-            cartesianChart.Canvas.AddDrawableTask(DataLabelsPaint, zone: CanvasZone.DrawMargin);
+            chart.Canvas.AddDrawableTask(DataLabelsPaint, zone: CanvasZone.DrawMargin);
+        }
+    }
+
+    /// <summary>
+    /// Configures the hover-area tooltip anchor based on the chart's
+    /// <see cref="TooltipPosition"/>. Box honors the full set of positions like
+    /// candlesticks.
+    /// </summary>
+    private static void ConfigureHoverAnchor(RectangleHoverArea ha, TooltipPosition tp)
+    {
+        switch (tp)
+        {
+            case TooltipPosition.Hidden:
+                break;
+            case TooltipPosition.Auto:
+            case TooltipPosition.Top: _ = ha.CenterXToolTip().StartYToolTip(); break;
+            case TooltipPosition.Bottom: _ = ha.CenterXToolTip().EndYToolTip(); break;
+            case TooltipPosition.Left: _ = ha.StartXToolTip().CenterYToolTip(); break;
+            case TooltipPosition.Right: _ = ha.EndXToolTip().CenterYToolTip(); break;
+            case TooltipPosition.Center: _ = ha.CenterXToolTip().CenterYToolTip(); break;
+            default:
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Creates the data label visual if needed, updates its text + style, and
+    /// positions it via <c>GetLabelPosition</c> with the box's body rect.
+    /// </summary>
+    private void MeasureDataLabel(ChartPoint point, in BoxLayout layout, in BoxMeasureContext ctx)
+    {
+        if (!ShowDataLabels || DataLabelsPaint is null || DataLabelsPaint == Paint.Default) return;
+
+        var chart = ctx.Chart;
+        var label = (TLabel?)point.Context.Label;
+
+        if (label is null)
+        {
+            var l = new TLabel
+            {
+                X = layout.X,
+                Y = layout.Y,
+                RotateTransform = (float)DataLabelsRotation,
+                MaxWidth = (float)DataLabelsMaxWidth,
+            };
+            l.Animate(
+                GetAnimation(chart),
+                BaseLabelGeometry.XProperty,
+                BaseLabelGeometry.YProperty);
+            label = l;
+            point.Context.Label = l;
         }
 
-        var dls = (float)DataLabelsSize;
+        DataLabelsPaint.AddGeometryToPaintTask(chart.Canvas, label);
+
+        label.Text = DataLabelsFormatter(new ChartPoint<TModel, TVisual, TLabel>(point));
+        label.TextSize = ctx.DataLabelsSize;
+        label.Padding = DataLabelsPadding;
+        label.Paint = DataLabelsPaint;
+
+        var m = label.Measure();
+        var labelPosition = GetLabelPosition(
+            layout.X, layout.Y, layout.Width, layout.Height, m, DataLabelsPosition,
+            SeriesProperties, point.Coordinate.PrimaryValue > Pivot, ctx.DrawLocation, ctx.DrawMarginSize);
+        if (DataLabelsTranslate is not null)
+            label.TranslateTransform = new LvcPoint(
+                m.Width * DataLabelsTranslate.Value.X, m.Height * DataLabelsTranslate.Value.Y);
+
+        label.X = labelPosition.X;
+        label.Y = labelPosition.Y;
+    }
+
+    /// <inheritdoc cref="ChartElement.Invalidate(Chart)"/>
+    public sealed override void Invalidate(Chart chart)
+    {
+        var cartesianChart = (CartesianChartEngine)chart;
+        _ = GetAnimation(cartesianChart);
+
+        var ctx = BeginMeasure(cartesianChart);
         var pointsCleanup = ChartPointCleanupContext.For(everFetched);
+
+        InitializePaints(cartesianChart);
 
         foreach (var point in Fetch(cartesianChart))
         {
-            var coordinate = point.Coordinate;
-            var visual = point.Context.Visual as TVisual;
-            var secondary = secondaryScale.ToPixels(coordinate.SecondaryValue);
-
-            var high = primaryScale.ToPixels(coordinate.PrimaryValue);
-            var open = primaryScale.ToPixels(coordinate.TertiaryValue);
-            var close = primaryScale.ToPixels(coordinate.QuaternaryValue);
-            var low = primaryScale.ToPixels(coordinate.QuinaryValue);
-            var median = primaryScale.ToPixels(coordinate.SenaryValue);
-            var middle = open;
-
             if (point.IsEmpty || !IsVisible)
             {
-                if (visual is not null)
-                {
-                    visual.X = secondary - helper.uwm + helper.cp;
-                    visual.Width = uw;
-                    visual.Y = median; // y coordinate is the highest
-                    visual.Third = median;
-                    visual.First = median;
-                    visual.Min = median;
-                    visual.Median = median;
-                    visual.RemoveOnCompleted = true;
-                    point.Context.Visual = null;
-                }
-
-                if (point.Context.Label is not null)
-                {
-                    var label = (TLabel)point.Context.Label;
-
-                    label.X = secondary - helper.uwm + helper.cp;
-                    label.Y = median;
-                    label.Opacity = 0;
-                    label.RemoveOnCompleted = true;
-
-                    point.Context.Label = null;
-                }
-
+                CollapseEmptyVisual(point, in ctx);
                 pointsCleanup.Clean(point);
-
                 continue;
             }
 
-            if (visual is null)
-            {
-                var xi = secondary - helper.uwm + helper.cp;
-                var uwi = helper.uw;
-
-                if (previousSecondaryScale is not null && previousPrimaryScale is not null)
-                {
-                    var previousP = previousPrimaryScale.ToPixels(pivot);
-                    var previousPrimary = previousPrimaryScale.ToPixels(coordinate.PrimaryValue);
-                    var bp = Math.Abs(previousPrimary - previousP);
-                    var cyp = coordinate.PrimaryValue > pivot ? previousPrimary : previousPrimary - bp;
-
-                    xi = previousSecondaryScale.ToPixels(coordinate.SecondaryValue) - uwm;
-                    uwi = helper.uw;
-                }
-
-                var r = new TVisual
-                {
-                    X = xi,
-                    Width = uwi,
-                    Y = median, // y == high
-                    Third = median,
-                    First = median,
-                    Min = median,
-                    Median = median
-                };
-
-                visual = r;
-                point.Context.Visual = visual;
-                OnPointCreated(point);
-
-                _ = everFetched.Add(point);
-            }
+            var visual = EnsureVisualForPoint(point, in ctx);
 
             if (Stroke is not null && Stroke != Paint.Default)
                 Stroke.AddGeometryToPaintTask(cartesianChart.Canvas, visual);
             if (Fill is not null && Fill != Paint.Default)
                 Fill.AddGeometryToPaintTask(cartesianChart.Canvas, visual);
 
-            var x = secondary - helper.uwm + helper.cp;
+            var layout = MeasureBoxLayout(point, in ctx);
 
-            visual.X = x;
-            visual.Width = helper.uw;
-            visual.Y = high;
-            visual.Third = open;
-            visual.First = close;
-            visual.Min = low;
-            visual.Median = median;
+            visual.X = layout.X;
+            visual.Width = layout.Width;
+            visual.Y = layout.Y;
+            visual.Third = layout.Third;
+            visual.First = layout.First;
+            visual.Min = layout.Min;
+            visual.Median = layout.Median;
             visual.RemoveOnCompleted = false;
 
             if (point.Context.HoverArea is not RectangleHoverArea ha)
                 point.Context.HoverArea = ha = new RectangleHoverArea();
 
-            _ = ha.SetDimensions(secondary - helper.actualUw * 0.5f, high, helper.actualUw, Math.Abs(low - high));
+            _ = ha.SetDimensions(layout.CategoryHoverX, layout.Y, layout.CategoryHoverWidth, layout.Height);
 
             if (chart.FindingStrategy == FindingStrategy.ExactMatch)
                 _ = ha
-                    .SetDimensions(x, high, helper.uw, low)
+                    .SetDimensions(layout.X, layout.Y, layout.Width, layout.Min)
                     .CenterXToolTip();
 
-            switch (tp)
-            {
-                case TooltipPosition.Hidden:
-                    break;
-                case TooltipPosition.Auto:
-                case TooltipPosition.Top: _ = ha.CenterXToolTip().StartYToolTip(); break;
-                case TooltipPosition.Bottom: _ = ha.CenterXToolTip().EndYToolTip(); break;
-                case TooltipPosition.Left: _ = ha.StartXToolTip().CenterYToolTip(); break;
-                case TooltipPosition.Right: _ = ha.EndXToolTip().CenterYToolTip(); break;
-                case TooltipPosition.Center: _ = ha.CenterXToolTip().CenterYToolTip(); break;
-                default:
-                    break;
-            }
+            ConfigureHoverAnchor(ha, ctx.TooltipPosition);
 
             pointsCleanup.Clean(point);
 
-            if (ShowDataLabels && DataLabelsPaint is not null && DataLabelsPaint != Paint.Default)
-            {
-                var label = (TLabel?)point.Context.Label;
-
-                if (label is null)
-                {
-                    var l = new TLabel { X = secondary - helper.uwm + helper.cp, Y = high, RotateTransform = (float)DataLabelsRotation, MaxWidth = (float)DataLabelsMaxWidth };
-                    l.Animate(
-                        EasingFunction ?? cartesianChart.ActualEasingFunction,
-                        AnimationsSpeed ?? cartesianChart.ActualAnimationsSpeed,
-                        BaseLabelGeometry.XProperty,
-                        BaseLabelGeometry.YProperty);
-                    label = l;
-                    point.Context.Label = l;
-                }
-
-                DataLabelsPaint.AddGeometryToPaintTask(cartesianChart.Canvas, label);
-
-                label.Text = DataLabelsFormatter(new ChartPoint<TModel, TVisual, TLabel>(point));
-                label.TextSize = dls;
-                label.Padding = DataLabelsPadding;
-                label.Paint = DataLabelsPaint;
-
-                var m = label.Measure();
-                var labelPosition = GetLabelPosition(
-                    x, high, helper.uw, Math.Abs(low - high), m, DataLabelsPosition,
-                    SeriesProperties, coordinate.PrimaryValue > Pivot, drawLocation, drawMarginSize);
-                if (DataLabelsTranslate is not null) label.TranslateTransform =
-                        new LvcPoint(m.Width * DataLabelsTranslate.Value.X, m.Height * DataLabelsTranslate.Value.Y);
-
-                label.X = labelPosition.X;
-                label.Y = labelPosition.Y;
-            }
+            MeasureDataLabel(point, in layout, in ctx);
 
             OnPointMeasured(point);
         }
 
         pointsCleanup.CollectPoints(
-            everFetched, cartesianChart.View, primaryScale, secondaryScale, SoftDeleteOrDisposePoint);
+            everFetched, cartesianChart.View, ctx.PrimaryScale, ctx.SecondaryScale, SoftDeleteOrDisposePoint);
     }
 
     /// <inheritdoc cref="Series{TModel, TVisual, TLabel}.FindPointsInPosition(Chart, LvcPoint, FindingStrategy, FindPointFor)"/>
@@ -397,7 +497,7 @@ public abstract class CoreBoxSeries<TModel, TVisual, TLabel, TMiniatureGeometry>
     {
         var chart = chartPoint.Context.Chart;
         if (chartPoint.Context.Visual is not TVisual visual) throw new Exception("Unable to initialize the point instance.");
-        visual.Animate(EasingFunction ?? chart.CoreChart.ActualEasingFunction, AnimationsSpeed ?? chart.CoreChart.ActualAnimationsSpeed);
+        visual.Animate(GetAnimation(chart.CoreChart));
     }
 
     /// <inheritdoc cref="CartesianSeries{TModel, TVisual, TLabel}.SoftDeleteOrDisposePoint(ChartPoint, Scaler, Scaler)"/>
@@ -436,76 +536,6 @@ public abstract class CoreBoxSeries<TModel, TVisual, TLabel, TMiniatureGeometry>
     {
         base.OnPaintChanged(propertyName);
         OnPropertyChanged();
-    }
-
-    /// <summary>
-    /// A mesure helper class.
-    /// </summary>
-    protected class MeasureHelper
-    {
-        /// <summary>
-        /// Initializes a new instance of the measue helper class.
-        /// </summary>
-        /// <param name="scaler">The scaler.</param>
-        /// <param name="cartesianChart">The chart.</param>
-        /// <param name="boxSeries">The series.</param>
-        /// <param name="axis">The axis.</param>
-        /// <param name="p">The pivot.</param>
-        /// <param name="minP">The min pivot allowed.</param>
-        /// <param name="maxP">The max pivot allowed.</param>
-        public MeasureHelper(
-            Scaler scaler,
-            CartesianChartEngine cartesianChart,
-            IBoxSeries boxSeries,
-            ICartesianAxis axis,
-            float p,
-            float minP,
-            float maxP)
-        {
-            this.p = p;
-            if (p < minP) this.p = minP;
-            if (p > maxP) this.p = maxP;
-
-            uw = scaler.MeasureInPixels(axis.UnitWidth);
-            actualUw = uw;
-
-            var gp = (float)boxSeries.Padding;
-
-            if (uw - gp < 1) gp -= uw - gp;
-
-            uw -= gp;
-            uwm = 0.5f * uw;
-
-            int pos, count;
-
-            pos = cartesianChart.SeriesContext.GetBoxPosition(boxSeries);
-            count = cartesianChart.SeriesContext.GetBoxSeriesCount();
-
-            cp = 0f;
-
-            var padding = (float)boxSeries.Padding;
-
-            uw /= count;
-            var mw = (float)boxSeries.MaxBarWidth;
-            if (uw > mw) uw = mw;
-            uwm = 0.5f * uw;
-            cp = (pos - count / 2f) * uw + uwm;
-
-            // apply the pading
-            uw -= padding;
-            cp += padding * 0.5f;
-
-            if (uw < 1)
-            {
-                uw = 1;
-                uwm = 0.5f;
-            }
-        }
-
-        /// <summary>
-        /// helper units.
-        /// </summary>
-        public float uw, uwm, cp, p, actualUw;
     }
 
     private static SeriesProperties GetProperties()

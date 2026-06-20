@@ -1,11 +1,13 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows10.0.19041</TargetFramework>
+
+    <TargetFramework Condition="$(IsTestBuild) == ''">net10.0-windows10.0.19041.0</TargetFramework>
+    <TargetFramework Condition="$(IsTestBuild) == 'true'">$(TestBuildTargetFramework)</TargetFramework>
+
     <UseWPF>true</UseWPF>
     <IsPackable>false</IsPackable>
-    <LangVersion>$(GlobalLangVersion)</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,6 +29,43 @@
 
   <ItemGroup>
     <Resource Include="Images\livecharts.png" />
+  </ItemGroup>
+
+  <!-- UI test setup -->
+  <Import Condition="$(UITesting) == 'true'" Project="..\..\build\UITestsLinks.Build.props" />
+
+  <PropertyGroup Condition="$(UITesting) == 'true'">
+    <NoWarn>$(NoWarnUITests)</NoWarn>
+    <DefineConstants>$(DefineConstants);UI_TESTING;XAML_UI_TESTING;WPF_UI_TESTING</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup Condition="$(UITesting) == 'true'">
+    <PackageReference Include="Factos.WPF" Version="$(FactosVersion)" />
+  </ItemGroup>
+
+  <!--
+  HA-views tests crash with 0xC0000005 in OpenTK.Platform.Windows.Wgl.DXOpenDeviceNV
+  on the GHA windows-2025 runner (Azure VM has no real GPU; the WGL_NV_DX_interop2
+  probe segfaults). Factos 0.8.0 sent AllTestsCompleted before the native crash
+  surfaced, hiding the failure; 0.8.1 correctly reports the disconnect.
+
+  The test passes on real hardware, so we keep TEST_HA_VIEWS on for local runs
+  (CI is unset there) and skip it on GitHub Actions (CI=true is auto-set).
+  Run wpf-net10 locally before merging to validate hardware-accelerated paths.
+  -->
+  <PropertyGroup Condition="$(TestBuildTargetFramework) == 'net10.0-windows' and '$(CI)' != 'true'">
+    <DefineConstants>$(DefineConstants);TEST_HA_VIEWS</DefineConstants>
+  </PropertyGroup>
+
+  <!--
+  The next examples are not included in net462 because they use features not available in .Net framework
+  -->
+  <ItemGroup Condition="$(TargetFramework) == 'net462'">
+    <Page Remove="General\Scrollable\View.xaml" />
+    <Compile Remove="General\Scrollable\View.xaml.cs" />
+
+    <Page Remove="General\VisualElements\View.xaml" />
+    <Compile Remove="General\VisualElements\View.xaml.cs" />
   </ItemGroup>
 
 </Project>

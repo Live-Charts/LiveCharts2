@@ -12,15 +12,6 @@ public class View : Panel
 
     public View()
     {
-        // You must register any non-Latin based font //mark
-        // you can add this code when the app starts to register Chinese characters: // mark
-
-        LiveCharts.Configure(config =>
-            config.HasGlobalSKTypeface(SKFontManager.Default.MatchCharacter('汉')));
-
-        // You can learn more about extra settings at: // mark
-        // https://livecharts.dev/docs/{{ platform }}/{{ version }}/Overview.Installation#configure-themes-fonts-or-mappers-optional // mark
-
         var values1 = new double[] { 426, 583, 104 };
         var values2 = new double[] { 200, 558, 458 };
         var labels = new string[] { "王", "赵", "张" };

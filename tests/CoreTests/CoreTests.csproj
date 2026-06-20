@@ -1,0 +1,36 @@
+<Project Sdk="MSTest.Sdk/4.0.2">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>net462;net8.0</TargetFrameworks>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <NoWarn>$(NoWarnUITests);MSTEST0037;MSTEST0023;CS0618</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="AnimationBaselines\*.json" />
+    <Content Include="AnimationBaselines\*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net462'">
+    <DefineConstants>$(DefineConstants);STRONG_NAMED_ASSEMBLIES</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup Condition="$(UseNuGetPackages) == 'true'">
+    <PackageReference Include="LiveChartsCore.SkiaSharpView" Version="$(LiveChartsVersion)" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$(UseNuGetPackages) == ''">
+    <ProjectReference Include="..\..\src\skiasharp\LiveChartsCore.SkiaSharp\LiveChartsCore.SkiaSharpView.csproj" />
+  </ItemGroup>
+
+</Project>

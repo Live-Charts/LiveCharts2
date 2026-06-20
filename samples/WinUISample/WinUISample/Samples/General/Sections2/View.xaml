@@ -27,15 +27,10 @@
                 <lvc:XamlRectangularSection
                     Yi="8"
                     Yj="8"
-                    />
-                <!--
-                Nested extensions are not working in Uno
-
-                 Stroke="{lvc:SolidColorPaint
-                     Color='#F00',
-                     StrokeWidth=3,
-                     PathEffect={lvc:Dashed Array='6, 6'}}"
-                -->
+                    Stroke="{lvc:SolidColorPaint
+                        Color='#F00',
+                        StrokeWidth=3,
+                        PathEffect={lvc:Dashed Array='6, 6'}}" />
                 <lvc:XamlRectangularSection
                     Xi="6"
                     Xj="8"

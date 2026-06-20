@@ -1,4 +1,5 @@
-﻿using Microsoft.UI.Xaml.Controls;
+﻿using LiveChartsCore.SkiaSharpView.WinUI;
+using Microsoft.UI.Xaml.Controls;
 
 namespace WinUISample.Maps.World;
 
@@ -8,4 +9,8 @@ public sealed partial class View : UserControl
     {
         InitializeComponent();
     }
+
+#if UI_TESTING
+    public GeoMap Chart => geoMap;
+#endif
 }

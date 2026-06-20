@@ -1,4 +1,6 @@
-﻿namespace MauiSample.General.FirstChart;
+﻿using LiveChartsCore.SkiaSharpView.Maui;
+
+namespace MauiSample.General.FirstChart;
 
 [XamlCompilation(XamlCompilationOptions.Compile)]
 public partial class View : ContentPage
@@ -7,4 +9,8 @@ public partial class View : ContentPage
     {
         InitializeComponent();
     }
+
+#if UI_TESTING
+    public CartesianChart Chart => (CartesianChart)Content!;
+#endif
 }

@@ -1,0 +1,30 @@
+﻿@page "/General/FirstChart"
+
+@using SkiaSharp;
+@using LiveChartsCore;
+@using LiveChartsCore.Measure;
+@using LiveChartsCore.SkiaSharpView
+@using LiveChartsCore.SkiaSharpView.Blazor
+
+<CartesianChart
+    @ref="Chart"
+    Series="@series"
+    LegendPosition="LegendPosition.Right">
+</CartesianChart>
+
+@code {
+    private ISeries[] series = [
+        new LineSeries<int>
+        {
+            Values = [5, 10, 8, 4],
+            Name = "Mary"
+        },
+        new ColumnSeries<int>
+        {
+            Values = [4, 7, 3, 8],
+            Name = "Ana"
+        }
+    ];
+
+    public CartesianChart Chart;
+}

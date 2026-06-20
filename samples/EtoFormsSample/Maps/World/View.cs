@@ -11,6 +11,8 @@ namespace EtoFormsSample.Maps.World;
 
 public class View : Panel
 {
+    public GeoMap Chart;
+
     public View()
     {
         var lands = new HeatLand[]
@@ -43,6 +45,8 @@ public class View : Panel
         };
 
         Content = chart;
+        Chart = chart;
+
         _ = DoRandomChanges(series[0]);
     }
 

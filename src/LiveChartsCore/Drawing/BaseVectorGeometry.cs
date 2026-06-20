@@ -195,6 +195,14 @@ public abstract partial class BaseVectorGeometry : Animatable, IDrawnElement
         base.CompleteTransition(properties);
     }
 
+    /// <summary>
+    /// Determines whether the specified point is inside this vector geometry.
+    /// </summary>
+    /// <param name="x">The x coordinate.</param>
+    /// <param name="y">The y coordinate.</param>
+    /// <returns><c>true</c> if the point is inside the geometry; otherwise, <c>false</c>.</returns>
+    public virtual bool ContainsPoint(float x, float y) => false;
+
     /// <inheritdoc cref="IDrawnElement.Measure()" />
     public LvcSize Measure() => new();
 
@@ -203,5 +211,14 @@ public abstract partial class BaseVectorGeometry : Animatable, IDrawnElement
         Stroke?.DisposeTask();
         Fill?.DisposeTask();
         ((IDrawnElement)this).Paint?.DisposeTask();
+
+        OnDisposed();
     }
+
+    /// <summary>
+    /// Subclass hook called when the geometry is being removed from a canvas. Use it to release
+    /// any cached resources that aren't covered by paint disposal (e.g. native handles owned by
+    /// the geometry itself). Mirrors <c>BaseLabelGeometry.OnDisposed</c>.
+    /// </summary>
+    internal virtual void OnDisposed() { }
 }

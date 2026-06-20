@@ -14,9 +14,17 @@ static class Program
         LiveCharts.Configure(c => c // mark
             .AddLiveChartsAppSettings()); // mark
 
-        _ = Application.SetHighDpiMode(HighDpiMode.SystemAware);
+        //_ = Application.SetHighDpiMode(HighDpiMode.SystemAware);
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
-        Application.Run(new Form1());
+
+        var form = new Form1();
+
+#if UI_TESTING
+        System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(Factos.SGTests).TypeHandle);
+        Factos.WinForms.SetupExtensions.UseFactosApp(form);
+#endif
+
+        Application.Run(form);
     }
 }

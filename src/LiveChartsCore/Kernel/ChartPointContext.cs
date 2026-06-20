@@ -54,6 +54,20 @@ public class ChartPointContext
         Entity = new MappedChartEntity();
     }
 
+    // Used by GeoMapChart to emit ChartPoints for land hits: the map has no
+    // ISeries (IGeoSeries doesn't extend ISeries — a land can belong to zero
+    // or many heat series), but consumers still expect Chart + DataSource +
+    // HoverArea on the point. Series stays null! and is documented as such
+    // on the IChartView.DataPointerDown event for map charts.
+    internal ChartPointContext(IChartView chart, object dataSource, HoverArea? hoverArea)
+    {
+        Chart = chart;
+        Series = null!;
+        Entity = new MappedChartEntity();
+        DataSource = dataSource;
+        HoverArea = hoverArea;
+    }
+
     /// <summary>
     /// Gets the chart.
     /// </summary>

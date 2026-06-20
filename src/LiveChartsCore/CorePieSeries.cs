@@ -1,4 +1,4 @@
-﻿// The MIT License(MIT)
+// The MIT License(MIT)
 //
 // Copyright(c) 2021 Alberto Rodriguez Orozco & LiveCharts Contributors
 //
@@ -57,9 +57,6 @@ public abstract class CorePieSeries<TModel, TVisual, TLabel, TMiniatureGeometry>
     /// <summary>
     /// Gets or sets the stroke.
     /// </summary>
-    /// <value>
-    /// The stroke.
-    /// </value>
     public Paint? Stroke
     {
         get;
@@ -69,9 +66,6 @@ public abstract class CorePieSeries<TModel, TVisual, TLabel, TMiniatureGeometry>
     /// <summary>
     /// Gets or sets the fill.
     /// </summary>
-    /// <value>
-    /// The fill.
-    /// </value>
     public Paint? Fill
     {
         get;
@@ -118,12 +112,9 @@ public abstract class CorePieSeries<TModel, TVisual, TLabel, TMiniatureGeometry>
     public PolarLabelsPosition DataLabelsPosition { get; set => SetProperty(ref field, value); } = PolarLabelsPosition.Middle;
 
     /// <summary>
-    /// Gets or sets the tool tip label formatter for the Y axis, this function will build the label when a point in this series 
+    /// Gets or sets the tool tip label formatter for the Y axis, this function will build the label when a point in this series
     /// is shown inside a tool tip.
     /// </summary>
-    /// <value>
-    /// The tool tip label formatter.
-    /// </value>
     public Func<ChartPoint<TModel, TVisual, TLabel>, string>? ToolTipLabelFormatter
     {
         get => _tooltipLabelFormatter;
@@ -136,16 +127,21 @@ public abstract class CorePieSeries<TModel, TVisual, TLabel, TMiniatureGeometry>
         set => SetProperty(ref _tooltipLabelFormatter, value);
     }
 
-    /// <inheritdoc cref="ChartElement.Invalidate(Chart)"/>
-    public override void Invalidate(Chart chart)
-    {
-        var pieChart = (PieChartEngine)chart;
+    // ---- template method ----------------------------------------------------
 
-        var drawLocation = pieChart.DrawMarginLocation;
-        var drawMarginSize = pieChart.DrawMarginSize;
+    /// <summary>
+    /// Builds a per-frame measure context from the chart. Resolves the available
+    /// radial space (subtracting stroke / pushout / outer-label correction),
+    /// rotation parameters, and applies the <see cref="RadialAlign"/> clamp when
+    /// the computed radial width exceeds <see cref="MaxRadialColumnWidth"/>.
+    /// </summary>
+    protected virtual PieMeasureContext BeginMeasure(PieChartEngine chart, int sliceCount)
+    {
+        var drawLocation = chart.DrawMarginLocation;
+        var drawMarginSize = chart.DrawMarginSize;
         var minDimension = drawMarginSize.Width < drawMarginSize.Height ? drawMarginSize.Width : drawMarginSize.Height;
 
-        var maxPushout = (float)pieChart.PushoutBounds.Max;
+        var maxPushout = (float)chart.PushoutBounds.Max;
         var pushout = (float)Pushout;
         var innerRadius = (float)InnerRadius;
 
@@ -157,41 +153,12 @@ public abstract class CorePieSeries<TModel, TVisual, TLabel, TMiniatureGeometry>
         var outerRadiusOffset = (float)OuterRadiusOffset;
         minDimension -= outerRadiusOffset;
 
-        var view = (IPieChartView)pieChart.View;
+        var view = (IPieChartView)chart.View;
         var initialRotation = (float)Math.Truncate(view.InitialRotation);
         var completeAngle = (float)view.MaxAngle;
 
         var startValue = view.MinValue;
         double? chartTotal = double.IsNaN(view.MaxValue) ? null : view.MaxValue;
-
-        var actualZIndex = ZIndex == 0 ? ((ISeries)this).SeriesId : ZIndex;
-        if (Fill is not null && Fill != Paint.Default)
-        {
-            Fill.ZIndex = actualZIndex + PaintConstants.SeriesFillZIndexOffset;
-            pieChart.Canvas.AddDrawableTask(Fill, zone: CanvasZone.DrawMargin);
-        }
-        if (Stroke is not null && Stroke != Paint.Default)
-        {
-            Stroke.ZIndex = actualZIndex + PaintConstants.SeriesStrokeZIndexOffset;
-            pieChart.Canvas.AddDrawableTask(Stroke, zone: CanvasZone.DrawMargin);
-        }
-        if (ShowDataLabels && DataLabelsPaint is not null && DataLabelsPaint != Paint.Default)
-        {
-            DataLabelsPaint.ZIndex = PaintConstants.PieSeriesDataLabelsBaseZIndex + actualZIndex + PaintConstants.SeriesGeometryFillZIndexOffset;
-            // this does not require clipping...
-            //DataLabelsPaint.SetClipRectangle(pieChart.Canvas, new LvcRectangle(drawLocation, drawMarginSize));
-            pieChart.Canvas.AddDrawableTask(DataLabelsPaint);
-        }
-
-        var cx = drawLocation.X + drawMarginSize.Width * 0.5f;
-        var cy = drawLocation.Y + drawMarginSize.Height * 0.5f;
-
-        var dls = (float)DataLabelsSize;
-        var stacker = pieChart.SeriesContext.GetStackPosition(this, GetStackGroup())
-            ?? throw new NullReferenceException("Unexpected null stacker");
-        var pointsCleanup = ChartPointCleanupContext.For(everFetched);
-
-        var fetched = Fetch(pieChart).ToArray();
 
         var stackedInnerRadius = innerRadius;
         var relativeInnerRadius = (float)RelativeInnerRadius;
@@ -200,7 +167,7 @@ public abstract class CorePieSeries<TModel, TVisual, TLabel, TMiniatureGeometry>
         var cornerRadius = (float)CornerRadius;
 
         var mdc = minDimension;
-        var wc = mdc - (mdc - 2 * innerRadius) * (fetched.Length - 1) / fetched.Length - relativeOuterRadius * 2;
+        var wc = mdc - (mdc - 2 * innerRadius) * (sliceCount - 1) / sliceCount - relativeOuterRadius * 2;
 
         if (wc * 0.5f - stackedInnerRadius > maxRadialWidth)
         {
@@ -225,6 +192,303 @@ public abstract class CorePieSeries<TModel, TVisual, TLabel, TMiniatureGeometry>
             }
         }
 
+        var stacker = chart.SeriesContext.GetStackPosition(this, GetStackGroup())
+            ?? throw new NullReferenceException("Unexpected null stacker");
+
+        var cx = drawLocation.X + drawMarginSize.Width * 0.5f;
+        var cy = drawLocation.Y + drawMarginSize.Height * 0.5f;
+
+        var isFirstDraw = !((Chart)chart).IsDrawn(((ISeries)this).SeriesId);
+
+        return new PieMeasureContext(
+            chart, cx, cy,
+            minDimension: minDimension,
+            innerRadius: innerRadius,
+            pushOut: pushout,
+            relativeInnerRadius: relativeInnerRadius,
+            relativeOuterRadius: relativeOuterRadius,
+            cornerRadius: cornerRadius,
+            initialRotation: initialRotation,
+            completeAngle: completeAngle,
+            startValue: startValue,
+            chartTotal: chartTotal,
+            isClockWise: view.IsClockwise,
+            stacker: stacker,
+            sliceCount: sliceCount,
+            isFirstDraw: isFirstDraw,
+            drawLocation: drawLocation,
+            drawMarginSize: drawMarginSize,
+            dataLabelsSize: (float)DataLabelsSize);
+    }
+
+    /// <summary>
+    /// Computes the per-slice angular and radial geometry. Takes the current
+    /// running <paramref name="stackedInnerRadius"/> and <paramref name="sliceIndex"/>
+    /// (1-based) so the radial math can stack outward through nested rings.
+    /// </summary>
+    protected virtual PieLayout MeasurePieLayout(
+        ChartPoint point,
+        float stackedInnerRadius,
+        int sliceIndex,
+        in PieMeasureContext ctx)
+    {
+        var coordinate = point.Coordinate;
+
+        var stack = ctx.Stacker.GetStack(point);
+        var stackedValue = stack.Start;
+        var total = ctx.ChartTotal ?? stack.Total;
+
+        double start, sweep;
+
+        if (total == 0)
+        {
+            start = 0;
+            sweep = 0;
+        }
+        else
+        {
+            // Clamp the stack so a value greater than the chart's effective range
+            // cannot produce a sweep larger than the chart's complete angle, which
+            // renders as a broken arc (issue #2131). The cap differs per branch
+            // because each one uses a different denominator for the angle math.
+            if (IsRelativeToMinValue)
+            {
+                var h = total - ctx.StartValue;
+                var clampedStackedValue = Math.Min(stackedValue, h);
+                var clampedTop = Math.Min(stackedValue + coordinate.PrimaryValue, h);
+                var h1 = clampedTop;
+                start = clampedStackedValue / h * ctx.CompleteAngle;
+                sweep = h1 / h * ctx.CompleteAngle - start;
+                if (!ctx.IsClockWise) start = ctx.CompleteAngle - start - sweep;
+            }
+            else
+            {
+                var clampedStackedValue = Math.Min(stackedValue, total);
+                var clampedTop = Math.Min(stackedValue + coordinate.PrimaryValue, total);
+                var h = total - ctx.StartValue;
+                var h1 = clampedTop - ctx.StartValue;
+                start = clampedStackedValue / total * ctx.CompleteAngle;
+                sweep = h1 / h * ctx.CompleteAngle - start;
+                if (!ctx.IsClockWise) start = ctx.CompleteAngle - start - sweep;
+            }
+        }
+
+        if (IsFillSeries)
+        {
+            start = 0;
+            sweep = ctx.CompleteAngle - 0.1f;
+        }
+
+        var md = ctx.MinDimension;
+        var stackedOuterRadius = md - (md - 2 * ctx.InnerRadius) * (ctx.SliceCount - sliceIndex) / ctx.SliceCount - ctx.RelativeOuterRadius * 2;
+
+        var sweepF = (float)sweep;
+        // Issue #2131 — clamp a full-circle sweep just under 360 so the path stays
+        // closed instead of degenerating into a broken arc.
+        if ((float)start + ctx.InitialRotation == ctx.InitialRotation && sweep == 360)
+            sweepF = 359.99f;
+
+        return new PieLayout(
+            centerX: ctx.CenterX,
+            centerY: ctx.CenterY,
+            x: ctx.DrawLocation.X + (ctx.DrawMarginSize.Width - stackedOuterRadius) * 0.5f,
+            y: ctx.DrawLocation.Y + (ctx.DrawMarginSize.Height - stackedOuterRadius) * 0.5f,
+            width: stackedOuterRadius,
+            height: stackedOuterRadius,
+            startAngle: (float)(start + ctx.InitialRotation),
+            sweepAngle: sweepF,
+            pushOut: ctx.PushOut,
+            innerRadius: stackedInnerRadius,
+            outerRadius: stackedOuterRadius,
+            cornerRadius: ctx.CornerRadius);
+    }
+
+    /// <summary>
+    /// Ensures the visual exists. On first creation initializes the slice at zero
+    /// size at the chart center so the slice sweeps outward and grows.
+    /// </summary>
+    protected virtual TVisual EnsureVisualForPoint(ChartPoint point, double startAngle, in PieMeasureContext ctx)
+    {
+        var visual = point.Context.Visual as TVisual;
+        if (visual is not null) return visual;
+
+        var p = new TVisual
+        {
+            CenterX = ctx.CenterX,
+            CenterY = ctx.CenterY,
+            X = ctx.CenterX,
+            Y = ctx.CenterY,
+            Width = 0,
+            Height = 0,
+            StartAngle = (float)(ctx.IsFirstDraw ? ctx.InitialRotation : startAngle + ctx.InitialRotation),
+            SweepAngle = 0,
+            PushOut = 0,
+            InnerRadius = 0,
+            CornerRadius = 0,
+        };
+
+        point.Context.Visual = p;
+        OnPointCreated(point);
+
+        _ = everFetched.Add(point);
+
+        return p;
+    }
+
+    /// <summary>
+    /// Collapses the slice to zero size at the chart center for empty/invisible
+    /// points so the slice fades / shrinks out cleanly.
+    /// </summary>
+    protected virtual void CollapseEmptyVisual(ChartPoint point, in PieMeasureContext ctx)
+    {
+        if (point.Context.Visual is TVisual visual)
+        {
+            visual.CenterX = ctx.CenterX;
+            visual.CenterY = ctx.CenterY;
+            visual.X = ctx.CenterX;
+            visual.Y = ctx.CenterY;
+            visual.Width = 0;
+            visual.Height = 0;
+            visual.SweepAngle = 0;
+            visual.StartAngle = ctx.InitialRotation;
+            visual.PushOut = 0;
+            visual.InnerRadius = 0;
+            visual.CornerRadius = 0;
+            visual.RemoveOnCompleted = true;
+            point.Context.Visual = null;
+        }
+
+        if (point.Context.Label is TLabel label)
+        {
+            label.X = ctx.CenterX;
+            label.Y = ctx.CenterY;
+            label.Opacity = 0;
+            label.RemoveOnCompleted = true;
+            point.Context.Label = null;
+        }
+    }
+
+    /// <summary>
+    /// Sets per-Z-index ordering on Fill / Stroke / DataLabelsPaint and registers
+    /// them as drawable tasks. Data labels use a special base offset
+    /// (PieSeriesDataLabelsBaseZIndex) so they always sit above slices, and don't
+    /// clip to the draw margin.
+    /// </summary>
+    private void InitializePaints(PieChartEngine chart)
+    {
+        var actualZIndex = ZIndex == 0 ? ((ISeries)this).SeriesId : ZIndex;
+
+        if (Fill is not null && Fill != Paint.Default)
+        {
+            Fill.ZIndex = actualZIndex + PaintConstants.SeriesFillZIndexOffset;
+            chart.Canvas.AddDrawableTask(Fill, zone: CanvasZone.DrawMargin);
+        }
+        if (Stroke is not null && Stroke != Paint.Default)
+        {
+            Stroke.ZIndex = actualZIndex + PaintConstants.SeriesStrokeZIndexOffset;
+            chart.Canvas.AddDrawableTask(Stroke, zone: CanvasZone.DrawMargin);
+        }
+        if (ShowDataLabels && DataLabelsPaint is not null && DataLabelsPaint != Paint.Default)
+        {
+            DataLabelsPaint.ZIndex = PaintConstants.PieSeriesDataLabelsBaseZIndex + actualZIndex + PaintConstants.SeriesGeometryFillZIndexOffset;
+            chart.Canvas.AddDrawableTask(DataLabelsPaint);
+        }
+    }
+
+    /// <summary>
+    /// Creates the data label visual if needed, updates its text + style, and
+    /// positions it via <c>GetLabelPolarPosition</c> using the slice's angular
+    /// extent and inner / outer radii. Handles tangent / cotangent rotation
+    /// modifiers from <see cref="LiveCharts.TangentAngle"/>.
+    /// </summary>
+    private void MeasureDataLabel(
+        ChartPoint point,
+        in PieLayout layout,
+        float stackedInnerRadius,
+        float stackedOuterRadius,
+        float baseRotation,
+        bool isTangent,
+        bool isCotangent,
+        in PieMeasureContext ctx)
+    {
+        if (!ShowDataLabels || DataLabelsPaint is null || DataLabelsPaint == Paint.Default || IsFillSeries) return;
+
+        var chart = ctx.Chart;
+        var label = (TLabel?)point.Context.Label;
+
+        var middleAngle = layout.StartAngle + layout.SweepAngle * 0.5f;
+
+        var actualRotation = baseRotation +
+                (isTangent ? middleAngle - 90 : 0) +
+                (isCotangent ? middleAngle : 0);
+
+        if ((isTangent || isCotangent) && ((actualRotation + 90) % 360) > 180)
+            actualRotation += 180;
+
+        if (label is null)
+        {
+            var l = new TLabel
+            {
+                X = ctx.CenterX,
+                Y = ctx.CenterY,
+                RotateTransform = actualRotation,
+                MaxWidth = (float)DataLabelsMaxWidth,
+            };
+            l.Animate(
+                GetAnimation(chart),
+                BaseLabelGeometry.XProperty,
+                BaseLabelGeometry.YProperty);
+            label = l;
+            point.Context.Label = l;
+        }
+
+        DataLabelsPaint.AddGeometryToPaintTask(chart.Canvas, label);
+
+        label.Text = DataLabelsFormatter(new ChartPoint<TModel, TVisual, TLabel>(point));
+        label.TextSize = ctx.DataLabelsSize;
+        label.Padding = DataLabelsPadding;
+        label.RotateTransform = actualRotation;
+        label.Paint = DataLabelsPaint;
+
+        var start = layout.StartAngle - ctx.InitialRotation;
+        AlignLabel(label, start, ctx.InitialRotation, layout.SweepAngle);
+
+        if (ctx.IsFirstDraw)
+            label.CompleteTransition(
+                BaseLabelGeometry.TextSizeProperty,
+                BaseLabelGeometry.XProperty,
+                BaseLabelGeometry.YProperty,
+                BaseLabelGeometry.RotateTransformProperty);
+
+        var labelPosition = GetLabelPolarPosition(
+            ctx.CenterX,
+            ctx.CenterY,
+            stackedInnerRadius,
+            (stackedOuterRadius + ctx.RelativeOuterRadius * 2) * 0.5f,
+            layout.StartAngle,
+            layout.SweepAngle,
+            label.Measure(),
+            DataLabelsPosition);
+
+        label.X = labelPosition.X;
+        label.Y = labelPosition.Y;
+    }
+
+    /// <inheritdoc cref="ChartElement.Invalidate(Chart)"/>
+    public sealed override void Invalidate(Chart chart)
+    {
+        var pieChart = (PieChartEngine)chart;
+        _ = GetAnimation(pieChart);
+
+        var fetched = Fetch(pieChart).ToArray();
+        var ctx = BeginMeasure(pieChart, fetched.Length);
+        var pointsCleanup = ChartPointCleanupContext.For(everFetched);
+
+        InitializePaints(pieChart);
+
+        // Decode TangentAngle / CotangentAngle modifiers from DataLabelsRotation
+        // once per measure cycle (they're stored as flag bits on top of the
+        // numeric rotation angle).
         var r = (float)DataLabelsRotation;
         var isTangent = false;
         var isCotangent = false;
@@ -241,217 +505,94 @@ public abstract class CorePieSeries<TModel, TVisual, TLabel, TMiniatureGeometry>
             isCotangent = true;
         }
 
-        var i = 1f;
-        var isClockWise = view.IsClockwise;
-
-        var isFirstDraw = !chart.IsDrawn(((ISeries)this).SeriesId);
+        var stackedInnerRadius = ctx.InnerRadius;
+        var i = 1;
 
         foreach (var point in fetched)
         {
-            var coordinate = point.Coordinate;
-            var visual = point.Context.Visual as TVisual;
-
             if (point.IsEmpty || !IsVisible)
             {
-                if (visual is not null)
-                {
-                    visual.CenterX = cx;
-                    visual.CenterY = cy;
-                    visual.X = cx;
-                    visual.Y = cy;
-                    visual.Width = 0;
-                    visual.Height = 0;
-                    visual.SweepAngle = 0;
-                    visual.StartAngle = initialRotation;
-                    visual.PushOut = 0;
-                    visual.InnerRadius = 0;
-                    visual.CornerRadius = 0;
-                    visual.RemoveOnCompleted = true;
-                    point.Context.Visual = null;
-                }
-
-                if (point.Context.Label is not null)
-                {
-                    var label = (TLabel)point.Context.Label;
-
-                    label.X = cx;
-                    label.Y = cy;
-                    label.Opacity = 0;
-                    label.RemoveOnCompleted = true;
-
-                    point.Context.Label = null;
-                }
-
+                CollapseEmptyVisual(point, in ctx);
                 pointsCleanup.Clean(point);
 
-                var md2 = minDimension;
-                var w2 = md2 - (md2 - 2 * innerRadius) * (fetched.Length - i) / fetched.Length - relativeOuterRadius * 2;
-                stackedInnerRadius = (w2 + relativeOuterRadius * 2) * 0.5f;
+                // Advance the stacking radius even for empty slices so the next
+                // visible slice doesn't pile up on top of an invisible one.
+                var md2 = ctx.MinDimension;
+                var w2 = md2 - (md2 - 2 * ctx.InnerRadius) * (fetched.Length - i) / fetched.Length - ctx.RelativeOuterRadius * 2;
+                stackedInnerRadius = (w2 + ctx.RelativeOuterRadius * 2) * 0.5f;
                 i++;
                 continue;
             }
 
-            var stack = stacker.GetStack(point);
+            // Compute the slice's pre-layout start angle so EnsureVisualForPoint
+            // can seed mid-life entries (a slice appearing after isFirstDraw) with
+            // a sensible animation source.
+            var stack = ctx.Stacker.GetStack(point);
             var stackedValue = stack.Start;
-            var total = chartTotal ?? stack.Total;
-
-            double start, sweep;
-
+            var total = ctx.ChartTotal ?? stack.Total;
+            double rawStart;
             if (total == 0)
+                rawStart = 0;
+            else if (IsRelativeToMinValue)
             {
-                start = 0;
-                sweep = 0;
+                var h = total - ctx.StartValue;
+                rawStart = Math.Min(stackedValue, h) / h * ctx.CompleteAngle;
+                if (!ctx.IsClockWise)
+                    rawStart = ctx.CompleteAngle - rawStart - (Math.Min(stackedValue + point.Coordinate.PrimaryValue, h) / h * ctx.CompleteAngle - rawStart);
             }
             else
             {
-                if (IsRelativeToMinValue)
+                rawStart = Math.Min(stackedValue, total) / total * ctx.CompleteAngle;
+                if (!ctx.IsClockWise)
                 {
-                    // when the series is relative to min value,
-                    // the start value is always the PieChart.MinValue
-                    // this is normally used on angular gauge series.
-                    var h = total - startValue;
-                    var h1 = stackedValue + coordinate.PrimaryValue;
-                    start = stackedValue / (total - startValue) * completeAngle;
-                    sweep = h1 / h * completeAngle - start;
-                    if (!isClockWise) start = completeAngle - start - sweep;
-                }
-                else
-                {
-                    var h = total - startValue;
-                    var h1 = stackedValue + coordinate.PrimaryValue - startValue;
-                    start = stackedValue / total * completeAngle;
-                    sweep = h1 / h * completeAngle - start;
-                    if (!isClockWise) start = completeAngle - start - sweep;
+                    var h = total - ctx.StartValue;
+                    var h1 = Math.Min(stackedValue + point.Coordinate.PrimaryValue, total) - ctx.StartValue;
+                    rawStart = ctx.CompleteAngle - rawStart - (h1 / h * ctx.CompleteAngle - rawStart);
                 }
             }
 
-            if (IsFillSeries)
-            {
-                start = 0;
-                sweep = completeAngle - 0.1f;
-            }
-
-            if (visual is null)
-            {
-                var p = new TVisual
-                {
-                    CenterX = cx,
-                    CenterY = cy,
-                    X = cx,
-                    Y = cy,
-                    Width = 0,
-                    Height = 0,
-                    StartAngle = (float)(isFirstDraw ? initialRotation : start + initialRotation),
-                    SweepAngle = 0,
-                    PushOut = 0,
-                    InnerRadius = 0,
-                    CornerRadius = 0
-                };
-
-                visual = p;
-                point.Context.Visual = visual;
-                OnPointCreated(point);
-
-                _ = everFetched.Add(point);
-            }
+            var visual = EnsureVisualForPoint(point, rawStart, in ctx);
 
             if (Fill is not null && Fill != Paint.Default)
                 Fill.AddGeometryToPaintTask(pieChart.Canvas, visual);
             if (Stroke is not null && Stroke != Paint.Default)
                 Stroke.AddGeometryToPaintTask(pieChart.Canvas, visual);
 
-            var dougnutGeometry = visual;
+            stackedInnerRadius += ctx.RelativeInnerRadius;
 
-            stackedInnerRadius += relativeInnerRadius;
+            var layout = MeasurePieLayout(point, stackedInnerRadius, i, in ctx);
 
-            var md = minDimension;
-            var stackedOuterRadius = md - (md - 2 * innerRadius) * (fetched.Length - i) / fetched.Length - relativeOuterRadius * 2;
-
-            dougnutGeometry.CenterX = cx;
-            dougnutGeometry.CenterY = cy;
-            dougnutGeometry.X = drawLocation.X + (drawMarginSize.Width - stackedOuterRadius) * 0.5f;
-            dougnutGeometry.Y = drawLocation.Y + (drawMarginSize.Height - stackedOuterRadius) * 0.5f;
-            dougnutGeometry.Width = stackedOuterRadius;
-            dougnutGeometry.Height = stackedOuterRadius;
-            dougnutGeometry.InnerRadius = stackedInnerRadius;
-            dougnutGeometry.PushOut = pushout;
-            dougnutGeometry.StartAngle = (float)(start + initialRotation);
-            dougnutGeometry.SweepAngle = (float)sweep;
-            dougnutGeometry.CornerRadius = cornerRadius;
-            dougnutGeometry.InvertedCornerRadius = InvertedCornerRadius;
-            dougnutGeometry.RemoveOnCompleted = false;
-
-            if (start + initialRotation == initialRotation && sweep == 360)
-                dougnutGeometry.SweepAngle = 359.99f;
+            visual.CenterX = layout.CenterX;
+            visual.CenterY = layout.CenterY;
+            visual.X = layout.X;
+            visual.Y = layout.Y;
+            visual.Width = layout.Width;
+            visual.Height = layout.Height;
+            visual.InnerRadius = layout.InnerRadius;
+            visual.PushOut = layout.PushOut;
+            visual.StartAngle = layout.StartAngle;
+            visual.SweepAngle = layout.SweepAngle;
+            visual.CornerRadius = layout.CornerRadius;
+            visual.InvertedCornerRadius = InvertedCornerRadius;
+            visual.RemoveOnCompleted = false;
 
             if (point.Context.HoverArea is not SemicircleHoverArea ha)
                 point.Context.HoverArea = ha = new SemicircleHoverArea();
 
             _ = ha.SetDimensions(
-                cx, cy, (float)(start + initialRotation), (float)(start + initialRotation + sweep),
-                stackedInnerRadius, stackedOuterRadius);
+                ctx.CenterX, ctx.CenterY,
+                layout.StartAngle,
+                layout.StartAngle + layout.SweepAngle,
+                stackedInnerRadius, layout.OuterRadius);
 
             pointsCleanup.Clean(point);
 
-            if (ShowDataLabels && DataLabelsPaint is not null && DataLabelsPaint != Paint.Default && !IsFillSeries)
-            {
-                var label = (TLabel?)point.Context.Label;
-
-                var middleAngle = (float)(start + initialRotation + sweep * 0.5);
-
-                var actualRotation = r +
-                        (isTangent ? middleAngle - 90 : 0) +
-                        (isCotangent ? middleAngle : 0);
-
-                if ((isTangent || isCotangent) && ((actualRotation + 90) % 360) > 180)
-                    actualRotation += 180;
-
-                if (label is null)
-                {
-                    var l = new TLabel { X = cx, Y = cy, RotateTransform = actualRotation, MaxWidth = (float)DataLabelsMaxWidth };
-                    l.Animate(
-                        EasingFunction ?? chart.ActualEasingFunction,
-                        AnimationsSpeed ?? chart.ActualAnimationsSpeed,
-                        BaseLabelGeometry.XProperty,
-                        BaseLabelGeometry.YProperty);
-                    label = l;
-                    point.Context.Label = l;
-                }
-
-                DataLabelsPaint.AddGeometryToPaintTask(pieChart.Canvas, label);
-
-                label.Text = DataLabelsFormatter(new ChartPoint<TModel, TVisual, TLabel>(point));
-                label.TextSize = dls;
-                label.Padding = DataLabelsPadding;
-                label.RotateTransform = actualRotation;
-                label.Paint = DataLabelsPaint;
-
-                AlignLabel(label, (float)start, initialRotation, sweep);
-
-                if (isFirstDraw)
-                    label.CompleteTransition(
-                        BaseLabelGeometry.TextSizeProperty,
-                        BaseLabelGeometry.XProperty,
-                        BaseLabelGeometry.YProperty,
-                        BaseLabelGeometry.RotateTransformProperty);
-
-                var labelPosition = GetLabelPolarPosition(
-                    cx,
-                    cy,
-                    stackedInnerRadius,
-                    (stackedOuterRadius + relativeOuterRadius * 2) * 0.5f,
-                    (float)(start + initialRotation),
-                    (float)sweep,
-                    label.Measure(),
-                    DataLabelsPosition);
-
-                label.X = labelPosition.X;
-                label.Y = labelPosition.Y;
-            }
+            MeasureDataLabel(point, in layout, stackedInnerRadius, layout.OuterRadius,
+                baseRotation: r, isTangent: isTangent, isCotangent: isCotangent, in ctx);
 
             OnPointMeasured(point);
 
-            stackedInnerRadius = (stackedOuterRadius + relativeOuterRadius * 2) * 0.5f;
+            stackedInnerRadius = (layout.OuterRadius + ctx.RelativeOuterRadius * 2) * 0.5f;
             i++;
         }
 
@@ -495,45 +636,32 @@ public abstract class CorePieSeries<TModel, TVisual, TLabel, TMiniatureGeometry>
     public override string? GetSecondaryToolTipText(ChartPoint point) =>
         LiveCharts.IgnoreToolTipLabel;
 
-    /// <summary>
-    /// GEts the stack group
-    /// </summary>
-    /// <returns></returns>
-    /// <inheritdoc />
-    public override int GetStackGroup() =>
-        0;
+    /// <summary>Gets the stack group.</summary>
+    public override int GetStackGroup() => 0;
 
     /// <inheritdoc cref="ChartElement.GetPaintTasks"/>
     protected internal override Paint?[] GetPaintTasks() =>
         [Fill, Stroke, DataLabelsPaint];
 
-    /// <summary>
-    /// Sets the default point transitions.
-    /// </summary>
-    /// <param name="chartPoint">The chart point.</param>
-    /// <exception cref="Exception">Unable to initialize the point instance.</exception>
+    /// <summary>Sets the default point transitions.</summary>
     protected override void SetDefaultPointTransitions(ChartPoint chartPoint)
     {
         if (IsFillSeries) return;
         var chart = chartPoint.Context.Chart;
         if (chartPoint.Context.Visual is not TVisual visual) throw new Exception("Unable to initialize the point instance.");
 
+        var animation = GetAnimation(chart.CoreChart);
+
         if ((SeriesProperties & SeriesProperties.Gauge) == 0)
-            visual.Animate(EasingFunction ?? chart.CoreChart.ActualEasingFunction, AnimationsSpeed ?? chart.CoreChart.ActualAnimationsSpeed);
+            visual.Animate(animation);
         else
             visual.Animate(
-                EasingFunction ?? chart.CoreChart.ActualEasingFunction,
-                AnimationsSpeed ?? chart.CoreChart.ActualAnimationsSpeed,
+                animation,
                 BaseDoughnutGeometry.StartAngleProperty,
                 BaseDoughnutGeometry.SweepAngleProperty);
     }
 
-    /// <summary>
-    /// Softs the delete point.
-    /// </summary>
-    /// <param name="point">The point.</param>
-    /// <param name="primaryScale">The primary scale.</param>
-    /// <param name="secondaryScale">The secondary scale.</param>
+    /// <summary>Softly deletes the point.</summary>
     protected virtual void SoftDeleteOrDisposePoint(ChartPoint point, Scaler primaryScale, Scaler secondaryScale)
     {
         var visual = (TVisual?)point.Context.Visual;
@@ -554,18 +682,7 @@ public abstract class CorePieSeries<TModel, TVisual, TLabel, TMiniatureGeometry>
         label.RemoveOnCompleted = true;
     }
 
-    /// <summary>
-    /// Gets the label polar position.
-    /// </summary>
-    /// <param name="centerX">The center x.</param>
-    /// <param name="centerY">The center y.</param>
-    /// <param name="innerRadius">The iner radius.</param>
-    /// <param name="outerRadius">The outer radius.</param>
-    /// <param name="startAngle">The start angle.</param>
-    /// <param name="sweepAngle">The sweep angle.</param>
-    /// <param name="labelSize">Size of the label.</param>
-    /// <param name="position">The position.</param>
-    /// <returns></returns>
+    /// <summary>Gets the label polar position.</summary>
     protected virtual LvcPoint GetLabelPolarPosition(
         float centerX,
         float centerY,
@@ -614,8 +731,6 @@ public abstract class CorePieSeries<TModel, TVisual, TLabel, TMiniatureGeometry>
     /// <summary>
     /// Softly deletes the all points from the chart.
     /// </summary>
-    /// <param name="chart"></param>
-    /// <inheritdoc cref="ISeries.SoftDeleteOrDispose" />
     public override void SoftDeleteOrDispose(IChartView chart)
     {
         var core = ((IPieChartView)chart).Core;

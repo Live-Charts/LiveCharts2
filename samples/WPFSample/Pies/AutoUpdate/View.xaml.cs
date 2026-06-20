@@ -1,5 +1,7 @@
 ﻿using System.Threading.Tasks;
 using System.Windows.Controls;
+using LiveChartsCore;
+using LiveChartsCore.SkiaSharpView.WPF;
 using ViewModelsSamples.Pies.AutoUpdate;
 
 namespace WPFSample.Pies.AutoUpdate;
@@ -16,16 +18,7 @@ public partial class View : UserControl
         InitializeComponent();
     }
 
-    private async void Button_Click(object sender, System.Windows.RoutedEventArgs e)
-    {
-        var vm = (ViewModel)DataContext;
-        isStreaming = isStreaming is null ? true : !isStreaming;
-
-        while (isStreaming.Value)
-        {
-            vm.RemoveSeries();
-            vm.AddSeries();
-            await Task.Delay(1000);
-        }
-    }
+#if UI_TESTING
+    public PieChart Chart => (PieChart)FindName("chart");
+#endif
 }

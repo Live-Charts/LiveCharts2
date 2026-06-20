@@ -59,6 +59,8 @@ public class LinearGradientPaint(
         : SkiaPaint
 {
     private SKShader? _shader;
+    internal SKColorFilter? _opacityFilter;
+    internal float _opacityFilterAlpha = -1f;
     private SKRect _activeClip = new();
 
     private SKColor[] GradientStops { get; set; } = gradientStops;
@@ -129,10 +131,20 @@ public class LinearGradientPaint(
     {
         if (_skiaPaint is null || opacity > 0.99) return;
 
-        _skiaPaint.ColorFilter =
-            SKColorFilter.CreateBlendMode(
+        // Previously this allocated an SKColorFilter every call and `RestoreOpacityMask`
+        // dropped the reference without disposing — the native handle leaked to GC
+        // finalization. Cache by opacity value; for static or coarsely-quantized opacity
+        // (most cases) the native filter is created once and reused.
+        if (_opacityFilter is null || _opacityFilterAlpha != opacity)
+        {
+            _opacityFilter?.Dispose();
+            _opacityFilter = SKColorFilter.CreateBlendMode(
                 new SKColor(255, 255, 255, (byte)(255 * opacity)),
                 SKBlendMode.DstIn);
+            _opacityFilterAlpha = opacity;
+        }
+
+        _skiaPaint.ColorFilter = _opacityFilter;
     }
 
     internal override void RestoreOpacityMask(DrawingContext context, float opacity, IDrawnElement? drawnElement)
@@ -189,6 +201,10 @@ public class LinearGradientPaint(
 
         _shader?.Dispose();
         _shader = null;
+
+        _opacityFilter?.Dispose();
+        _opacityFilter = null;
+        _opacityFilterAlpha = -1f;
     }
 
     private SKShader GetShader()

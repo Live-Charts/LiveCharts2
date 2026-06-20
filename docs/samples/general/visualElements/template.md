@@ -1,3 +1,8 @@
+<!--
+To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/master/docs/readme.md
+content is normally pulled from the examples in the repository.
+-->
+
 {{ render "~/shared/genericSampleSimpleHeader.md" }}
 
 We can add custom elements to a chart using the `VisualElements` property, this property is of type `IEnumerable<ChartElement>`,
@@ -10,14 +15,14 @@ In the next example, we create a `CartesianChart`, this chart contains multiple 
 ## View Model
 
 ```csharp
-{{ full_name | get_vm_from_docs }}
+{{ render_current_directory_view_model }}
 ```
 {{~ end ~}}
 
 ## {{~ view_title ~}}
 
 ```
-{{ full_name | get_view_from_docs }}
+{{ render_current_directory_view }}
 ```
 
 ### Basic sample
@@ -75,7 +80,7 @@ The easiest way is to inherit from `DrawnGeometry`, this class implements `IDraw
 In the next example we inherit from `BoundedDrawnGeometry` it only adds the `Width` and `Height` properties to the `DrawnGeometry` class.
 
 <div class="text-center sample-img">
-    <img src="{{ assets_url }}/docs/{{ unique_name }}/custom.png" alt="sample image" />
+    <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/{{ unique_name }}/custom.png" alt="sample image" />
 </div>
 
 ```csharp
@@ -113,12 +118,12 @@ then it sets the `Geometry.Fill` to define the background of the tooltip.
 
 ### Absolute Layout
 
-Used to place children on its own coordinate system, all the children X and Y coordinates are relative to the Layout position, the layout takes
-the size of the largest element in the children collection. For example in the next case, we place the place the RectangleGeometry` in the 0,0
+Used to place children on its own coordinate system. All the children X and Y coordinates are relative to the Layout position. The layout takes
+the size of the largest element in the children collection. For example, in the next case, we place the `RectangleGeometry` in the 0,0
 coordinate [in the layout system] and the `LabelGeometry` in the 10,0 coordinate.
 
 <div class="text-center sample-img">
-    <img src="{{ assets_url }}/docs/{{ unique_name }}/absolute.png" alt="sample image" />
+    <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/{{ unique_name }}/absolute.png" alt="sample image" />
 </div>
 
 ```csharp
@@ -130,7 +135,7 @@ coordinate [in the layout system] and the `LabelGeometry` in the 10,0 coordinate
 Stacks `IDrawnElement` objects in vertical or horizontal order.
 
 <div class="text-center sample-img">
-    <img src="{{ assets_url }}/docs/{{ unique_name }}/stack.png" alt="sample image" />
+    <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/{{ unique_name }}/stack.png" alt="sample image" />
 </div>
 
 ```csharp
@@ -142,12 +147,27 @@ Stacks `IDrawnElement` objects in vertical or horizontal order.
 Uses a grid system to place `IDrawnElement` objects.
 
 <div class="text-center sample-img">
-    <img src="{{ assets_url }}/docs/{{ unique_name }}/table.png" alt="sample image" />
+    <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/{{ unique_name }}/table.png" alt="sample image" />
 </div>
 
 ```csharp
 {{~ render "~/../samples/ViewModelsSamples/General/VisualElements/TableVisual.cs" ~}}
 ```
+
+### Z-ordering with series
+
+By default, every series whose `ZIndex` is unset draws its fill at `SeriesId + 0.1`, while a `Visual` (or
+`VisualElement`) draws at `0`. That means decorations land **behind** the data they annotate, which is
+rarely what you want for glyphs, callouts or markers.
+
+To bring a visual to the front, set `Visual.ZIndex` (or `VisualElement.ZIndex`) to a value above
+the series stack. A safe ceiling is `1000` (above stacked series and below the crosshair layer):
+
+```csharp
+new RectangleVisual { ZIndex = 1000 };
+```
+
+Set it to `0` (the default) to keep the legacy "behind the series" placement, useful for backgrounds.
 
 ### Update on property change
 

@@ -32,6 +32,11 @@ namespace LiveChartsCore.SkiaSharpView.Drawing.Geometries;
 /// </summary>
 public abstract class VectorGeometry : BaseVectorGeometry, IDrawnElement<SkiaSharpDrawingContext>
 {
+    // Cached path reused across Draw calls — SkPath::reset() is cheap on the native side,
+    // and skipping the per-call SKPath managed alloc + Dispose adds up in perf-sensitive
+    // chart paths where a vector is redrawn every invalidation.
+    private SKPath? _cachedPath;
+
     /// <summary>
     /// Called when the area begins the draw.
     /// </summary>
@@ -61,10 +66,11 @@ public abstract class VectorGeometry : BaseVectorGeometry, IDrawnElement<SkiaSha
     {
         if (Commands.Count == 0) return;
 
-        var toRemoveSegments = new List<Segment>();
+        var path = _cachedPath ??= new SKPath();
+        path.Reset();
 
-        using var path = new SKPath();
         var isValid = true;
+        List<Segment>? toRemoveSegments = null;
 
         var isFirst = true;
         Segment? last = null;
@@ -82,14 +88,18 @@ public abstract class VectorGeometry : BaseVectorGeometry, IDrawnElement<SkiaSha
             OnDrawSegment(context, path, segment);
             isValid = isValid && segment.IsValid;
 
-            if (segment.IsValid && segment.RemoveOnCompleted) toRemoveSegments.Add(segment);
+            if (segment.IsValid && segment.RemoveOnCompleted)
+                (toRemoveSegments ??= []).Add(segment);
             last = segment;
         }
 
-        foreach (var segment in toRemoveSegments)
+        if (toRemoveSegments is not null)
         {
-            _ = Commands.Remove(segment);
-            isValid = false;
+            foreach (var segment in toRemoveSegments)
+            {
+                _ = Commands.Remove(segment);
+                isValid = false;
+            }
         }
 
         if (last is not null) OnClose(context, path, last);
@@ -97,5 +107,16 @@ public abstract class VectorGeometry : BaseVectorGeometry, IDrawnElement<SkiaSha
         context.Canvas.DrawPath(path, context.ActiveSkiaPaint);
 
         if (!isValid) IsValid = false;
+    }
+
+    internal override void OnDisposed()
+    {
+        // Release the cached native SKPath deterministically when the geometry is removed
+        // from its paint task. GC finalization is the safety net if a geometry is dropped
+        // without going through the normal removal path.
+        _cachedPath?.Dispose();
+        _cachedPath = null;
+
+        base.OnDisposed();
     }
 }

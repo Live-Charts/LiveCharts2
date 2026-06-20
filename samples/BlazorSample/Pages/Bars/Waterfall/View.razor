@@ -1,0 +1,34 @@
+@page "/Bars/Waterfall"
+@using LiveChartsCore
+@using LiveChartsCore.SkiaSharpView
+@using LiveChartsCore.SkiaSharpView.Blazor
+
+<CartesianChart
+    Series="@series"
+    XAxes="@xAxes"
+    YAxes="@yAxes">
+</CartesianChart>
+
+@code {
+    private readonly ViewModelsSamples.Bars.Waterfall.ViewModel vm = new();
+
+    private ISeries[] series;
+    private Axis[] xAxes;
+    private Axis[] yAxes;
+
+    protected override void OnInitialized()
+    {
+        series =
+        [
+            new RangeColumnSeries<LiveChartsCore.Defaults.RangeValue>
+            {
+                Name = "Cash flow",
+                Values = vm.Steps,
+                YToolTipLabelFormatter = vm.StepTooltipFormatter,
+            },
+        ];
+
+        xAxes = [new Axis { Labels = vm.StepNames }];
+        yAxes = [new Axis { Name = "Balance", MinLimit = 0 }];
+    }
+}

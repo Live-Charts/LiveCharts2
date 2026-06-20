@@ -108,7 +108,8 @@ public static class Labelers
     }
 
     /// <summary>
-    /// Builds a named labeler.
+    /// Builds a named labeler. Null entries in <paramref name="labels"/> are rendered as
+    /// empty strings.
     /// </summary>
     /// <param name="labels">The labels.</param>
     /// <returns></returns>
@@ -120,7 +121,7 @@ public static class Labelers
 
             return index < 0 || index > labels.Count - 1
                 ? string.Empty
-                : labels[index];
+                : labels[index] ?? string.Empty;
         };
     }
 

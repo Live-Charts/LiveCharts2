@@ -1,0 +1,24 @@
+<UserControl
+    x:Class="AvaloniaSample.Treemaps.Basic.View"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Avalonia;assembly=LiveChartsCore.SkiaSharpView.Avalonia"
+    xmlns:vms="clr-namespace:ViewModelsSamples.Treemaps.Basic;assembly=ViewModelsSamples"
+    x:DataType="vms:ViewModel">
+
+    <UserControl.DataContext>
+        <vms:ViewModel/>
+    </UserControl.DataContext>
+
+    <lvc:TreemapChart>
+        <lvc:TreemapChart.Series>
+            <lvc:XamlTreemapSeries
+                Values="{Binding Regions}"
+                Padding="4"
+                Stroke="{lvc:SolidColorPaint Color='#fff', StrokeWidth=2}"
+                Fill="{lvc:SolidColorPaint Color='#608ada'}"
+                DataLabelsPaint="{lvc:SolidColorPaint Color='#fff'}"
+                DataLabelsSize="16"/>
+        </lvc:TreemapChart.Series>
+    </lvc:TreemapChart>
+</UserControl>

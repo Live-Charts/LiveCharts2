@@ -10,7 +10,7 @@ namespace EtoFormsSample.Pies.AutoUpdate;
 
 public class View : Panel
 {
-    private readonly PieChart piechart;
+    public readonly PieChart Chart;
     private readonly Random _random = new();
 
     public View()
@@ -21,7 +21,7 @@ public class View : Panel
             new PieSeries<int>{ Values= Fetch() },
         };
 
-        piechart = new PieChart
+        Chart = new PieChart
         {
             Series = seriesCollection
         };
@@ -33,13 +33,13 @@ public class View : Panel
         b2.Click += (sender, e) =>
         {
             if (seriesCollection.Count > 0)
-                seriesCollection.Remove(piechart.Series.First());
+                seriesCollection.Remove(Chart.Series.First());
         };
 
         var b3 = new Button { Text = "Update all" };
         b3.Click += (sender, e) =>
         {
-            foreach (var series in piechart.Series)
+            foreach (var series in Chart.Series)
             {
                 if (series is PieSeries<int> pieSeries)
                 {
@@ -50,7 +50,7 @@ public class View : Panel
 
         var buttons = new StackLayout(b1, b2, b3) { Orientation = Orientation.Horizontal, Padding = 2, Spacing = 4 };
 
-        Content = new DynamicLayout(buttons, piechart);
+        Content = new DynamicLayout(buttons, Chart);
     }
 
     private int[] Fetch()

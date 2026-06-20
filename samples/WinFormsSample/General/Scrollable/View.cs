@@ -9,7 +9,6 @@ using LiveChartsCore.SkiaSharpView.Drawing;
 using LiveChartsCore.SkiaSharpView.Painting;
 using LiveChartsCore.SkiaSharpView.WinForms;
 using SkiaSharp;
-using ViewModelsSamples.General.Scrollable;
 
 namespace WinFormsSample.General.Scrollable;
 

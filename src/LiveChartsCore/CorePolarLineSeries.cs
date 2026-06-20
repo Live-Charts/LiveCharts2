@@ -160,63 +160,39 @@ public abstract class CorePolarLineSeries<TModel, TVisual, TLabel, TPathGeometry
         set => SetProperty(ref field, value);
     }
 
-    /// <inheritdoc cref="ChartElement.Invalidate(Chart)"/>
-    public override void Invalidate(Chart chart)
-    {
-        var polarChart = (PolarChartEngine)chart;
-        var angleAxis = polarChart.GetAngleAxis(this);
-        var radiusAxis = polarChart.GetRadiusAxis(this);
+    // ---- template method ----------------------------------------------------
 
-        var drawLocation = polarChart.DrawMarginLocation;
-        var drawMarginSize = polarChart.DrawMarginSize;
+    /// <summary>
+    /// Builds a per-frame measure context from the chart. Subclasses may override
+    /// to refine context construction (e.g. additional pre-computed per-frame values).
+    /// </summary>
+    protected virtual PolarLineMeasureContext BeginMeasure(PolarChartEngine chart)
+    {
+        var angleAxis = chart.GetAngleAxis(this);
+        var radiusAxis = chart.GetRadiusAxis(this);
+
+        var drawLocation = chart.DrawMarginLocation;
+        var drawMarginSize = chart.DrawMarginSize;
 
         var scaler = new PolarScaler(
             drawLocation, drawMarginSize, angleAxis, radiusAxis,
-            polarChart.InnerRadius, polarChart.InitialRotation, polarChart.TotalAnge);
+            chart.InnerRadius, chart.InitialRotation, chart.TotalAnge);
+
+        var stacker = (SeriesProperties & SeriesProperties.Stacked) == SeriesProperties.Stacked
+            ? chart.SeriesContext.GetStackPosition(this, GetStackGroup())
+            : null;
+
+        // #1923: see CoreLineSeries.Invalidate for the rationale.
+        var actualZIndex = ZIndex != 0
+            ? ZIndex
+            : stacker is not null
+                ? stacker.Stacker.MaxSeriesId - stacker.Position
+                : ((ISeries)this).SeriesId;
 
         var gs = _geometrySize;
         var hgs = gs / 2f;
-        var sw = Stroke?.StrokeThickness ?? 0;
 
-        var fetched = Fetch(polarChart);
-        if (fetched is not ChartPoint[] points) points = [.. fetched];
-
-        var segments = EnableNullSplitting
-            ? SplitEachNull(points, scaler)
-            : [points];
-
-        var stacker = (SeriesProperties & SeriesProperties.Stacked) == SeriesProperties.Stacked
-            ? polarChart.SeriesContext.GetStackPosition(this, GetStackGroup())
-            : null;
-
-        var actualZIndex = ZIndex == 0 ? ((ISeries)this).SeriesId : ZIndex;
-
-        if (stacker is not null)
-        {
-            // easy workaround to set an automatic and valid z-index for stacked area series
-            // the problem of this solution is that the user needs to set z-indexes above 1000
-            // if the user needs to add more series to the chart.
-            actualZIndex = (int)PaintConstants.StackedSeriesBaseZIndex - stacker.Position;
-            Fill?.ZIndex = actualZIndex;
-            Stroke?.ZIndex = actualZIndex;
-        }
-
-        var dls = unchecked((float)DataLabelsSize);
-
-        var pointsCleanup = ChartPointCleanupContext.For(everFetched);
-
-        if (!_strokePathHelperDictionary.TryGetValue(chart.Canvas.Sync, out var strokePathHelperContainer))
-        {
-            strokePathHelperContainer = [];
-            _strokePathHelperDictionary[chart.Canvas.Sync] = strokePathHelperContainer;
-        }
-
-        if (!_fillPathHelperDictionary.TryGetValue(chart.Canvas.Sync, out var fillPathHelperContainer))
-        {
-            fillPathHelperContainer = [];
-            _fillPathHelperDictionary[chart.Canvas.Sync] = fillPathHelperContainer;
-        }
-
+        // Decode the TangentAngle / CotangentAngle flag bits packed into DataLabelsRotation.
         var r = (float)DataLabelsRotation;
         var isTangent = false;
         var isCotangent = false;
@@ -233,10 +209,244 @@ public abstract class CorePolarLineSeries<TModel, TVisual, TLabel, TPathGeometry
             isCotangent = true;
         }
 
-        var segmentI = 0;
         var hasSvg = this.HasVariableSvgGeometry();
-
         var isFirstDraw = !chart.IsDrawn(((ISeries)this).SeriesId);
+
+        return new PolarLineMeasureContext(
+            chart, scaler,
+            actualZIndex: actualZIndex,
+            geometrySize: gs,
+            halfGeometrySize: hgs,
+            dataLabelsSize: unchecked((float)DataLabelsSize),
+            baseLabelRotation: r,
+            isTangent: isTangent,
+            isCotangent: isCotangent,
+            isFirstDraw: isFirstDraw,
+            hasSvg: hasSvg,
+            stacker: stacker);
+    }
+
+    /// <summary>
+    /// Ensures the visual exists for the point and seeds it at the chart center
+    /// so the marker animates outward to its polar position as motion completes.
+    /// Polar uses the chart center as the collapse baseline (rather than the
+    /// pivot used by cartesian Line), so first-frame markers fly out from the
+    /// origin instead of from the X axis.
+    /// </summary>
+    protected virtual CubicSegmentVisualPoint EnsurePolarVisualForPoint(ChartPoint point, in PolarLineMeasureContext ctx)
+    {
+        var scaler = ctx.Scaler;
+        var gs = ctx.GeometrySize;
+        var hgs = ctx.HalfGeometrySize;
+
+        var v = new CubicSegmentVisualPoint(new TVisual());
+
+        var x0b = scaler.CenterX - hgs;
+        var x1b = scaler.CenterX - hgs;
+        var x2b = scaler.CenterX - hgs;
+        var y0b = scaler.CenterY - hgs;
+        var y1b = scaler.CenterY - hgs;
+        var y2b = scaler.CenterY - hgs;
+
+        v.Geometry.X = scaler.CenterX;
+        v.Geometry.Y = scaler.CenterY;
+        v.Geometry.Width = gs;
+        v.Geometry.Height = gs;
+
+        v.Segment.Xi = (float)x0b;
+        v.Segment.Yi = y0b;
+        v.Segment.Xm = (float)x1b;
+        v.Segment.Ym = y1b;
+        v.Segment.Xj = (float)x2b;
+        v.Segment.Yj = y2b;
+
+        point.Context.Visual = v.Geometry;
+        point.Context.AdditionalVisuals = v;
+        OnPointCreated(point);
+
+        return v;
+    }
+
+    /// <summary>
+    /// Registers per-segment fill / stroke paths on the chart canvas, sets their
+    /// Z-index, animates if newly-created, and returns fresh vector managers
+    /// wrapping their command lists. Called once per segment when the first
+    /// point in that segment is encountered. Unlike cartesian line series, no
+    /// pivot is configured on the path — polar fills aren't pivoted (the path's
+    /// ClosingMethod is NotClosed for both fill and stroke).
+    /// </summary>
+    private void AttachSegmentPaths(
+        int segmentI,
+        List<TPathGeometry> fillContainer,
+        List<TPathGeometry> strokeContainer,
+        in PolarLineMeasureContext ctx,
+        out VectorManager fillVector,
+        out VectorManager strokeVector)
+    {
+        var fillLookup = GetSegmentVisual(segmentI, fillContainer, VectorClosingMethod.NotClosed);
+        var strokeLookup = GetSegmentVisual(segmentI, strokeContainer, VectorClosingMethod.NotClosed);
+
+        // See CoreLineSeries for why the old Count==1 cleanup is gone.
+
+        var isNew = fillLookup.IsNew || strokeLookup.IsNew;
+        var fillPath = fillLookup.Path;
+        var strokePath = strokeLookup.Path;
+
+        strokeVector = new VectorManager(strokePath.Commands);
+        fillVector = new VectorManager(fillPath.Commands);
+
+        var chart = ctx.Chart;
+
+        if (Fill is not null && Fill != Paint.Default)
+        {
+            Fill.AddGeometryToPaintTask(chart.Canvas, fillPath);
+            chart.Canvas.AddDrawableTask(Fill, zone: CanvasZone.DrawMargin);
+            Fill.ZIndex = ctx.ActualZIndex + PaintConstants.SeriesFillZIndexOffset;
+            if (isNew) fillPath.Animate(GetAnimation(chart));
+        }
+
+        if (Stroke is not null && Stroke != Paint.Default)
+        {
+            Stroke.AddGeometryToPaintTask(chart.Canvas, strokePath);
+            chart.Canvas.AddDrawableTask(Stroke, zone: CanvasZone.DrawMargin);
+            Stroke.ZIndex = ctx.ActualZIndex + PaintConstants.SeriesStrokeZIndexOffset;
+            if (isNew) strokePath.Animate(GetAnimation(chart));
+        }
+
+        strokePath.Opacity = IsVisible ? 1 : 0;
+        fillPath.Opacity = IsVisible ? 1 : 0;
+    }
+
+    /// <summary>
+    /// Removes per-canvas segment paths that are no longer referenced by any
+    /// active sub-segment (their index sits at or above the count of segments
+    /// produced this frame). Mirrors the original tail-cleanup loop.
+    /// </summary>
+    private void CleanupOrphanSegmentPaths(
+        int segmentI,
+        List<TPathGeometry> fillContainer,
+        List<TPathGeometry> strokeContainer,
+        PolarChartEngine chart)
+    {
+        var maxSegment = fillContainer.Count > strokeContainer.Count
+            ? fillContainer.Count
+            : strokeContainer.Count;
+
+        for (var i = maxSegment - 1; i >= segmentI; i--)
+        {
+            if (i < fillContainer.Count)
+            {
+                var segmentFill = fillContainer[i];
+                Fill?.RemoveGeometryFromPaintTask(chart.Canvas, segmentFill);
+                segmentFill.Commands.Clear();
+                fillContainer.RemoveAt(i);
+            }
+
+            if (i < strokeContainer.Count)
+            {
+                var segmentStroke = strokeContainer[i];
+                Stroke?.RemoveGeometryFromPaintTask(chart.Canvas, segmentStroke);
+                segmentStroke.Commands.Clear();
+                strokeContainer.RemoveAt(i);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Creates the data label visual if it doesn't exist yet (seeded at the
+    /// chart's vertical center so it animates radially with the marker),
+    /// resolves the tangent/cotangent rotation modifier, updates text + style,
+    /// and positions it polar-style via <see cref="GetLabelPolarPosition"/>.
+    /// No-op when the series has no data-label paint configured.
+    /// </summary>
+    private void MeasureDataLabel(ChartPoint point, LvcPoint cp, in PolarLineMeasureContext ctx)
+    {
+        if (!ShowDataLabels || DataLabelsPaint is null || DataLabelsPaint == Paint.Default) return;
+
+        var coordinate = point.Coordinate;
+        var scaler = ctx.Scaler;
+        var hgs = ctx.HalfGeometrySize;
+        var chart = ctx.Chart;
+        var label = (TLabel?)point.Context.Label;
+
+        var actualRotation = ctx.BaseLabelRotation +
+            (ctx.IsTangent ? scaler.GetAngle(coordinate.SecondaryValue) - 90 : 0) +
+            (ctx.IsCotangent ? scaler.GetAngle(coordinate.SecondaryValue) : 0);
+
+        if ((ctx.IsTangent || ctx.IsCotangent) && ((actualRotation + 90) % 360) > 180)
+            actualRotation += 180;
+
+        if (label is null)
+        {
+            var l = new TLabel
+            {
+                X = cp.X - hgs,
+                Y = scaler.CenterY - hgs,
+                RotateTransform = (float)actualRotation,
+                MaxWidth = (float)DataLabelsMaxWidth
+            };
+            l.Animate(
+                GetAnimation(chart),
+                BaseLabelGeometry.XProperty,
+                BaseLabelGeometry.YProperty);
+            label = l;
+            point.Context.Label = l;
+        }
+
+        DataLabelsPaint.AddGeometryToPaintTask(chart.Canvas, label);
+        label.Text = DataLabelsFormatter(new ChartPoint<TModel, TVisual, TLabel>(point));
+        label.TextSize = ctx.DataLabelsSize;
+        label.Padding = DataLabelsPadding;
+        label.RotateTransform = actualRotation;
+        label.Paint = DataLabelsPaint;
+
+        var rad = Math.Sqrt(Math.Pow(cp.X - scaler.CenterX, 2) + Math.Pow(cp.Y - scaler.CenterY, 2));
+
+        if (ctx.IsFirstDraw)
+            label.CompleteTransition(
+                BaseLabelGeometry.TextSizeProperty,
+                BaseLabelGeometry.XProperty,
+                BaseLabelGeometry.YProperty,
+                BaseLabelGeometry.RotateTransformProperty);
+
+        var labelPosition = GetLabelPolarPosition(
+            scaler.CenterX, scaler.CenterY, (float)rad, scaler.GetAngle(coordinate.SecondaryValue),
+            label.Measure(), (float)GeometrySize, DataLabelsPosition);
+
+        label.X = labelPosition.X;
+        label.Y = labelPosition.Y;
+    }
+
+    /// <inheritdoc cref="ChartElement.Invalidate(Chart)"/>
+    public sealed override void Invalidate(Chart chart)
+    {
+        var polarChart = (PolarChartEngine)chart;
+        _ = GetAnimation(polarChart);
+
+        var ctx = BeginMeasure(polarChart);
+        var scaler = ctx.Scaler;
+        var pointsCleanup = ChartPointCleanupContext.For(everFetched);
+
+        var fetched = Fetch(polarChart);
+        if (fetched is not ChartPoint[] points) points = [.. fetched];
+
+        var segments = EnableNullSplitting
+            ? SplitEachNull(points, scaler)
+            : [points];
+
+        if (!_strokePathHelperDictionary.TryGetValue(chart.Canvas.Sync, out var strokePathHelperContainer))
+        {
+            strokePathHelperContainer = [];
+            _strokePathHelperDictionary[chart.Canvas.Sync] = strokePathHelperContainer;
+        }
+
+        if (!_fillPathHelperDictionary.TryGetValue(chart.Canvas.Sync, out var fillPathHelperContainer))
+        {
+            fillPathHelperContainer = [];
+            _fillPathHelperDictionary[chart.Canvas.Sync] = fillPathHelperContainer;
+        }
+
+        var segmentI = 0;
 
         foreach (var segment in segments)
         {
@@ -244,111 +454,30 @@ public abstract class CorePolarLineSeries<TModel, TVisual, TLabel, TPathGeometry
             var isSegmentEmpty = true;
             VectorManager? strokeVector = null, fillVector = null;
 
-            foreach (var data in GetSpline(segment, scaler, stacker))
+            foreach (var data in GetSpline(segment, scaler, ctx.Stacker))
             {
                 if (!hasPaths)
                 {
                     hasPaths = true;
-
-                    var fillLookup = GetSegmentVisual(segmentI, fillPathHelperContainer, VectorClosingMethod.NotClosed);
-                    var strokeLookup = GetSegmentVisual(segmentI, strokePathHelperContainer, VectorClosingMethod.NotClosed);
-
-                    if (fillLookup.Path.Commands.Count == 1 && !data.IsNextEmpty)
-                    {
-                        if (Fill is not null && Fill != Paint.Default)
-                            Fill.RemoveGeometryFromPaintTask(polarChart.Canvas, fillLookup.Path);
-                        fillLookup.Path.Commands.Clear();
-                        fillPathHelperContainer.RemoveAt(segmentI);
-
-                        fillLookup = GetSegmentVisual(segmentI, fillPathHelperContainer, VectorClosingMethod.NotClosed);
-                    }
-
-                    if (strokeLookup.Path.Commands.Count == 1 && !data.IsNextEmpty)
-                    {
-                        if (Stroke is not null && Stroke != Paint.Default)
-                            Stroke.RemoveGeometryFromPaintTask(polarChart.Canvas, strokeLookup.Path);
-                        strokeLookup.Path.Commands.Clear();
-                        strokePathHelperContainer.RemoveAt(segmentI);
-
-                        strokeLookup = GetSegmentVisual(segmentI, strokePathHelperContainer, VectorClosingMethod.NotClosed);
-                    }
-
-                    var isNew = fillLookup.IsNew || strokeLookup.IsNew;
-                    var fillPath = fillLookup.Path;
-                    var strokePath = strokeLookup.Path;
-
-                    strokeVector = new VectorManager(strokePath.Commands);
-                    fillVector = new VectorManager(fillPath.Commands);
-
-                    if (Fill is not null && Fill != Paint.Default)
-                    {
-                        Fill.AddGeometryToPaintTask(polarChart.Canvas, fillPath);
-                        polarChart.Canvas.AddDrawableTask(Fill, zone: CanvasZone.DrawMargin);
-                        Fill.ZIndex = actualZIndex + PaintConstants.SeriesFillZIndexOffset;
-                        if (isNew)
-                        {
-                            fillPath.Animate(EasingFunction ?? polarChart.ActualEasingFunction, AnimationsSpeed ?? polarChart.ActualAnimationsSpeed);
-                        }
-                    }
-                    if (Stroke is not null && Stroke != Paint.Default)
-                    {
-                        Stroke.AddGeometryToPaintTask(polarChart.Canvas, strokePath);
-                        polarChart.Canvas.AddDrawableTask(Stroke, zone: CanvasZone.DrawMargin);
-                        Stroke.ZIndex = actualZIndex + PaintConstants.SeriesStrokeZIndexOffset;
-                        if (isNew)
-                        {
-                            strokePath.Animate(EasingFunction ?? polarChart.ActualEasingFunction, AnimationsSpeed ?? polarChart.ActualAnimationsSpeed);
-                        }
-                    }
-
-                    strokePath.Opacity = IsVisible ? 1 : 0;
-                    fillPath.Opacity = IsVisible ? 1 : 0;
+                    AttachSegmentPaths(
+                        segmentI, fillPathHelperContainer, strokePathHelperContainer, in ctx,
+                        out fillVector, out strokeVector);
                 }
-
-                var coordinate = data.TargetPoint.Coordinate;
 
                 isSegmentEmpty = false;
-                var s = 0d;
-                if (stacker is not null)
-                {
-                    s = stacker.GetStack(data.TargetPoint).Start;
-                }
+
+                var coordinate = data.TargetPoint.Coordinate;
+                var s = ctx.Stacker?.GetStack(data.TargetPoint).CumulativeStart ?? 0d;
 
                 var cp = scaler.ToPixels(coordinate.SecondaryValue, coordinate.PrimaryValue + s);
 
                 var visual = (CubicSegmentVisualPoint?)data.TargetPoint.Context.AdditionalVisuals;
+                // See CoreLineSeries — drives AddConsecutiveSegment's Follows/Copy decision.
+                var isVisualNew = visual is null;
 
-                if (visual is null)
-                {
-                    var v = new CubicSegmentVisualPoint(new TVisual());
+                visual ??= EnsurePolarVisualForPoint(data.TargetPoint, in ctx);
 
-                    visual = v;
-
-                    var x0b = scaler.CenterX - hgs;
-                    var x1b = scaler.CenterX - hgs;
-                    var x2b = scaler.CenterX - hgs;
-                    var y0b = scaler.CenterY - hgs;
-                    var y1b = scaler.CenterY - hgs;
-                    var y2b = scaler.CenterY - hgs;
-
-                    v.Geometry.X = scaler.CenterX;
-                    v.Geometry.Y = scaler.CenterY;
-                    v.Geometry.Width = gs;
-                    v.Geometry.Height = gs;
-
-                    v.Segment.Xi = (float)x0b;
-                    v.Segment.Yi = y0b;
-                    v.Segment.Xm = (float)x1b;
-                    v.Segment.Ym = y1b;
-                    v.Segment.Xj = (float)x2b;
-                    v.Segment.Yj = y2b;
-
-                    data.TargetPoint.Context.Visual = v.Geometry;
-                    data.TargetPoint.Context.AdditionalVisuals = v;
-                    OnPointCreated(data.TargetPoint);
-                }
-
-                if (hasSvg)
+                if (ctx.HasSvg)
                 {
                     var svgVisual = (IVariableSvgPath)visual.Geometry;
                     if (_geometrySvgChanged || svgVisual.SVGPath is null)
@@ -365,9 +494,9 @@ public abstract class CorePolarLineSeries<TModel, TVisual, TLabel, TPathGeometry
                 visual.Segment.Id = data.TargetPoint.Context.Entity.MetaData!.EntityIndex;
 
                 if (Fill is not null && Fill != Paint.Default)
-                    fillVector!.AddConsecutiveSegment(visual.Segment, !isFirstDraw);
+                    fillVector!.AddConsecutiveSegment(visual.Segment, isVisualNew && !ctx.IsFirstDraw);
                 if (Stroke is not null && Stroke != Paint.Default)
-                    strokeVector!.AddConsecutiveSegment(visual.Segment, !isFirstDraw);
+                    strokeVector!.AddConsecutiveSegment(visual.Segment, isVisualNew && !ctx.IsFirstDraw);
 
                 visual.Segment.Xi = (float)data.X0;
                 visual.Segment.Yi = (float)data.Y0;
@@ -379,65 +508,20 @@ public abstract class CorePolarLineSeries<TModel, TVisual, TLabel, TPathGeometry
                 var x = cp.X;
                 var y = cp.Y;
 
-                visual.Geometry.X = x - hgs;
-                visual.Geometry.Y = y - hgs;
-                visual.Geometry.Width = gs;
-                visual.Geometry.Height = gs;
+                visual.Geometry.X = x - ctx.HalfGeometrySize;
+                visual.Geometry.Y = y - ctx.HalfGeometrySize;
+                visual.Geometry.Width = ctx.GeometrySize;
+                visual.Geometry.Height = ctx.GeometrySize;
                 visual.Geometry.RemoveOnCompleted = false;
 
-                var hags = gs < 16 ? 16 : gs;
+                var hags = ctx.GeometrySize < 16 ? 16 : ctx.GeometrySize;
                 if (data.TargetPoint.Context.HoverArea is not RectangleHoverArea ha)
                     data.TargetPoint.Context.HoverArea = ha = new RectangleHoverArea();
                 _ = ha.SetDimensions(x - hags * 0.5f, y - hags * 0.5f, hags, hags).CenterXToolTip().CenterYToolTip();
 
                 pointsCleanup.Clean(data.TargetPoint);
 
-                if (ShowDataLabels && DataLabelsPaint is not null && DataLabelsPaint != Paint.Default)
-                {
-                    var label = (TLabel?)data.TargetPoint.Context.Label;
-
-                    var actualRotation = r +
-                        (isTangent ? scaler.GetAngle(coordinate.SecondaryValue) - 90 : 0) +
-                        (isCotangent ? scaler.GetAngle(coordinate.SecondaryValue) : 0);
-
-                    if ((isTangent || isCotangent) && ((actualRotation + 90) % 360) > 180)
-                        actualRotation += 180;
-
-                    if (label is null)
-                    {
-                        var l = new TLabel { X = x - hgs, Y = scaler.CenterY - hgs, RotateTransform = (float)actualRotation, MaxWidth = (float)DataLabelsMaxWidth };
-                        l.Animate(
-                            EasingFunction ?? chart.ActualEasingFunction,
-                            AnimationsSpeed ?? chart.ActualAnimationsSpeed,
-                            BaseLabelGeometry.XProperty,
-                            BaseLabelGeometry.YProperty);
-                        label = l;
-                        data.TargetPoint.Context.Label = l;
-                    }
-
-                    DataLabelsPaint.AddGeometryToPaintTask(polarChart.Canvas, label);
-                    label.Text = DataLabelsFormatter(new ChartPoint<TModel, TVisual, TLabel>(data.TargetPoint));
-                    label.TextSize = dls;
-                    label.Padding = DataLabelsPadding;
-                    label.RotateTransform = actualRotation;
-                    label.Paint = DataLabelsPaint;
-
-                    var rad = Math.Sqrt(Math.Pow(cp.X - scaler.CenterX, 2) + Math.Pow(cp.Y - scaler.CenterY, 2));
-
-                    if (isFirstDraw)
-                        label.CompleteTransition(
-                            BaseLabelGeometry.TextSizeProperty,
-                            BaseLabelGeometry.XProperty,
-                            BaseLabelGeometry.YProperty,
-                            BaseLabelGeometry.RotateTransformProperty);
-
-                    var labelPosition = GetLabelPolarPosition(
-                        scaler.CenterX, scaler.CenterY, (float)rad, scaler.GetAngle(coordinate.SecondaryValue),
-                        label.Measure(), (float)GeometrySize, DataLabelsPosition);
-
-                    label.X = labelPosition.X;
-                    label.Y = labelPosition.Y;
-                }
+                MeasureDataLabel(data.TargetPoint, cp, in ctx);
 
                 OnPointMeasured(data.TargetPoint);
             }
@@ -445,44 +529,26 @@ public abstract class CorePolarLineSeries<TModel, TVisual, TLabel, TPathGeometry
             if (GeometryFill is not null && GeometryFill != Paint.Default)
             {
                 polarChart.Canvas.AddDrawableTask(GeometryFill, zone: CanvasZone.DrawMargin);
-                GeometryFill.ZIndex = actualZIndex + PaintConstants.SeriesGeometryFillZIndexOffset;
+                GeometryFill.ZIndex = ctx.ActualZIndex + PaintConstants.SeriesGeometryFillZIndexOffset;
             }
             if (GeometryStroke is not null && GeometryStroke != Paint.Default)
             {
                 polarChart.Canvas.AddDrawableTask(GeometryStroke, zone: CanvasZone.DrawMargin);
-                GeometryStroke.ZIndex = actualZIndex + PaintConstants.SeriesGeometryStrokeZIndexOffset;
+                GeometryStroke.ZIndex = ctx.ActualZIndex + PaintConstants.SeriesGeometryStrokeZIndexOffset;
             }
 
             if (!isSegmentEmpty) segmentI++;
+
+            fillVector?.TrimTail();
+            strokeVector?.TrimTail();
         }
 
-        var maxSegment = fillPathHelperContainer.Count > strokePathHelperContainer.Count
-            ? fillPathHelperContainer.Count
-            : strokePathHelperContainer.Count;
-
-        for (var i = maxSegment - 1; i >= segmentI; i--)
-        {
-            if (i < fillPathHelperContainer.Count)
-            {
-                var segmentFill = fillPathHelperContainer[i];
-                Fill?.RemoveGeometryFromPaintTask(polarChart.Canvas, segmentFill);
-                segmentFill.Commands.Clear();
-                fillPathHelperContainer.RemoveAt(i);
-            }
-
-            if (i < strokePathHelperContainer.Count)
-            {
-                var segmentStroke = strokePathHelperContainer[i];
-                Stroke?.RemoveGeometryFromPaintTask(polarChart.Canvas, segmentStroke);
-                segmentStroke.Commands.Clear();
-                strokePathHelperContainer.RemoveAt(i);
-            }
-        }
+        CleanupOrphanSegmentPaths(segmentI, fillPathHelperContainer, strokePathHelperContainer, polarChart);
 
         if (ShowDataLabels && DataLabelsPaint is not null && DataLabelsPaint != Paint.Default)
         {
             polarChart.Canvas.AddDrawableTask(DataLabelsPaint, zone: CanvasZone.DrawMargin);
-            DataLabelsPaint.ZIndex = actualZIndex + PaintConstants.SeriesDataLabelsZIndexOffset;
+            DataLabelsPaint.ZIndex = ctx.ActualZIndex + PaintConstants.SeriesDataLabelsZIndexOffset;
         }
 
         pointsCleanup.CollectPoints(
@@ -653,6 +719,9 @@ public abstract class CorePolarLineSeries<TModel, TVisual, TLabel, TPathGeometry
 
         LvcPoint previous, current, next, next2;
 
+        // Reused BezierData — see CoreLineSeries.GetSpline for the contract.
+        BezierData? data = null;
+
         for (var i = 0; i < points.Length; i++)
         {
             var isClosed = IsClosed && points.Length > 2;
@@ -682,10 +751,10 @@ public abstract class CorePolarLineSeries<TModel, TVisual, TLabel, TPathGeometry
 
             if (stacker is not null)
             {
-                pys = scaler.ToPixels(0, stacker.GetStack(p0).Start).Y;
-                cys = scaler.ToPixels(0, stacker.GetStack(p1).Start).Y;
-                nys = scaler.ToPixels(0, stacker.GetStack(p2).Start).Y;
-                nnys = scaler.ToPixels(0, stacker.GetStack(p3).Start).Y;
+                pys = scaler.ToPixels(0, stacker.GetStack(p0).CumulativeStart).Y;
+                cys = scaler.ToPixels(0, stacker.GetStack(p1).CumulativeStart).Y;
+                nys = scaler.ToPixels(0, stacker.GetStack(p2).CumulativeStart).Y;
+                nnys = scaler.ToPixels(0, stacker.GetStack(p3).CumulativeStart).Y;
             }
 
             var xc1 = (previous.X + current.X) / 2.0f;
@@ -737,15 +806,16 @@ public abstract class CorePolarLineSeries<TModel, TVisual, TLabel, TPathGeometry
                 y0 = c1Y;
             }
 
-            yield return new BezierData(points[i])
-            {
-                X0 = x0,
-                Y0 = y0,
-                X1 = c2X,
-                Y1 = c2Y,
-                X2 = next.X,
-                Y2 = next.Y
-            };
+            data ??= new BezierData(points[i]);
+            data.TargetPoint = points[i];
+            data.X0 = x0;
+            data.Y0 = y0;
+            data.X1 = c2X;
+            data.Y1 = c2Y;
+            data.X2 = next.X;
+            data.Y2 = next.Y;
+
+            yield return data;
         }
     }
     /// <inheritdoc cref="Series{TModel, TVisual, TLabel}.SetDefaultPointTransitions(ChartPoint)"/>
@@ -756,8 +826,10 @@ public abstract class CorePolarLineSeries<TModel, TVisual, TLabel, TPathGeometry
         if (chartPoint.Context.AdditionalVisuals is not CubicSegmentVisualPoint visual)
             throw new Exception("Unable to initialize the point instance.");
 
-        visual.Geometry.Animate(EasingFunction ?? chart.CoreChart.ActualEasingFunction, AnimationsSpeed ?? chart.CoreChart.ActualAnimationsSpeed);
-        visual.Segment.Animate(EasingFunction ?? chart.CoreChart.ActualEasingFunction, AnimationsSpeed ?? chart.CoreChart.ActualAnimationsSpeed);
+        var animation = GetAnimation(chart.CoreChart);
+
+        visual.Geometry.Animate(animation);
+        visual.Segment.Animate(animation);
     }
 
     /// <summary>

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="MauiSample.Test.NullContext.View"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Maui;assembly=LiveChartsCore.SkiaSharpView.Maui"
+    xmlns:vms="clr-namespace:ViewModelsSamples.Test.NullContext;assembly=ViewModelsSamples"
+    x:DataType="vms:ViewModel">
+
+    <ContentPage.BindingContext>
+        <vms:ViewModel/>
+    </ContentPage.BindingContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <lvc:CartesianChart
+            Grid.Row="0"
+            x:Name="CartesianChart"
+            x:FieldModifier="public"
+            LegendTextPaint="{Binding LegendTextPaint}"
+            LegendBackgroundPaint="{Binding LegendBgPaint}"
+            TooltipTextPaint="{Binding TooltipTextPaint}"
+            TooltipBackgroundPaint="{Binding TooltipBgPaint}">
+            <lvc:CartesianChart.Series>
+                <lvc:SeriesCollection>
+                    <lvc:XamlLineSeries Values="{Binding Values}"/>
+                </lvc:SeriesCollection>
+            </lvc:CartesianChart.Series>
+        </lvc:CartesianChart>
+
+        <lvc:PieChart
+             Grid.Row="1"
+             x:Name="PieChart"
+             x:FieldModifier="public"
+             LegendTextPaint="{Binding LegendTextPaint}"
+             LegendBackgroundPaint="{Binding LegendBgPaint}"
+             TooltipTextPaint="{Binding TooltipTextPaint}"
+             TooltipBackgroundPaint="{Binding TooltipBgPaint}">
+            <lvc:PieChart.Series>
+                <lvc:SeriesCollection>
+                    <lvc:XamlPieSeries Values="{Binding Values}"/>
+                </lvc:SeriesCollection>
+            </lvc:PieChart.Series>
+        </lvc:PieChart>
+
+        <lvc:PolarChart
+             Grid.Row="2"
+             x:Name="PolarChart"
+             x:FieldModifier="public"
+             LegendTextPaint="{Binding LegendTextPaint}"
+             LegendBackgroundPaint="{Binding LegendBgPaint}"
+             TooltipTextPaint="{Binding TooltipTextPaint}"
+             TooltipBackgroundPaint="{Binding TooltipBgPaint}">
+            <lvc:PolarChart.Series>
+                <lvc:SeriesCollection>
+                    <lvc:XamlPolarLineSeries Values="{Binding Values}"/>
+                </lvc:SeriesCollection>
+            </lvc:PolarChart.Series>
+        </lvc:PolarChart>
+    </Grid>
+    
+</ContentPage>

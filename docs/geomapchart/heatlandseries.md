@@ -1,13 +1,24 @@
-<div id="edit-this-article-source">
-    {{ edit_source | replace_local_to_server}}
-</div>
+<!--
+To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/master/docs/readme.md
+-->
 
 # HeatLand series
 
 The `HeatLandSeries` creates a heat map in the `GeoMap` control, it helps to assign a numeric value to a region (country, state, continent, ... depends on the map)
 then based on the gradient a color will be assigned to each region, colors are interpolated lineally based on the data scale in the series.
 
-![image]({{ assets_url }}/docs/_assets/geomaphs.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/geomaphs.png)
+
+:::info
+**A note on disputed boundaries.** Maps reflect the borders encoded in
+the underlying GeoJSON file — there are real disagreements about
+Crimea, Taiwan, Western Sahara, Kashmir, and other regions, and no
+single GeoJSON satisfies every audience. LiveCharts2 doesn't take a
+position; it just renders the GeoJSON you give it. If the borders
+shown don't match what you need, load a different GeoJSON — see the
+[CustomMap sample]({{ website_url }}/docs/{{ platform }}/{{ version }}/samples.maps.customMap)
+for the loader recipe.
+:::
 
 {{~ if xaml ~}}
 ```csharp
@@ -110,14 +121,14 @@ geoMap1.Series = new HeatLandSeries[]
 
 ## HeatMap property
 
-This property defines the gradient colors, it is an array of [`LvcColor`]({{ website_url }}/api/{{ version }}/LiveChartsCore.Drawing.LvcColor) 
-where the first element in the array is the the smallest or coldest and the last item in the array  is the greatest or hottest, 
-any value between the chart limits will be interpolated lineally to create a new color, you can add as many colors as you need 
+This property defines the gradient colors. It is an array of [`LvcColor`]({{ website_url }}/api/{{ version }}/LiveChartsCore.Drawing.LvcColor) 
+where the first element in the array is the smallest or coldest and the last item in the array is the greatest or hottest. 
+Any value between the chart limits will be interpolated linearly to create a new color. You can add as many colors as you need 
 to define the gradient.
 
 When this property is not specified, then it is assigned automatically based on the theme of the library.
 
-![image]({{ assets_url }}/docs/_assets/geo-heatmap.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/geo-heatmap.png)
 
 {{~ if xaml ~}}
 ```csharp
@@ -276,7 +287,7 @@ namespace ViewModelsSamples.Maps.World
 <GeoMap Series="series"></GeoMap>
 
 @code {
-    private HeatLandSeries[] series= new HeatLandSeries[]
+    private HeatLandSeries[] series = new HeatLandSeries[]
     {
         new HeatLandSeries
         {
@@ -323,7 +334,7 @@ geoMap1.Series = new HeatLandSeries[]
 ```
 {{~ end ~}}
 
-![image]({{ assets_url }}/docs/_assets/heatcs.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/heatcs.png)
 
 :::info
 For simplicity the image above shows the cartesian heat series, just to explain the property better.

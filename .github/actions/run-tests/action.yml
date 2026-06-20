@@ -1,0 +1,207 @@
+name: "Run tests"
+description: "Runs the specified tests using ui or core tests"
+inputs:
+  test-type:
+    description: 'The type of tests to run (factos, factos-android, factos-ios, core, snapshot or console)'
+    required: true
+  id:
+    description: "Identifier for the test target"
+    required: true
+  livecharts-suffix:
+    description: 'The suffix to add to the LiveCharts version'
+    required: true
+  test-id:
+    description: 'The test id to select for factos'
+    required: false
+    default: ""
+  target-framework:
+    description: 'The target framework to use'
+    required: false
+    default: ""
+  workloads:
+    description: 'The workloads array to install'
+    required: false
+    default: ""
+  xcode-path:
+    description: 'The Xcode path to select'
+    required: false
+runs:
+  using: "composite"
+  steps:
+    - name: Select Xcode version
+      shell: pwsh
+      if: ${{ inputs.xcode-path }}
+      run: sudo xcode-select -s ${{ inputs.xcode-path }}
+
+    - name: List Simulators
+      shell: pwsh
+      if : ${{ inputs.test-type == 'factos-ios' }}
+      run: xcrun simctl list devicetypes
+
+    - name: Setup .NET and Workloads
+      uses: ./.github/actions/setup-dotnet-and-workloads
+      with:
+        workloads: ${{ inputs.workloads }}
+
+    - name: Install Coverage Tools
+      if: ${{ inputs.test-type == 'core' || inputs.test-type == 'snapshot' }}
+      shell: pwsh
+      run:
+        dotnet tool install -g dotnet-coverage
+
+    - name: Download local packages
+      if: ${{ inputs.test-type == 'factos' || inputs.test-type == 'factos-android' || inputs.test-type == 'factos-ios' }}
+      uses: actions/download-artifact@v7.0.0
+      with:
+        path: ./artifacts
+        pattern: "*-package"
+
+    - name: Configure NuGet sources 
+      if: ${{ inputs.test-type == 'factos' || inputs.test-type == 'factos-android' || inputs.test-type == 'factos-ios' }}
+      shell: pwsh
+      run:
+        dotnet nuget add source ${{ github.workspace }}/artifacts --name local
+
+    # run tests using the factos selection and the console when no emulator is needed
+    - name: Run UI tests
+      uses: nick-fields/retry@v3.0.2
+      if : ${{ inputs.test-type == 'factos' }}
+      with:
+        timeout_minutes: 15
+        max_attempts: 3
+        shell: pwsh
+        command: dotnet run --project tests/UITests -c Release --report-trx --report-trx-filename results.trx --no-progress --select ${{ inputs.test-id }} --test-env tf=${{ inputs.target-framework }} lvcversionsuffix=-${{ inputs.livecharts-suffix }}
+
+    # run tests using the factos selection inside the android emulator
+    - name: Enable KVM
+      if : ${{ inputs.test-type == 'factos-android' }}
+      shell: pwsh
+      run: |
+        echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+        sudo udevadm control --reload-rules
+        sudo udevadm trigger --name-match=kvm
+    - name: Create Test Script
+      if : ${{ inputs.test-type == 'factos-android' }}
+      shell: bash
+      run: |
+        cat << 'EOF' > run_tests.sh
+        # reactivecircus/android-emulator-runner spawns a subshell that drops
+        # DOTNET_HOST_PATH set by setup-dotnet; SDK 10.0.300 ILLink hard-fails
+        # _ComputeManagedAssemblies (MSB4221) without it.
+        export DOTNET_HOST_PATH="$(command -v dotnet)"
+        n=0
+        while [ $n -lt 3 ]; do
+          echo "Starting Attempt $((n+1))..."
+          timeout 15m dotnet run --project tests/UITests -c Release --report-trx --no-progress --select ${{ inputs.test-id }} --test-env tf=${{ inputs.target-framework }} lvcversionsuffix=-${{ inputs.livecharts-suffix }}
+          if [ $? -eq 0 ]; then exit 0; fi
+          n=$((n+1))
+          sleep 10
+        done
+        exit 1
+        EOF
+        chmod +x run_tests.sh
+    - name: Start Android emulator and run tests
+      if : ${{ inputs.test-type == 'factos-android' }}
+      uses: reactivecircus/android-emulator-runner@v2.35.0
+      with:
+        api-level: 35
+        target: google_apis
+        arch: x86_64
+        script: ./run_tests.sh
+
+    # run tests using the factos selection with ios target
+    - name: Launch iOS Simulator
+      id: launch_ios_simulator
+      if : ${{ inputs.test-type == 'factos-ios' }}
+      uses: futureware-tech/simulator-action@v5
+      with:
+        model: 'iPhone 16e'
+        wait_for_boot: true
+    - name: Verify Simulator Readiness
+      shell: bash
+      if: ${{ inputs.test-type == 'factos-ios' }}
+      run: |
+        # Force wait until the simulator status is exactly "Booted"
+        # This prevents the "Shutdown" error you encountered
+        ID="${{ steps.launch_ios_simulator.outputs.udid }}"
+        echo "Waiting for simulator $ID to fully boot..."
+        until xcrun simctl list devices | grep "$ID" | grep -q "Booted"; do
+          sleep 5
+        done
+        # Extra 5s buffer for the 'installd' daemon to wake up
+        sleep 5
+    - name: Run UI tests
+      uses: nick-fields/retry@v3.0.2
+      if : ${{ inputs.test-type == 'factos-ios' }}
+      with:
+        timeout_minutes: 15
+        max_attempts: 3
+        shell: bash
+        command: |
+          dotnet run --project tests/UITests -c Release --report-trx --report-trx-filename results.trx --no-progress --select ${{ inputs.test-id }} --test-env tf=${{ inputs.target-framework }} lvcversionsuffix=-${{ inputs.livecharts-suffix }} device=:v2:udid=${{ steps.launch_ios_simulator.outputs.udid }}
+
+    - name: Run core tests
+      uses: nick-fields/retry@v3.0.2
+      if : ${{ inputs.test-type == 'core' }}
+      with:
+        timeout_minutes: 8
+        max_attempts: 3
+        shell: pwsh
+        command: dotnet-coverage collect "dotnet run --project tests/CoreTests/CoreTests.csproj -c Debug -f ${{ inputs.target-framework }} --report-trx" -o core-${{ inputs.target-framework }}.coverage
+
+    - name: Run snapshot tests
+      uses: nick-fields/retry@v3.0.2
+      if : ${{ inputs.test-type == 'snapshot' }}
+      with:
+        timeout_minutes: 8
+        max_attempts: 3
+        shell: pwsh
+        command: dotnet-coverage collect "dotnet run --project tests/SnapshotTests/SnapshotTests.csproj -c Release --report-trx" -o snapshot.coverage
+
+    # NOTE: not wrapping in `dotnet-coverage collect` like core/snapshot do — for some
+    # reason the parent `Install Coverage Tools` step runs for test-snapshot but gets
+    # silently skipped for test-console (same composite action, same commit), so the
+    # `dotnet-coverage` binary isn't on PATH and the run fails. Dropping coverage
+    # collection here unblocks CI; revisit when the runner-side oddity is understood.
+    - name: Run console tests
+      uses: nick-fields/retry@v3.0.2
+      if : ${{ inputs.test-type == 'console' }}
+      with:
+        timeout_minutes: 8
+        max_attempts: 3
+        shell: pwsh
+        command: dotnet run --project tests/ConsoleTests/ConsoleTests.csproj -c Debug -f ${{ inputs.target-framework }} --report-trx
+
+    - name: Upload snapshot diffs
+      if: failure() && inputs.test-type == 'snapshot'
+      uses: actions/upload-artifact@v6.0.0
+      with:
+        name: snapshot-diffs
+        path: tests/SnapshotTests/bin/Release/net10.0/SnapshotsDiff/**/*
+        overwrite: true
+    - name: Upload new snapshots
+      if: failure() && inputs.test-type == 'snapshot'
+      uses: actions/upload-artifact@v6.0.0
+      with:
+        name: snapshots-new
+        path: tests/SnapshotTests/bin/Release/net10.0/SnapshotsNew/**/*
+        overwrite: true
+
+    - name: Upload coverage results
+      if: ${{ inputs.test-type == 'core' || inputs.test-type == 'snapshot' }}
+      uses: actions/upload-artifact@v6.0.0
+      with:
+        name: coverage-${{ inputs.test-type }}-${{ inputs.target-framework }}
+        path: "**/*.coverage"
+        overwrite: true
+
+    # Suffix with run_attempt so re-runs upload to a fresh artifact instead of
+    # racing the previous attempt's blob during overwrite finalization. The
+    # PR Comment workflow looks up the matching attempt via workflow_run.run_attempt.
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v6.0.0
+      with:
+        name: test-results-${{ inputs.test-id }}-${{ github.job }}-${{ inputs.target-framework }}-attempt-${{ github.run_attempt }}
+        retention-days: 30
+        path: "**/*.trx"

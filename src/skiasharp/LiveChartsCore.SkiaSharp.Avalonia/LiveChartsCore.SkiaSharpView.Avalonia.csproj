@@ -1,47 +1,30 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <LangVersion>$(GlobalLangVersion)</LangVersion>
-    <Nullable>enable</Nullable>
 
-    <TargetFrameworks>netstandard2.0;netstandard2.1;net6.0;net8.0;</TargetFrameworks>
+    <TargetFrameworks>
+      net8.0;
+      net10.0;
+    </TargetFrameworks>
 
     <AssemblyName>LiveChartsCore.SkiaSharpView.Avalonia</AssemblyName>
     <RootNamespace>LiveChartsCore.SkiaSharpView.Avalonia</RootNamespace>
-    <Import_RootNamespace>$(RootNamespace)</Import_RootNamespace>
-    <Version>$(LiveChartsVersion)</Version>
-    <PackageIcon>icon.png</PackageIcon>
-    <Description>Simple, flexible, interactive and powerful data visualization for AvaloniaUI.</Description>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Authors>$(LiveChartsAuthors)</Authors>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <RepositoryUrl>https://github.com/beto-rodriguez/LiveCharts2</RepositoryUrl>
-
-    <!-- not sure who does not work for avalonia -->
-    <!--<Deterministic>true</Deterministic>
-    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <DebugType>embedded</DebugType>-->
+    <PathToPackAssets>../../../</PathToPackAssets>
   </PropertyGroup>
 
-  <Import Project="..\_Shared\_Shared.projitems" Label="Shared" />
-  <Import Project="..\_Shared.Xaml\_Shared.Xaml.projitems" Label="Shared" />
+  <Import Project="../../../nuget.props" />
+  <PropertyGroup>
+    <Description>
+      $(Description) This package includes all the required code and dependencies for rendering charts in AvaloniaUI with SkiaSharp.
+    </Description>
+  </PropertyGroup>
+  
+  <Import Project="../../../build/SharedLinks.Build.props" />
+  <Import Project="../../../build/XamlSharedLinks.Build.props" />
 
   <PropertyGroup>
     <DefineConstants>$(DefineConstants);AVALONIA_LVC;XAML_LVC</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <CheckEolTargetFramework>false</CheckEolTargetFramework>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
-    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -49,30 +32,19 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="11.0.0" />
-    <PackageReference Include="Avalonia.Skia" Version="11.0.0" />
-    <!--<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All"/>-->
+    <PackageReference Include="Avalonia" Version="12.0.0" />
+    <PackageReference Include="Avalonia.Skia" Version="12.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\LiveChartsCore.SkiaSharp\LiveChartsCore.SkiaSharpView.csproj" />
+    <ProjectReference Include="../LiveChartsCore.SkiaSharp/LiveChartsCore.SkiaSharpView.csproj" />
   </ItemGroup>
 
-  <ItemGroup Condition="$(UseNuGetForGenerator)">
-    <PackageReference Include="LiveChartsGenerators" Version="$(LiveChartsCodeGenVersion)">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>analyzers</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup Condition="!$(UseNuGetForGenerator)">
-    <ProjectReference Include="..\..\..\generators\LiveChartsGenerators\LiveChartsGenerators.csproj">
+  <ItemGroup>
+    <ProjectReference Include="../../../generators/LiveChartsGenerators/LiveChartsGenerators.csproj">
       <OutputItemType>Analyzer</OutputItemType>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>
-
-  <ItemGroup>
-    <None Include="images\icon.png" Pack="true" PackagePath="\" />
-  </ItemGroup>
+  
 </Project>

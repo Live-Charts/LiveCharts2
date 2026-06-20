@@ -1,36 +1,38 @@
-﻿using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using CommunityToolkit.Mvvm.ComponentModel;
-using LiveChartsCore;
-using LiveChartsCore.SkiaSharpView;
+﻿using LiveChartsCore.Defaults;
 
 namespace ViewModelsSamples.VisualTest.DataTemplate;
 
-
-public partial class ViewModel : ObservableObject
+public class DepartmentInfo
 {
-    public IEnumerable<IEnumerable<ISeries>> Models { get; set; } = new List<IEnumerable<ISeries>>
-    {
-        new ObservableCollection<ISeries>
+    public string DepartmentName { get; set; } = string.Empty;
+    public ChartData[] Data { get; set; } = [];
+}
+
+public class ChartData(string name, ObservableValue[] points)
+{
+    public string SeriesName { get; set; } = name;
+    public ObservableValue[] Values { get; set; } = points;
+}
+
+public partial class ViewModel
+{
+    public DepartmentInfo[] Departments { get; set; } = [
+        new DepartmentInfo
         {
-            new LineSeries<double>
-            {
-                Values = new ObservableCollection<double> { 2, 5, 4, -2, 4, -3, 5 }
-            }
+            DepartmentName = "Sales",
+            Data = [
+                new("Juana",        [ new(2), new(5), new(4) ]),
+                new("Pedro",        [ new(5), new(4), new(1) ])
+            ]
         },
-        new ObservableCollection<ISeries>
+        new DepartmentInfo
         {
-            new LineSeries<double>
-            {
-                Values = new ObservableCollection<double> { 2, 5, 4, -2, 4, -3, 5 }
-            }
-        },
-        new ObservableCollection<ISeries>
-        {
-            new LineSeries<double>
-            {
-                Values = new ObservableCollection<double> { 2, 5, 4, -2, 4, -3, 5 }
-            }
+            DepartmentName = "Marketing",
+            Data = [
+                new("Charles",      [ new(3), new(6), new(2) ]),
+                new("Margarita",    [ new(4), new(2), new(5) ]),
+                new("Ana",          [ new(5), new(7), new(3) ])
+            ]
         }
-    };
+    ];
 }

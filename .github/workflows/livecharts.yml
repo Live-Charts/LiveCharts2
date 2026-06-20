@@ -1,0 +1,461 @@
+name: LiveCharts
+permissions:
+  contents: read
+  actions: read
+
+on:
+  push:
+    branches:
+      - master
+    paths: &code-paths
+      - 'src/**'
+      - 'tests/**'
+      - 'samples/**'
+      - 'generators/**'
+      - 'build/**'
+      - 'Directory.Build.props'
+      - 'nuget.props'
+      - 'global.json'
+      - '**/*.slnx'
+      - 'LiveCharts.snk'
+      - '.editorconfig'
+  pull_request:
+    paths: *code-paths
+  workflow_dispatch:
+
+# Group runs by PR (or by branch on push) so a new commit cancels the in-progress
+# run for the same PR. Master pushes are NOT cancelled — every master build must
+# finish so the coverage badge and release-suffix sequence stay continuous.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      suffix: ${{ steps.vars.outputs.suffix }}
+    steps:
+      - id: vars
+        run:
+          echo "suffix=dev-${{ github.run_number }}" >> $GITHUB_OUTPUT
+
+  pack:
+    runs-on: windows-2025
+    needs: [prepare]
+    strategy:
+      matrix:
+        include:
+          - short-name: core
+            project: src/LiveChartsCore
+          - short-name: skiasharp
+            project: src/skiasharp/LiveChartsCore.SkiaSharp
+          - short-name: avalonia-skiasharp
+            project: src/skiasharp/LiveChartsCore.SkiaSharp.Avalonia
+            workloads: wasm-tools, maui
+          - short-name: blazor-skiasharp
+            project: src/skiasharp/LiveChartsCore.SkiaSharpView.Blazor
+          - short-name: eto-skiasharp
+            project: src/skiasharp/LiveChartsCore.SkiaSharpView.Eto
+          - short-name: maui-skiasharp
+            project: src/skiasharp/LiveChartsCore.SkiaSharpView.Maui
+            workloads: maui
+          - short-name: uno-skiasharp
+            project: src/skiasharp/LiveChartsCore.SkiaSharpView.Uno.WinUI
+            workloads: wasm-tools, maui
+          - short-name: winui-skiasharp
+            project: src/skiasharp/LiveChartsCore.SkiaSharpView.WinUI
+          - short-name: winforms-skiasharp
+            project: src/skiasharp/LiveChartsCore.SkiaSharp.WinForms
+          - short-name: wpf-skiasharp
+            project: src/skiasharp/LiveChartsCore.SkiaSharp.WPF
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.1
+
+      - name: Setup .NET and Workloads
+        uses: ./.github/actions/setup-dotnet-and-workloads
+        with:
+          workloads: ${{ matrix.workloads }}
+
+      - name: Pack
+        run:
+          dotnet pack ${{ matrix.project }} -c Release -o artifacts /p:IsPacking=true /p:LiveChartsVersionSuffix=-${{ needs.prepare.outputs.suffix }}
+
+      - name: Upload packages
+        id: upload
+        uses: actions/upload-artifact@v6.0.0
+        with:
+          name: ${{ matrix.short-name }}-package
+          retention-days: 30
+          path: |
+            artifacts/*.nupkg
+            artifacts/*.snupkg
+
+  collect-packages:
+    runs-on: ubuntu-24.04
+    needs: [pack]
+    steps:
+      - name: Merge all package artifacts into one
+        uses: actions/upload-artifact/merge@v6
+        id: merge
+        with:
+          name: nuget-packages
+          pattern: "*-package"
+          retention-days: 30
+
+  # ============================================================
+  # Section 1: Core & Snapshot Tests (no pack dependency needed)
+  # ============================================================
+
+  test-core:
+    runs-on: windows-2025
+    needs: [prepare]
+    strategy:
+      fail-fast: false
+      matrix:
+        framework: [ net8.0, net462 ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.1
+
+      - name: Run tests
+        uses: ./.github/actions/run-tests
+        with:
+          id: core
+          test-id: core-${{ matrix.framework }}
+          livecharts-suffix: ${{ needs.prepare.outputs.suffix }}
+          test-type: core
+          target-framework: ${{ matrix.framework }}
+
+  test-snapshot:
+    runs-on: windows-2025
+    needs: [prepare]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.1
+
+      - name: Run tests
+        uses: ./.github/actions/run-tests
+        with:
+          id: snapshot
+          test-id: snapshot
+          livecharts-suffix: ${{ needs.prepare.outputs.suffix }}
+          test-type: snapshot
+
+  test-console:
+    runs-on: windows-2025
+    needs: [prepare]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.1
+
+      - name: Run tests
+        uses: ./.github/actions/run-tests
+        with:
+          id: console
+          test-id: console-net8.0
+          livecharts-suffix: ${{ needs.prepare.outputs.suffix }}
+          test-type: console
+          target-framework: net8.0
+
+  report-code-coverage:
+    runs-on: ubuntu-24.04
+    if: ${{ needs.test-core.result == 'success' && needs.test-snapshot.result == 'success' && needs.test-console.result == 'success' }}
+    needs: [test-core, test-snapshot, test-console]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.1
+
+      - name: Download coverage results
+        uses: actions/download-artifact@v7.0.0
+        with:
+          path: ./artifacts
+          pattern: coverage-*
+          merge-multiple: true
+
+      - name: Install coverage tools
+        run: |
+          dotnet tool install -g dotnet-coverage
+          dotnet tool install -g dotnet-reportgenerator-globaltool
+
+      - name: Merge coverage results
+        run: dotnet-coverage merge ./artifacts/*.coverage -f xml -o coverage.xml
+
+      - name : Generate Badge
+        run: reportgenerator -reports:coverage.xml -targetdir:badge-out -reporttypes:HtmlSummary,Badges,JsonSummary -filters:"-ViewModelsSamples*;-CommunityToolkit*;-Analyzer*;-MSTest*;-SnapshotTests*;-CoreTests*;-ConsoleTests*"
+
+      - name: Get previous coverage from badges branch
+        id: old-coverage
+        run: |
+          git fetch origin badges:refs/remotes/origin/badges 2>/dev/null || true
+
+          OLD_COVERAGE=$(git show origin/badges:badge_linecoverage.svg 2>/dev/null \
+            | grep -oP '>\K[0-9]+\.?[0-9]*%' | head -1 || echo "N/A")
+
+          echo "value=${OLD_COVERAGE}" >> $GITHUB_OUTPUT
+
+          git show origin/badges:Summary.json > old-summary.json 2>/dev/null || echo "{}" > old-summary.json
+
+      - name: Get new coverage from generated badge
+        id: new-coverage
+        run: |
+          NEW_COVERAGE=$(grep -oP '>\K[0-9]+\.?[0-9]*%' badge-out/badge_linecoverage.svg | head -1 || echo "N/A")
+          echo "value=${NEW_COVERAGE}" >> $GITHUB_OUTPUT
+
+      - name: Compute coverage delta
+        id: delta
+        run: |
+          OLD="${{ steps.old-coverage.outputs.value }}"
+          NEW="${{ steps.new-coverage.outputs.value }}"
+
+          if [[ "$OLD" == "N/A" || "$NEW" == "N/A" ]]; then
+            echo "value=N/A" >> $GITHUB_OUTPUT
+            echo "emoji=📊" >> $GITHUB_OUTPUT
+          else
+            OLD_NUM=$(echo "$OLD" | tr -d '%')
+            NEW_NUM=$(echo "$NEW" | tr -d '%')
+            DELTA=$(echo "$NEW_NUM - $OLD_NUM" | bc)
+
+            if (( $(echo "$DELTA > 0" | bc -l) )); then
+              echo "value=+${DELTA}%" >> $GITHUB_OUTPUT
+              echo "emoji=📈" >> $GITHUB_OUTPUT
+            elif (( $(echo "$DELTA < 0" | bc -l) )); then
+              echo "value=${DELTA}%" >> $GITHUB_OUTPUT
+              echo "emoji=📉" >> $GITHUB_OUTPUT
+            else
+              echo "value=0%" >> $GITHUB_OUTPUT
+              echo "emoji=➡️" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+      - name: Deploy Badge to Branch
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: peaceiris/actions-gh-pages@v4.0.0
+        with:
+          github_token: ${{ secrets.GH_TOKEN }}
+          publish_dir: ./badge-out
+          publish_branch: badges
+
+      - name: Write coverage summary for PR comment
+        if: github.event_name == 'pull_request'
+        run: |
+          mkdir -p coverage-summary
+          cat > coverage-summary/coverage-summary.json << EOF
+          {
+            "old": "${{ steps.old-coverage.outputs.value }}",
+            "new": "${{ steps.new-coverage.outputs.value }}",
+            "delta": "${{ steps.delta.outputs.value }}",
+            "emoji": "${{ steps.delta.outputs.emoji }}"
+          }
+          EOF
+          cp badge-out/Summary.json coverage-summary/classes-new.json 2>/dev/null || echo "{}" > coverage-summary/classes-new.json
+          cp old-summary.json coverage-summary/classes-old.json
+
+      - name: Upload coverage summary
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v6.0.0
+        with:
+          name: coverage-summary
+          path: coverage-summary/
+          retention-days: 1
+
+  # ============================================================
+  # Section 2: UI Tests (require NuGet packages from pack job)
+  # ============================================================
+
+  test-windows:
+    runs-on: windows-2025
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: avalonia-desktop
+          - id: eto
+          - id: maui
+            tf: net10.0-windows10.0.19041.0
+            workloads: maui
+          - id: uno
+            tf: net10.0-desktop
+            workloads: maui
+          - id: uno
+            tf: net10.0-windows10.0.19041.0
+            workloads: maui
+          - id: winui
+          - id: winforms-net10
+          - id: winforms-net10w19041
+          - id: winforms-net462
+          - id: wpf-net10
+          - id: wpf-net10w19041
+          - id: wpf-net462
+
+    needs: [pack, prepare]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.1
+
+      - name: Run UI tests
+        uses: ./.github/actions/run-tests
+        with:
+          id: windows
+          test-type: factos
+          test-id: ${{ matrix.id }}
+          livecharts-suffix: ${{ needs.prepare.outputs.suffix }}
+          workloads: ${{ matrix.workloads }}
+          target-framework: ${{ matrix.tf }}
+
+  test-linux:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: avalonia-desktop
+          # - id: eto, requires additional setup i think...
+          - id: uno
+            tf: net10.0-desktop
+            workloads: android
+    needs: [pack, prepare]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.1
+
+      - name: Setup headless display
+        uses: pyvista/setup-headless-display-action@v4.2
+
+      - name: Run UI tests
+        uses: ./.github/actions/run-tests
+        with:
+          id: linux
+          test-type: factos
+          test-id: ${{ matrix.id }}
+          livecharts-suffix: ${{ needs.prepare.outputs.suffix }}
+          workloads: ${{ matrix.workloads }}
+          target-framework: ${{ matrix.tf }}
+
+  test-mac:
+    runs-on: macos-26
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: avalonia-desktop
+          - id: eto
+          - id: maui
+            tf: net10.0-maccatalyst
+            workloads: maui
+          - id: uno
+            tf: net10.0-desktop
+            workloads: maui
+    needs: [pack, prepare]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.1
+
+      - name: Run UI tests
+        uses: ./.github/actions/run-tests
+        with:
+          id: mac
+          test-type: factos
+          test-id: ${{ matrix.id }}
+          livecharts-suffix: ${{ needs.prepare.outputs.suffix }}
+          workloads: ${{ matrix.workloads }}
+          target-framework: ${{ matrix.tf }}
+          xcode-path: /Applications/Xcode_26.2.app
+
+  test-browser:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: blazor
+            workloads: wasm-tools
+          - id: avalonia-browser
+            workloads: wasm-tools
+          # uno-browser (not the plain `uno` uid): browserwasm needs the
+          # HeadlessChrome app host — the Auto host only starts the dev server
+          # and nothing ever loads the page, so the run idles to the connection
+          # timeout. See tests/UITests/Program.cs.
+          - id: uno-browser
+            tf: net10.0-browserwasm
+            workloads: wasm-tools android
+          # same app on Uno's NATIVE renderer — the #2020/#2333 scenario.
+          - id: uno-browser-native
+            tf: net10.0-browserwasm
+            workloads: wasm-tools android
+    needs: [pack, prepare]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.1
+
+      - name: Run UI tests
+        uses: ./.github/actions/run-tests
+        with:
+          id: browser
+          test-type: factos
+          test-id: ${{ matrix.id }}
+          livecharts-suffix: ${{ needs.prepare.outputs.suffix }}
+          workloads: ${{ matrix.workloads }}
+          target-framework: ${{ matrix.tf }}
+
+  test-android:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: avalonia-android
+            workloads: android
+          - id: maui
+            tf: net10.0-android
+            workloads: maui-android
+          - id: uno
+            tf: net10.0-android
+            workloads: android
+    needs: [pack, prepare]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.1
+
+      - name: Run UI tests
+        uses: ./.github/actions/run-tests
+        with:
+          id: android
+          test-type: factos-android
+          test-id: ${{ matrix.id }}
+          livecharts-suffix: ${{ needs.prepare.outputs.suffix }}
+          workloads: ${{ matrix.workloads }}
+          target-framework: ${{ matrix.tf }}
+
+  test-ios:
+    runs-on: macos-26
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: avalonia-ios
+            workloads: ios
+          - id: maui-ios
+            tf: net10.0-ios
+            workloads: maui
+          # disabled for now, in this uno version, it takes 3 times longer than the others (about 40 mins)
+          # - id: uno
+          #   tf: net10.0-ios
+          #   workloads: ios android
+    needs: [pack, prepare]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.1
+
+      - name: Run UI tests
+        uses: ./.github/actions/run-tests
+        with:
+          id: ios
+          test-type: factos-ios
+          test-id: ${{ matrix.id }}
+          livecharts-suffix: ${{ needs.prepare.outputs.suffix }}
+          workloads: ${{ matrix.workloads }}
+          target-framework: ${{ matrix.tf }}
+          xcode-path: /Applications/Xcode_26.2.app

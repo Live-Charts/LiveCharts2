@@ -24,7 +24,7 @@
             <Button Margin="6" Command="{Binding RemoveSeriesCommand}">Remove Series</Button>
         </StackPanel>
 
-        <lvc:CartesianChart Grid.Row="2" SeriesSource="{Binding Data}">
+        <lvc:CartesianChart Grid.Row="2" SeriesSource="{Binding Data}" x:Name="chart">
             <lvc:CartesianChart.SeriesTemplate>
                 <DataTemplate>
                     <lvc:XamlColumnSeries

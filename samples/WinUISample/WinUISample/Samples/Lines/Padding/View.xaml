@@ -13,16 +13,10 @@
     </UserControl.DataContext>
 
     <lvc:CartesianChart
-        >
-
-        <!--
-        Nested extensions are not working in Uno
-
         DrawMarginFrame="{lvc:Frame
             Stroke={lvc:SolidColorPaint Color='#64b4b4b4'},
-            Fill={lvc:SolidColorPaint Color='#32dcdcdc'}}"
-        -->
-        
+            Fill={lvc:SolidColorPaint Color='#32dcdcdc'}}">
+
         <lvc:CartesianChart.Series>
             <lvc:SeriesCollection>
                 <!--

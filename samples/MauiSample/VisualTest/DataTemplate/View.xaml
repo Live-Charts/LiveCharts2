@@ -1,28 +1,42 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage x:Class="MauiSample.VisualTest.DataTemplate.View"
-             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Maui;assembly=LiveChartsCore.SkiaSharpView.Maui"
-             xmlns:vms="clr-namespace:ViewModelsSamples.VisualTest.DataTemplate;assembly=ViewModelsSamples"
-             xmlns:oc="clr-namespace:System.Collections.ObjectModel;assembly=System.Windows">
+<ContentPage
+    x:Class="MauiSample.VisualTest.DataTemplate.View"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Maui;assembly=LiveChartsCore.SkiaSharpView.Maui"
+    xmlns:vms="clr-namespace:ViewModelsSamples.VisualTest.DataTemplate;assembly=ViewModelsSamples">
+
     <ContentPage.BindingContext>
         <vms:ViewModel/>
     </ContentPage.BindingContext>
-	<ContentPage.Content>
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
 
-            <!--
-            ToDo Update this example to use the xaml syntax.
-            <StackLayout BindableLayout.ItemsSource="{Binding Models}" VerticalOptions="Start">
-                <BindableLayout.ItemTemplate>
-                    <DataTemplate>
-                        <lvc:CartesianChart Series="{Binding}" HeightRequest="200" />
-                    </DataTemplate>
-                </BindableLayout.ItemTemplate>
-            </StackLayout>-->
-        </Grid>
-    </ContentPage.Content>
+    <StackLayout BindableLayout.ItemsSource="{Binding Departments}" VerticalOptions="Start">
+        <BindableLayout.ItemTemplate>
+            <DataTemplate>
+                <Grid RowDefinitions="Auto,300">
+
+                    <Label
+                        Grid.Row="0"
+                        VerticalOptions="Center"
+                        HorizontalOptions="Center"
+                        Text="{Binding DepartmentName}"/>
+
+                    <lvc:CartesianChart
+                        Grid.Row="1"
+                        SeriesSource="{Binding Data}">
+
+                        <lvc:CartesianChart.SeriesTemplate>
+                            <DataTemplate x:DataType="vms:ChartData">
+                                <lvc:XamlLineSeries
+                                    SeriesName="{Binding SeriesName}"
+                                    Values="{Binding Values}"/>
+                            </DataTemplate>
+                        </lvc:CartesianChart.SeriesTemplate>
+
+                    </lvc:CartesianChart>
+                </Grid>
+            </DataTemplate>
+        </BindableLayout.ItemTemplate>
+    </StackLayout>
+
 </ContentPage>

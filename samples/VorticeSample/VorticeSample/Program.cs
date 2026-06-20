@@ -3,6 +3,12 @@ using LiveChartsCore;
 using LiveChartsCore.Vortice;
 using VorticeSample;
 
+// ------------------------------------------------------------------------------
+// THIS IS A PROOF OF CONCEPT DEMO
+// IT DRAWS A BASIC CARTESIAN CHART USING VORTICE DIRECT2D AS RENDERER
+// NO DEPENDENCY ON SKIASHARP AT ALL.
+// ------------------------------------------------------------------------------
+
 LiveCharts.Configure(config => config
     .AddDefaultMappers()
     .AddVortice()
@@ -12,7 +18,11 @@ LiveCharts.Configure(config => config
         renderSettings.ShowFPS = true;
     }));
 
-using TestApplication app = new() { PresentOptions = Vortice.Direct2D1.PresentOptions.None };
+using TestApplication app = new()
+{
+    PresentOptions = Vortice.Direct2D1.PresentOptions.Immediately
+    //PresentOptions = Vortice.Direct2D1.PresentOptions.None
+};
 
 var data = new ObservableCollection<double> { 3, 2, 5, 3 };
 

@@ -1,21 +1,19 @@
-﻿<Project Sdk="Uno.Sdk">
+﻿<Project Sdk="Uno.Sdk/6.3.28">
+  
   <PropertyGroup>
-    <Nullable>enable</Nullable>
-    <LangVersion>$(GlobalLangVersion)</LangVersion>
-
     <UnoSingleProject>true</UnoSingleProject>
     <OutputType>Library</OutputType>
     <SkiaSharpVersion>$(LatestSkiaSharpVersion)</SkiaSharpVersion>
 
     <TargetFrameworks>
-      net8.0;net8.0-android;net8.0-ios;net8.0-maccatalyst;
-      net9.0;net9.0-android;net9.0-ios;net9.0-browserwasm;net9.0-desktop
+      net9.0;net9.0-android;net9.0-ios;net9.0-browserwasm;net9.0-desktop;
+      net10.0;net10.0-android;net10.0-ios;net10.0-browserwasm;net10.0-desktop
     </TargetFrameworks>
 
     <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">
       $(TargetFrameworks);
-      net8.0-windows10.0.19041.0;
-      net9.0-windows10.0.26100.0;
+      net9.0-windows10.0.19041.0;
+      net10.0-windows10.0.19041.0;
     </TargetFrameworks>
 
     <EnableMsixTooling Condition="$([MSBuild]::IsOSPlatform('windows'))">true</EnableMsixTooling>
@@ -23,27 +21,9 @@
     <!-- Ensures the .xr.xml files are generated in a proper layout folder -->
     <GenerateLibraryLayout>true</GenerateLibraryLayout>
 
-    <IsPackable>true</IsPackable>
-    <Version>$(LiveChartsVersion)</Version>
-    <PackageIcon>icon.png</PackageIcon>
-    <Description>Simple, flexible, interactive and powerful data visualization for Uno.WinUI.</Description>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Authors>$(LiveChartsAuthors)</Authors>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <RepositoryUrl>https://github.com/beto-rodriguez/LiveCharts2</RepositoryUrl>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>LiveChartsCore.SkiaSharpView.WinUI</RootNamespace>
     <AssemblyName>LiveChartsCore.SkiaSharpView.Uno.WinUI</AssemblyName>
-    <DefaultLanguage>en-US</DefaultLanguage>
-    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
-
-    <Deterministic>true</Deterministic>
-    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <PathToPackAssets>../../../</PathToPackAssets>
   </PropertyGroup>
 
   <ItemGroup>
@@ -51,18 +31,24 @@
     <None Include="$(OutputPath)$(AssemblyName).uprimarker" Pack="false" />
   </ItemGroup>
 
-  <Import Project="..\..\_Shared.Native\_Shared.Native.projitems" Label="Shared" />
-  <Import Project="..\_Shared\_Shared.projitems" Label="Shared" />
-  <Import Project="..\_Shared.WinUI\_Shared.WinUI.projitems" Label="Shared" />
-  <Import Project="..\_Shared.Xaml\_Shared.Xaml.projitems" Label="Shared" />
+  <Import Project="../../../nuget.props" />
+  <PropertyGroup>
+    <Description>
+      $(Description) This package includes all the required code and dependencies for rendering charts in Uno Platform with SkiaSharp.
+    </Description>
+  </PropertyGroup>
+
+  <Import Project="../../../build/WinUISharedLinks.Build.props" />
+  <Import Project="../../../build/SharedLinks.Build.props" />
+  <Import Project="../../../build/XamlSharedLinks.Build.props" />
+  <Import Project="../../../build/NativeSharedLinks.Build.props" />
 
   <PropertyGroup>
     <DefineConstants>$(DefineConstants);UNO_LVC;WINUI_LVC;XAML_LVC</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
-    <ProjectReference Include="..\LiveChartsCore.SkiaSharp\LiveChartsCore.SkiaSharpView.csproj" />
+    <ProjectReference Include="../LiveChartsCore.SkiaSharp/LiveChartsCore.SkiaSharpView.csproj" />
     <!-- If windows add SkiaSharp WinUI package. -->
     <PackageReference
        Condition="$(TargetFramework.Contains('-windows'))"
@@ -73,6 +59,15 @@
        Condition="!$(TargetFramework.Contains('-windows'))"
        Include="SkiaSharp.Views.Uno.WinUI"
        Version="$(LatestSkiaSharpVersion)" />
+    <!--
+    On WASM with Uno's native renderer the charts shape text through HarfBuzzSharp
+    directly, so the wasm relink needs libHarfBuzzSharp; the Skia renderer brings it
+    on its own, the native renderer does not (#2020, #2333).
+    -->
+    <PackageReference
+       Condition="$(TargetFramework.Contains('-browserwasm'))"
+       Include="HarfBuzzSharp.NativeAssets.WebAssembly"
+       Version="$(HarfBuzzWASMVersion)" />
   </ItemGroup>
 
   <!-- Include Uno skia renderer if needed -->
@@ -80,21 +75,11 @@
     <UnoFeatures>$(UnoFeatures);SkiaRenderer</UnoFeatures>
   </PropertyGroup>
 
-  <ItemGroup Condition="$(UseNuGetForGenerator)">
-    <PackageReference Include="LiveChartsGenerators" Version="$(LiveChartsCodeGenVersion)">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>analyzers</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup Condition="!$(UseNuGetForGenerator)">
-    <ProjectReference Include="..\..\..\generators\LiveChartsGenerators\LiveChartsGenerators.csproj">
+  <ItemGroup>
+    <ProjectReference Include="../../../generators/LiveChartsGenerators/LiveChartsGenerators.csproj">
       <OutputItemType>Analyzer</OutputItemType>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>
-
-  <ItemGroup>
-    <None Include="images\icon.png" Pack="true" PackagePath="\" />
-  </ItemGroup>
+  
 </Project>

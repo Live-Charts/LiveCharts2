@@ -1,3 +1,8 @@
+<!--
+To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/master/docs/readme.md
+content is normally pulled from the examples in the repository.
+-->
+
 {{ render "~/shared/genericSampleJustGifHeader.md" }}
 
 :::tip
@@ -8,28 +13,14 @@ This example uses the `LineSeries` class but it works the same for any series in
 ## View model
 
 ```csharp
-{{ full_name | get_vm_from_docs }}
+{{ render_current_directory_view_model }}
 ```
 {{~ end ~}}
 
 ## {{~ view_title ~}}
 
 ```
-{{ full_name | get_view_from_docs }}
+{{ render_current_directory_view }}
 ```
 
-{{~ if related_to != null ~}}
-
-### Articles you might also find useful:
-
-{{~ for r in related_to ~}}
-
-<div>
-<a href="{{ compile this r.url }}">
-{{ r.name }}
-</a>
-</div>
-
-{{~ end ~}}
-
-{{~ end ~}}
+{{ render "~/shared/relatedTo.md" }}

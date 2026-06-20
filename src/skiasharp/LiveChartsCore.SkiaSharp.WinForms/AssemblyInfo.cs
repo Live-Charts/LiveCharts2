@@ -1,4 +1,4 @@
-﻿// The MIT License(MIT)
+// The MIT License(MIT)
 //
 // Copyright(c) 2021 Alberto Rodriguez Orozco & LiveCharts Contributors
 //
@@ -20,11 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#if !DEBUG && NET462
+#if STRONG_NAMED_ASSEMBLIES
 using System.Reflection;
 [assembly: AssemblyKeyFile("./../../../LiveCharts.snk")]
-#else
-using System.Runtime.CompilerServices;
-
-[assembly: InternalsVisibleTo("LiveChartsCore.BackersPackage")]
 #endif

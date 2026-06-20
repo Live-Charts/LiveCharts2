@@ -83,6 +83,18 @@ public static class LiveChartsthemeExtensions
     }
 
     /// <summary>
+    ///  Defines a style builder for <see cref="ISankeySeries"/> objects.
+    /// </summary>
+    /// <param name="theme">The theme.</param>
+    /// <param name="predicate">The predicate.</param>
+    /// <returns></returns>
+    public static Theme HasRuleForSankeySeries(this Theme theme, Action<ISankeySeries> predicate)
+    {
+        theme.SankeySeriesBuilder.Add(predicate);
+        return theme;
+    }
+
+    /// <summary>
     ///  Defines a style builder for <see cref="IPieSeries"/> objects when used as gauges.
     /// </summary>
     /// <param name="theme">The theme.</param>

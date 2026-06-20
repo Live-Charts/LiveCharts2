@@ -1,0 +1,29 @@
+<UserControl
+    x:Class="AvaloniaSample.Bars.Waterfall.View"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
+    xmlns:vms="using:ViewModelsSamples.Bars.Waterfall"
+    x:DataType="vms:ViewModel">
+
+    <UserControl.DataContext>
+        <vms:ViewModel/>
+    </UserControl.DataContext>
+
+    <lvc:CartesianChart>
+        <lvc:CartesianChart.Series>
+            <lvc:XamlRangeColumnSeries
+                Values="{Binding Steps}"
+                SeriesName="Cash flow"
+                YToolTipLabelFormatter="{Binding StepTooltipFormatter}"/>
+        </lvc:CartesianChart.Series>
+
+        <lvc:CartesianChart.XAxes>
+            <lvc:XamlAxis Labels="{Binding StepNames}"/>
+        </lvc:CartesianChart.XAxes>
+
+        <lvc:CartesianChart.YAxes>
+            <lvc:XamlAxis AxisName="Balance" MinLimit="0"/>
+        </lvc:CartesianChart.YAxes>
+    </lvc:CartesianChart>
+</UserControl>

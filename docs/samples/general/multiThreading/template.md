@@ -1,14 +1,20 @@
+<!--
+To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/master/docs/readme.md
+This file pulls content from the ~/shared/ tempaltes
+content is normally pulled from the examples in the repository.
+-->
+
 # {{ name | to_title_case }}
 
-When the data is changing on another thread(s), there is a chance that while the chart is measured, the data changes at the same time, this 
-could cause a `InvalidOperationException (Collection Was Modified)` and some other sync errors; We need to let the chart know that the data is
+When the data is changing on another thread(s), there is a chance that while the chart is measured, the data changes at the same time. This 
+could cause an `InvalidOperationException (Collection Was Modified)` and some other sync errors. We need to let the chart know that the data is
 changing on multiple threads so it can handle it and prevent
 [concurrency hazards](https://learn.microsoft.com/en-us/archive/msdn-magazine/2008/october/concurrency-hazards-solving-problems-in-your-multithreaded-code).
 
-There are 2 alternatives you can follow to prevent this issue, 1. use the [lock](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/lock) keyword to wrap any change in your data, 2. Invoke the changes on the UI thread.
+There are 2 alternatives you can follow to prevent this issue: 1. use the [lock](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/lock) keyword to wrap any change in your data, 2. Invoke the changes on the UI thread.
 
 <div class="text-center sample-img">
-    <img src="{{ assets_url }}/docs/{{ unique_name }}/result.gif" alt="sample image" />
+    <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/{{ unique_name }}/result.gif" alt="sample image" />
 </div>
 
 ## Locking changes (Alternative 1)
@@ -24,14 +30,14 @@ measuring a chart.
 ## View model
 
 ```csharp
-{{ full_name | get_vm_from_docs }}
+{{ render_current_directory_view_model }}
 ```
 {{~ end ~}}
 
 ## {{~ view_title ~}}
 
 ```
-{{ full_name | get_view_from_docs }}
+{{ render_current_directory_view }}
 ```
 
 Notice that we also set the chart `SyncContext` property so the chart knows our sync object.

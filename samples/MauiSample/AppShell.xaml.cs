@@ -18,7 +18,23 @@ public partial class AppShell : Shell
 
         var samples = ViewModelsSamples.Index.Samples;
 
-        var i = 0;
+        // Dev-loop hook: LVC_SAMPLE selects an initial sample by path
+        // (e.g. LVC_SAMPLE=Bars/Basic). The view is resolved by type name, so
+        // this works for any sample — including repro views that are
+        // intentionally not listed in the shared index: an unlisted path whose
+        // View type exists is appended so it gets a route and is shown on
+        // launch. Falls back to the first sample if the env var is unset or the
+        // path has no matching View.
+        var initial = Environment.GetEnvironmentVariable("LVC_SAMPLE");
+        if (!string.IsNullOrWhiteSpace(initial)
+            && Array.IndexOf(samples, initial) < 0
+            && Type.GetType($"MauiSample.{initial.Replace('/', '.')}.View") is not null)
+            samples = [.. samples, initial];
+
+        var initialIndex = string.IsNullOrWhiteSpace(initial)
+            ? 0
+            : Math.Max(0, Array.IndexOf(samples, initial));
+
         for (var i1 = 0; i1 < samples.Length; i1++)
         {
             var item = samples[i1];
@@ -34,7 +50,7 @@ public partial class AppShell : Shell
             {
                 content = new ShellContent()
                 {
-                    Content = i == 0 ? Activator.CreateInstance(t) : null
+                    Content = i1 == initialIndex ? Activator.CreateInstance(t) : null
                 };
             }
             catch (Exception)
@@ -46,10 +62,11 @@ public partial class AppShell : Shell
 
             Items.Add(shell_section);
             _routesSamples.Add("//" + content.Route, item);
-            i++;
 
             //if (i > 4) break;
         }
+
+        if (initialIndex > 0) CurrentItem = Items[initialIndex];
 
         Navigating += AppShell_Navigating;
     }

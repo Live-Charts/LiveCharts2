@@ -1,4 +1,5 @@
 ﻿using System.Windows.Controls;
+using LiveChartsCore.SkiaSharpView.WPF;
 
 namespace WPFSample.Polar.Basic;
 
@@ -11,4 +12,8 @@ public partial class View : UserControl
     {
         InitializeComponent();
     }
+
+#if UI_TESTING
+    public PolarChart Chart => (PolarChart)Content!;
+#endif
 }

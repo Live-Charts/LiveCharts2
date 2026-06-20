@@ -5,6 +5,9 @@ using LiveChartsCore.SkiaSharpView.SKCharts;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
+using SkiaSharp;
+
+QuestPDF.Settings.License = LicenseType.Community;
 
 Document.Create(container =>
 {
@@ -27,19 +30,21 @@ Document.Create(container =>
                 x.Item().Text(Placeholders.LoremIpsum());
 
                 x.Item()
-                    .Canvas((canvas, size) =>
+                    .Image(size =>
                     {
                         var cartesianChart = new SKCartesianChart
                         {
-                            Width = (int)size.Width,
-                            Height = (int)size.Height,
+                            Width = size.Width,
+                            Height = size.Height,
                             Series = [
                                 new LineSeries<int> { Values = [1, 5, 4, 6] },
                                 new ColumnSeries<int> { Values = [4, 8, 2, 4] }
                             ]
                         };
 
-                        cartesianChart.SaveImage(canvas);
+                        using var data = cartesianChart.GetImage().Encode(SKEncodedImageFormat.Png, quality: 100);
+
+                        return data.ToArray();
                     });
             });
 

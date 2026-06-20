@@ -1,4 +1,6 @@
-﻿namespace MauiSample.Pies.Basic;
+﻿using LiveChartsCore.SkiaSharpView.Maui;
+
+namespace MauiSample.Pies.Basic;
 
 [XamlCompilation(XamlCompilationOptions.Compile)]
 public partial class View : ContentPage
@@ -7,4 +9,8 @@ public partial class View : ContentPage
     {
         InitializeComponent();
     }
+
+#if UI_TESTING
+    public PieChart Chart => (PieChart)Content!;
+#endif
 }

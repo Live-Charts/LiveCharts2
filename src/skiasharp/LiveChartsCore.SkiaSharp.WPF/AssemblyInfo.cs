@@ -22,12 +22,9 @@
 
 using System.Windows;
 
-#if !DEBUG && NET462
+#if STRONG_NAMED_ASSEMBLIES
 using System.Reflection;
 [assembly: AssemblyKeyFile("./../../../LiveCharts.snk")]
-#else
-using System.Runtime.CompilerServices;
-[assembly: InternalsVisibleTo("LiveChartsCore.BackersPackage")]
 #endif
 
 [assembly: ThemeInfo(

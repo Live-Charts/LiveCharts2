@@ -1,0 +1,61 @@
+<Project>
+  <ItemGroup>
+    <Compile Include="..\_Shared\SourceGenDrawnView.*.cs">
+      <Link>%(Filename).cs</Link>
+      <DependentUpon>SourceGenDrawnView.cs</DependentUpon>
+    </Compile>
+
+    <Compile Include="..\_Shared\SourceGenChart.*.cs">
+      <Link>%(Filename).cs</Link>
+      <DependentUpon>SourceGenChart.cs</DependentUpon>
+    </Compile>
+
+    <Compile Include="..\_Shared\SourceGenCartesianChart.*.cs">
+      <Link>%(Filename).cs</Link>
+      <DependentUpon>CartesianChart.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SourceGenCartesianChart.*.cs">
+      <DependentUpon>CartesianChart.cs</DependentUpon>
+    </Compile>
+
+    <Compile Include="..\_Shared\SourceGenPieChart.*.cs">
+      <Link>%(Filename).cs</Link>
+      <DependentUpon>PieChart.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SourceGenPieChart.*.cs">
+      <DependentUpon>PieChart.cs</DependentUpon>
+    </Compile>
+
+    <Compile Include="..\_Shared\SourceGenPolarChart.*.cs">
+      <Link>%(Filename).cs</Link>
+      <DependentUpon>PolarChart.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SourceGenPolarChart.*.cs">
+      <DependentUpon>PolarChart.cs</DependentUpon>
+    </Compile>
+
+    <Compile Include="..\_Shared\SourceGenMapChart.*.cs">
+      <Link>%(Filename).cs</Link>
+      <DependentUpon>GeoMap.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SourceGenMapChart.*.cs">
+      <DependentUpon>GeoMap.cs</DependentUpon>
+    </Compile>
+
+    <Compile Include="..\_Shared\SourceGenSankeyChart.*.cs">
+      <Link>%(Filename).cs</Link>
+      <DependentUpon>SankeyChart.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SourceGenSankeyChart.*.cs">
+      <DependentUpon>SankeyChart.cs</DependentUpon>
+    </Compile>
+
+    <Compile Include="..\_Shared\SourceGenTreemapChart.*.cs">
+      <Link>%(Filename).cs</Link>
+      <DependentUpon>TreemapChart.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SourceGenTreemapChart.*.cs">
+      <DependentUpon>TreemapChart.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+</Project>

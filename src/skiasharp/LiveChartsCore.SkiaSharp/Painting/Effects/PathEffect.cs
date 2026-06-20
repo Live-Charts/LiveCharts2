@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 using System.Collections.Generic;
+using LiveChartsCore.Drawing;
 using SkiaSharp;
 
 namespace LiveChartsCore.SkiaSharpView.Painting.Effects;
@@ -35,7 +36,24 @@ public abstract class PathEffect(object key)
     {
         { DashEffect.s_key, new DashEffect([1, 0], 0) }
     };
-    internal SKPathEffect? _sKPathEffect;
+    /// <summary>
+    /// The native Skia path effect produced by <see cref="CreateEffect"/>.
+    /// </summary>
+    /// <remarks>
+    /// This field is <see langword="protected"/> <see langword="internal"/> so the owning
+    /// <see cref="SkiaPaint"/> can read it in this assembly, while a <see cref="PathEffect"/>
+    /// subclass in another assembly can set it from its <see cref="CreateEffect"/> override.
+    /// </remarks>
+    protected internal SKPathEffect? _sKPathEffect;
+
+    /// <summary>
+    /// An optional animation that drives this effect on the motion rail. <see langword="null"/>
+    /// (the default) means the effect is static — created once and cached, exactly as before.
+    /// A self-animating effect assigns one (e.g. with <see cref="Animation.RepeatTimes"/> =
+    /// <see cref="int.MaxValue"/>) so it animates indefinitely; the looping/"not finished"
+    /// reporting then lives entirely in the effect, not on the paint.
+    /// </summary>
+    public Animation? Animation { get; set; }
 
     /// <summary>
     /// Creates a new object that is a copy of the current instance.
@@ -72,12 +90,13 @@ public abstract class PathEffect(object key)
 
         var key = (from ?? to)!._key;
 
-        // use the default filter when the transition is to a null reference
-        // for example in the case of a shadow, the default filter is a transparent shadow
-        from ??= s_defaultEffects[key];
-        to ??= s_defaultEffects[key];
+        // Transition a null endpoint to/from the effect's registered no-op default (e.g. a dash
+        // fades to "no dash"). An effect without a registered default — e.g. a custom self-animating
+        // effect — falls back to the present endpoint instead of throwing.
+        from ??= s_defaultEffects.TryGetValue(key, out var dFrom) ? dFrom : to;
+        to ??= s_defaultEffects.TryGetValue(key, out var dTo) ? dTo : from;
 
-        return from.Transitionate(progress, to);
+        return from!.Transitionate(progress, to);
     }
 
     internal virtual void Dispose()

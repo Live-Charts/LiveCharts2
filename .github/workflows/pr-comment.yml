@@ -1,0 +1,231 @@
+name: PR Comment
+
+# Posts a single, consolidated comment to the PR after upstream workflows finish.
+# This runs in the base repo's context (not the fork's), so the GITHUB_TOKEN has
+# the write permissions that the triggering workflows do not get on fork PRs.
+#
+# Each upstream workflow updates its own section of one shared comment via
+# .github/scripts/pr-comment.js — partial reruns and out-of-order completions
+# never clobber the other section.
+
+on:
+  workflow_run:
+    workflows: [LiveCharts, Benchmarks]
+    types: [completed]
+
+permissions:
+  contents: read
+  actions: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  livecharts:
+    if: >-
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.name == 'LiveCharts'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Mint LiveCharts bot token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Checkout
+        uses: actions/checkout@v6.0.1
+
+      - name: Download coverage summary
+        id: cov
+        continue-on-error: true
+        uses: actions/download-artifact@v7.0.0
+        with:
+          name: coverage-summary
+          path: coverage-summary
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ steps.app-token.outputs.token }}
+
+      - name: Build and post comment
+        uses: actions/github-script@v8
+        env:
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_NUMBER: ${{ github.event.workflow_run.run_number }}
+          RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+          HEAD_OWNER: ${{ github.event.workflow_run.head_repository.owner.login }}
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          script: |
+            const fs = require('fs');
+            const lib = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/pr-comment.js`);
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const runId = Number(process.env.RUN_ID);
+            const runNumber = process.env.RUN_NUMBER;
+            const runAttempt = Number(process.env.RUN_ATTEMPT);
+
+            const { prNumber } = await lib.resolvePr({
+              github, context,
+              headOwner: process.env.HEAD_OWNER,
+              headBranch: process.env.HEAD_BRANCH,
+            });
+            if (!prNumber) {
+              core.warning(`No open PR found for ${process.env.HEAD_OWNER}:${process.env.HEAD_BRANCH}; nothing to comment on.`);
+              return;
+            }
+
+            const jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {
+              owner, repo, run_id: runId, per_page: 100,
+            });
+            const artifacts = await github.paginate(github.rest.actions.listWorkflowRunArtifacts, {
+              owner, repo, run_id: runId, per_page: 100,
+            });
+
+            // ---- Packing
+            const packStatus = lib.aggregateBaseJob(jobs, 'pack');
+            const nuget = artifacts.find(a => a.name === 'nuget-packages' && !a.expired);
+            const nugetUrl = nuget ? lib.artifactUrl(owner, repo, runId, nuget) : null;
+            const packBlock = nugetUrl
+              ? `#### Packing ${lib.emoji(packStatus)}\n\n` +
+                `Download the NuGet packages for this build [here (dev-${runNumber})](${nugetUrl}). ` +
+                `Available for 30 days — you can either ` +
+                `[use them directly](https://stackoverflow.com/questions/43400069/add-a-package-with-a-local-package-file-in-dotnet) ` +
+                `or wait for this PR to be merged to have them published to NuGet.org.`
+              : `#### Packing ${lib.emoji(packStatus)}\n\nNuGet packages were not produced.`;
+
+            // ---- Tests (collapsed details, grouped by platform)
+            const testsBlock = lib.buildTestsBlock({ jobs, artifacts, runId, runAttempt, owner, repo });
+
+            // ---- Coverage (only when both core & snapshot passed and the artifact landed)
+            let coverageBlock = '';
+            try {
+              const summary = JSON.parse(fs.readFileSync('coverage-summary/coverage-summary.json', 'utf8'));
+              let oldClasses = {};
+              let newClasses = {};
+              try { oldClasses = JSON.parse(fs.readFileSync('coverage-summary/classes-old.json', 'utf8')); } catch (e) {}
+              try { newClasses = JSON.parse(fs.readFileSync('coverage-summary/classes-new.json', 'utf8')); } catch (e) {}
+              coverageBlock = '\n\n' + lib.buildCoverageBlock({
+                summary,
+                oldClasses,
+                newClasses,
+                reportUrl: 'https://live-charts.github.io/LiveCharts2/',
+              });
+            } catch (e) {
+              // No coverage data — likely tests failed or didn't run.
+            }
+
+            const content = [
+              `Build summary for [run #${runNumber}](https://github.com/${owner}/${repo}/actions/runs/${runId}).`,
+              ``,
+              packBlock,
+              ``,
+              testsBlock,
+              coverageBlock,
+            ].join('\n');
+
+            await lib.upsertComment({ github, context, prNumber, section: 'livecharts', content });
+
+  benchmarks:
+    if: >-
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.name == 'Benchmarks'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Mint LiveCharts bot token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Checkout
+        uses: actions/checkout@v6.0.1
+
+      - name: Download benchmark delta
+        id: delta
+        continue-on-error: true
+        uses: actions/download-artifact@v7.0.0
+        with:
+          name: benchmark-delta
+          path: benchmark-delta
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ steps.app-token.outputs.token }}
+
+      - name: Build and post comment
+        uses: actions/github-script@v8
+        env:
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          HEAD_OWNER: ${{ github.event.workflow_run.head_repository.owner.login }}
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          BASE_REF: ${{ github.event.workflow_run.pull_requests[0].base.ref }}
+          WF_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          script: |
+            const fs = require('fs');
+            const lib = require(`${process.env.GITHUB_WORKSPACE}/.github/scripts/pr-comment.js`);
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const runId = Number(process.env.RUN_ID);
+            const headSha = process.env.HEAD_SHA;
+            const wfConclusion = process.env.WF_CONCLUSION;
+
+            const { prNumber, baseRef: resolvedBase } = await lib.resolvePr({
+              github, context,
+              headOwner: process.env.HEAD_OWNER,
+              headBranch: process.env.HEAD_BRANCH,
+            });
+            if (!prNumber) {
+              core.warning(`No open PR found for ${process.env.HEAD_OWNER}:${process.env.HEAD_BRANCH}; nothing to comment on.`);
+              return;
+            }
+            const baseRef = process.env.BASE_REF || resolvedBase || 'master';
+            const runUrl = `https://github.com/${owner}/${repo}/actions/runs/${runId}`;
+
+            let content;
+            let delta = null;
+            try {
+              delta = fs.readFileSync('benchmark-delta/delta.md', 'utf8');
+            } catch (e) {
+              // No delta artifact — either nothing significant changed or the run failed.
+            }
+
+            if (delta) {
+              const regressions = (delta.match(/🔴/g) || []).length;
+              const improvements = (delta.match(/🟢/g) || []).length;
+              const summary = regressions > 0
+                ? `❌ ${regressions} regression${regressions === 1 ? '' : 's'}, ${improvements} improvement${improvements === 1 ? '' : 's'}`
+                : improvements > 0
+                  ? `✅ ${improvements} improvement${improvements === 1 ? '' : 's'}, no regressions`
+                  : `➖ No significant changes`;
+              content = [
+                `#### Benchmark delta — ${summary}`,
+                ``,
+                `<details><summary>Show details</summary>`,
+                ``,
+                `Base: **${baseRef}** — Head: **${headSha}** ([run](${runUrl}))`,
+                `Thresholds: 🔴 > +10% slower, 🟢 > -10% faster. Numbers on GitHub-hosted runners are noisy — treat double-digit deltas on non-trivial benchmarks as signal, single-digit as noise.`,
+                ``,
+                delta,
+                ``,
+                `</details>`,
+              ].join('\n');
+            } else if (wfConclusion === 'success') {
+              content = [
+                `#### Benchmark delta — ➖ No significant changes`,
+                ``,
+                `Base: **${baseRef}** — Head: **${headSha}** ([run](${runUrl}))`,
+              ].join('\n');
+            } else {
+              content = [
+                `#### Benchmark delta ${lib.emoji(wfConclusion === 'failure' ? 'failure' : 'unknown')}`,
+                ``,
+                `Workflow ${wfConclusion || 'did not produce a delta'} — see the [run](${runUrl}) for details.`,
+              ].join('\n');
+            }
+
+            await lib.upsertComment({ github, context, prNumber, section: 'benchmarks', content });

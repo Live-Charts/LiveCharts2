@@ -1,0 +1,18 @@
+@page "/Maps/MarkersOnMap"
+@using LiveChartsCore.SkiaSharpView.Blazor
+@using LiveChartsCore.Geo
+@using LiveChartsCore.SkiaSharpView
+@using LiveChartsCore.SkiaSharpView.Drawing.Geometries
+@using ViewModelsSamples.Maps.MarkersOnMap
+
+<GeoMap
+    @ref="Chart"
+    Series="@vm.Series"
+    VisualElements="@vm.VisualElements"
+    MapProjection="LiveChartsCore.Geo.MapProjection.Mercator">
+</GeoMap>
+
+@code {
+    public GeoMap Chart;
+    private readonly ViewModel vm = new();
+}

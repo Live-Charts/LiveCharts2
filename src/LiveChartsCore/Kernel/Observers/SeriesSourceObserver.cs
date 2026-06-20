@@ -94,7 +94,6 @@ public class SeriesSourceObserver(
         _localSeriesMap = [];
 
         chartView.Series = [];
-        chartView = null!;
     }
 
     private void OnSeriesSourceCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)

@@ -1,0 +1,7 @@
+<Project>
+  <ItemGroup>
+    <Compile Include="..\_Shared.Xaml\*.cs">
+      <Link>XamlFriendlySourceGenerated\%(Filename).cs</Link>
+    </Compile>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,83 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="Ad-Hoc" />
+    <BuildType Name="AppStore" />
+    <BuildType Name="Debug" />
+    <BuildType Name="Release" />
+    <Platform Name="Any CPU" />
+    <Platform Name="ARM" />
+    <Platform Name="ARM64" />
+    <Platform Name="iPhone" />
+    <Platform Name="iPhoneSimulator" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/Generators/">
+    <Project Path="generators/LiveChartsGenerators/LiveChartsGenerators.csproj">
+      <BuildType Solution="Ad-Hoc|*" Project="Release" />
+      <BuildType Solution="AppStore|*" Project="Release" />
+    </Project>
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="Directory.Build.props" />
+    <File Path="global.json" />
+  </Folder>
+  <Folder Name="/Solution Items/RenderingSettings/">
+    <File Path="build/RenderSettings.Build.props" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="tests/LiveChartsCore.UnitTesting/LiveChartsCore.UnitTesting.csproj">
+      <BuildType Solution="Ad-Hoc|*" Project="Release" />
+      <BuildType Solution="AppStore|*" Project="Release" />
+    </Project>
+    <Project Path="tests/Test.WPF/Test.WPF.csproj" Id="9a7da9ad-2572-45ca-a563-8f8da83518ad">
+      <BuildType Solution="Ad-Hoc|*" Project="Release" />
+      <BuildType Solution="AppStore|*" Project="Release" />
+    </Project>
+  </Folder>
+  <Project Path="src/LiveChartsCore/LiveChartsCore.csproj">
+    <BuildType Solution="Ad-Hoc|*" Project="Release" />
+    <BuildType Solution="AppStore|*" Project="Release" />
+  </Project>
+  <Project Path="src/skiasharp/LiveChartsCore.SkiaSharp.Avalonia/LiveChartsCore.SkiaSharpView.Avalonia.csproj">
+    <BuildType Solution="Ad-Hoc|*" Project="Debug" />
+    <BuildType Solution="AppStore|*" Project="Debug" />
+  </Project>
+  <Project Path="src/skiasharp/LiveChartsCore.SkiaSharp.WinForms/LiveChartsCore.SkiaSharpView.WinForms.csproj">
+    <BuildType Solution="Ad-Hoc|*" Project="Release" />
+    <BuildType Solution="AppStore|*" Project="Release" />
+  </Project>
+  <Project Path="src/skiasharp/LiveChartsCore.SkiaSharp.WPF/LiveChartsCore.SkiaSharpView.WPF.csproj">
+    <BuildType Solution="Ad-Hoc|*" Project="Release" />
+    <BuildType Solution="AppStore|*" Project="Release" />
+  </Project>
+  <Project Path="src/skiasharp/LiveChartsCore.SkiaSharp/LiveChartsCore.SkiaSharpView.csproj">
+    <BuildType Solution="Ad-Hoc|*" Project="Release" />
+    <BuildType Solution="AppStore|*" Project="Release" />
+  </Project>
+  <Project Path="src/skiasharp/LiveChartsCore.SkiaSharpView.Blazor/LiveChartsCore.SkiaSharpView.Blazor.csproj">
+    <BuildType Solution="Ad-Hoc|*" Project="Debug" />
+    <BuildType Solution="AppStore|*" Project="Debug" />
+  </Project>
+  <Project Path="src/skiasharp/LiveChartsCore.SkiaSharpView.Eto/LiveChartsCore.SkiaSharpView.Eto.csproj">
+    <BuildType Solution="Ad-Hoc|*" Project="Debug" />
+    <BuildType Solution="AppStore|*" Project="Debug" />
+  </Project>
+  <Project Path="src/skiasharp/LiveChartsCore.SkiaSharpView.Maui/LiveChartsCore.SkiaSharpView.Maui.csproj">
+    <BuildType Solution="Ad-Hoc|*" Project="Debug" />
+    <BuildType Solution="AppStore|*" Project="Debug" />
+  </Project>
+  <Project Path="src/skiasharp/LiveChartsCore.SkiaSharpView.Uno.WinUI/LiveChartsCore.SkiaSharpView.Uno.WinUI.csproj">
+    <BuildType Solution="Ad-Hoc|*" Project="Debug" />
+    <BuildType Solution="AppStore|*" Project="Debug" />
+  </Project>
+  <Project Path="src/skiasharp/LiveChartsCore.SkiaSharpView.WinUI/LiveChartsCore.SkiaSharpView.WinUI.csproj">
+    <BuildType Solution="Ad-Hoc|*" Project="Debug" />
+    <BuildType Solution="AppStore|*" Project="Debug" />
+  </Project>
+  <Project Path="src/skiasharp/_Shared.WinUI/_Shared.WinUI.shproj" Id="e98bb79a-300e-4556-ac59-47a9aaf1d5f1" />
+  <Project Path="src/skiasharp/_Shared.Xaml/_Shared.Xaml.shproj" />
+  <Project Path="src/skiasharp/_Shared/_Shared.shproj" />
+  <Project Path="src/_Shared.Native/_Shared.Native.shproj" Id="ebf70b6d-1416-4cc6-a540-f4ebf2371819" />
+</Solution>

@@ -1,7 +1,12 @@
+<!--
+To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/master/docs/readme.md
+content is normally pulled from the examples in the repository.
+-->
+
 # Customize default tooltips
 
 :::tip
-The next article is a quick guide on how to customize the default tooltip,if you want to learn more you can read the full
+The next article is a quick guide on how to customize the default tooltip. If you want to learn more, you can read the full
 article:
 
 <a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Tooltips" class="btn btn-outline-primary mb-3">
@@ -13,9 +18,9 @@ You can quickly change the position, the font, the text size or the background c
 
 #### View
 
-{{~ render $"~/../samples/{samples_folder}/Axes/NamedLabels{view_extension}" ~}}
+{{~ render $"~/../samples/{platform_samples_folder}/Axes/NamedLabels{view_extension}" ~}}
 
-![image]({{ assets_url }}/docs/samples/general/customTooltips/styling-tooltips.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/samples/general/customTooltips/styling-tooltips.png)
 
 # Customize tooltip format
 
@@ -49,7 +54,7 @@ Lets take the example of the next series:"
 
 By default the tooltip will be:
 
-![tooltip]({{ assets_url }}/docs/_assets/tooltip-format1.png)
+![tooltip](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/tooltip-format1.png)
 
 We can add format to the tooltip:
 
@@ -70,7 +75,7 @@ We can add format to the tooltip:
     }
 ];</code></pre>
 
-![tooltip]({{ assets_url }}/docs/_assets/tooltip-format2.png)
+![tooltip](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/tooltip-format2.png)
 
 We used the Model property of the point, the Model property is just the item in the Values
 collection, for example in the next case, the Model property is of type `City`.
@@ -101,7 +106,7 @@ We can also show a label for the `X` coordinate, the default tooltip uses the X 
     YToolTipLabelFormatter = point => point.Model.ToString("C2")
 };</code></pre>
 
-![tooltip]({{ assets_url }}/docs/_assets/tooltip-format3.png)
+![tooltip](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/tooltip-format3.png)
 
 When the series is "Stacked" (`PieSeries`, `StackedColumn` or `StackedRow`) we can find information about the stacked data
 in the `StackedValue` property, for example:
@@ -124,7 +129,7 @@ in the `StackedValue` property, for example:
 
 Will result in:
 
-![tooltip]({{ assets_url }}/docs/_assets/tooltip-format4.png)
+![tooltip](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/tooltip-format4.png)
 
 :::tip
 The PieSeries class uses the `ToolTipLabelFormatter` property to configure the text inside the tooltip.
@@ -135,7 +140,7 @@ The PieSeries class uses the `ToolTipLabelFormatter` property to configure the t
 You can also inherit from `SKDefaultTooltip` and override the parts you need to make the tooltip behave as your app needs,
 in the next example, we draw a geometry in the tooltip based on the point that is shown in the tooltip.
 
-![custom tooltip]({{ assets_url }}/docs/_assets/tooltip-custom-template.gif)
+![custom tooltip](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/tooltip-custom-template.gif)
 
 #### CustomTooltip.cs
 
@@ -146,13 +151,13 @@ in the next example, we draw a geometry in the tooltip based on the point that i
 #### View
 
 ```csharp
-{{~ render $"~/../samples/{samples_folder}/General/TemplatedTooltips{view_extension}" ~}}
+{{~ render $"~/../samples/{platform_samples_folder}/General/TemplatedTooltips{view_extension}" ~}}
 ```
 
 {{~ if xaml2006 ~}}
 ## CustomGeometryPointColumnSeries.cs
 ```csharp
-{{~ render $"~/../samples/{samples_folder}/General/TemplatedTooltips/CustomGeometryPointColumnSeries.cs" ~}}
+{{~ render $"~/../samples/{platform_samples_folder}/General/TemplatedTooltips/CustomGeometryPointColumnSeries.cs" ~}}
 ```
 {{~ end ~}}
 
@@ -173,11 +178,11 @@ Depending on the series type and [FindingStrategy](https://livecharts.dev/docs/{
 to any pointer event in the library (like `Hover`, `HoverLeft` or `PointerDown`), lets take as an example the default behavior of the
 `ColumnSeries<T>`, it selects all the points that share the same `X` coordinate:
 
-![custom tooltip]({{ assets_url }}/docs/_assets/custom-ha-compare.gif)
+![custom tooltip](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/custom-ha-compare.gif)
 
 But for this example, we want to override this behavior, instead we only need the tooltip to display the exact column where the pointer is in:
 
-![custom tooltip]({{ assets_url }}/docs/_assets/custom-ha.gif)
+![custom tooltip](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/custom-ha.gif)
 
 When the [FindingStrategy](https://livecharts.dev/docs/{{ platform }}/{{ version }}/CartesianChart.Tooltips#findingstrategy-property), 
 is not enough, we can override the logic to determine whether a given point is inside a drawn `ChartPoint`. This method

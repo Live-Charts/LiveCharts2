@@ -20,7 +20,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using System;
 using LiveChartsCore.Drawing;
 using LiveChartsCore.Kernel;
 using LiveChartsCore.Kernel.Sketches;
@@ -39,7 +38,7 @@ namespace LiveChartsCore.SkiaSharpView;
 public static class LiveChartsSkiaSharp
 {
     internal static MotionCanvasComposer.MotionCanvasRenderingFactoryDelegate MotionCanvasRenderingFactory { get; set; } =
-        (settings, chart) => throw new NotImplementedException(
+        (settings) => throw new NotImplementedException(
             "No motion canvas rendering factory has been set, please use the method 'HasMotionCanvasRenderingFactory' to set one.");
 
     internal static TextSettings DefaultTextSettings { get; set; } = new();
@@ -61,30 +60,6 @@ public static class LiveChartsSkiaSharp
 #endif
 #if __VSYNC_FALSE__
         defaultRenderSettings.TryUseVSync = false;
-#endif
-#if __FPS_10__
-        defaultRenderSettings.LiveChartsRenderLoopFPS = 10;
-#endif
-#if __FPS_20__
-        defaultRenderSettings.LiveChartsRenderLoopFPS = 20;
-#endif
-#if __FPS_30__
-        defaultRenderSettings.LiveChartsRenderLoopFPS = 30;
-#endif
-#if __FPS_45__
-        defaultRenderSettings.LiveChartsRenderLoopFPS = 45;
-#endif
-#if __FPS_60__
-        defaultRenderSettings.LiveChartsRenderLoopFPS = 60;
-#endif
-#if __FPS_75__
-        defaultRenderSettings.LiveChartsRenderLoopFPS = 75;
-#endif
-#if __FPS_90__
-        defaultRenderSettings.LiveChartsRenderLoopFPS = 90;
-#endif
-#if __FPS_120__
-        defaultRenderSettings.LiveChartsRenderLoopFPS = 120;
 #endif
 #if __DIAGNOSE__
         defaultRenderSettings.ShowFPS = true;

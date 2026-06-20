@@ -1,0 +1,46 @@
+<Project>
+  <PropertyGroup>
+    <Version>$(LiveChartsVersion)</Version>
+    <Authors>$(LiveChartsAuthors)</Authors>
+    <PackageIcon>icon.png</PackageIcon>
+    <RepositoryUrl>https://github.com/beto-rodriguez/LiveCharts2</RepositoryUrl>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+
+    <!-- Deterministic build -->
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+
+    <!-- Symbol package format -->
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
+    <!-- Custom output folder -->
+    <PackageOutputPath>$(SolutionDir)nukpg</PackageOutputPath>
+
+    <!-- Track source generated files -->
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+
+    <IsPackable>true</IsPackable>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+
+    <Description>Simple, stunning, interactive and powerful data visualization for .Net.</Description>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- Other packing related properties... -->
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <DocumentationFile>bin/$(Configuration)/$(TargetFramework)/$(AssemblyName).xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(PathToPackAssets)icon.png" Pack="true" PackagePath="\" />
+    <None Include="$(PathToPackAssets)README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+</Project>

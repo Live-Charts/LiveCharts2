@@ -1,0 +1,164 @@
+# LiveCharts2
+
+LiveCharts2 (v2) is a flexible, cross-platform charting library for .NET built on top of SkiaSharp for rendering; it supports Cartesian, Pie, Polar, and GeoMap chart types with smooth, automatic animations. The library uses a layered architecture separating a platform-agnostic Core from a SkiaSharp-based Renderer and platform-specific Views (WPF, Avalonia, MAUI, Blazor, etc.), so adding a new platform requires minimal effort. LiveCharts2 targets .NET Framework 4.6.2, .NET Standard 2.0, and modern .NET, and uses `INotifyPropertyChanged`/`INotifyCollectionChanged` for zero-boilerplate automatic chart updates.
+
+> **⚠️ Important: This is LiveCharts v2. Do NOT use v0 syntax.**
+> The legacy v0 (`LiveCharts` / `LiveCharts.Wpf` NuGet packages) is obsolete and has a completely different API.
+> v0 source and samples: https://github.com/Live-Charts/Live-Charts
+> Always use the v2 packages listed below and the v2 documentation at https://livecharts.dev.
+
+## Supported UI Frameworks
+
+- **MAUI** — `LiveChartsCore.SkiaSharpView.Maui` — https://www.nuget.org/packages/LiveChartsCore.skiasharpview.maui
+- **Uno Platform (WinUI)** — `LiveChartsCore.SkiaSharpView.Uno.WinUI` — https://www.nuget.org/packages/LiveChartsCore.SkiaSharpView.Uno.WinUI
+- **Avalonia** — `LiveChartsCore.SkiaSharpView.Avalonia` — https://www.nuget.org/packages/LiveChartsCore.skiasharpview.avalonia
+- **WPF** — `LiveChartsCore.SkiaSharpView.WPF` — https://www.nuget.org/packages/LiveChartsCore.skiasharpview.wpf
+- **WinForms** — `LiveChartsCore.SkiaSharpView.WinForms` — https://www.nuget.org/packages/LiveChartsCore.skiasharpview.winforms
+- **WinUI** — `LiveChartsCore.SkiaSharpView.WinUI` — https://www.nuget.org/packages/LiveChartsCore.SkiaSharpView.winui
+- **Blazor (WASM)** — `LiveChartsCore.SkiaSharpView.Blazor` — https://www.nuget.org/packages/LiveChartsCore.SkiaSharpView.blazor
+- **Eto.Forms** — `LiveChartsCore.SkiaSharpView.Eto` — https://www.nuget.org/packages/LiveChartsCore.SkiaSharpView.eto
+
+## URL Templates
+
+### API Reference
+
+```
+https://livecharts.dev/api/{LiveChartsVersion}/{objectFullName}
+```
+
+- `{objectFullName}` follows CLI (Common Language Infrastructure) metadata naming conventions, e.g. `LiveChartsCore.SkiaSharpView.WPF.CartesianChart`
+- `{LiveChartsVersion}`: use `latest` for the latest version, or a specific version string (e.g. `2.0.0-rc6.1`)
+- Full list of available versions: `https://livecharts.dev/docs/{UIFramework}/list`
+  - `{UIFramework}` is one of: `maui`, `unowinui`, `avalonia`, `eto`, `blazor`, `wpf`, `winforms`, `winui`
+
+**Examples:**
+- `https://livecharts.dev/api/latest/LiveChartsCore.SkiaSharpView.WPF.CartesianChart`
+- `https://livecharts.dev/api/latest/LiveChartsCore.SkiaSharpView.Avalonia.PieChart`
+
+### Documentation & Examples
+
+```
+https://livecharts.dev/docs/{UIFramework}/{LiveChartsVersion}/{ArticleName}
+```
+
+`{UIFramework}` and `{LiveChartsVersion}` are as described above.
+
+Available `{ArticleName}` values:
+
+**Overview**
+- `Overview.Installation`
+- `Overview.How%20it%20works`
+- `Overview.Automatic%20updates`
+- `Overview.Mappers`
+- `Overview.Paints`
+- `Overview.Animations`
+
+**Cartesian Chart**
+- `CartesianChart.Cartesian%20chart%20control`
+- `CartesianChart.Axes%20properties`
+- `CartesianChart.Tooltips`
+- `CartesianChart.Legends`
+- `CartesianChart.Line%20series%20properties`
+- `CartesianChart.Column%20series%20properties`
+- `CartesianChart.Scatter%20series%20properties`
+- `CartesianChart.Step%20line%20series%20properties`
+- `CartesianChart.Heat%20series%20properties`
+- `CartesianChart.Candle%20sticks%20series%20properties`
+- `CartesianChart.Stacked%20line%20series%20properties`
+- `CartesianChart.Stacked%20column%20series%20properties`
+- `CartesianChart.Stacked%20step%20line%20series%20properties`
+- `CartesianChart.Box%20series%20properties`
+
+**Pie Chart**
+- `PieChart.Pie%20chart%20control`
+- `PieChart.Pie%20series`
+- `PieChart.Gauges`
+
+**Polar Chart**
+- `PolarChart.Polar%20chart%20control`
+- `PolarChart.Polar%20line%20series`
+
+**GeoMap**
+- `GeoMap.GeoMap%20control`
+- `GeoMap.Heat%20land%20series`
+
+**About**
+- `About.About%20this%20samples`
+
+**Samples**
+- `samples.lines.basic`
+- `samples.lines.straight`
+- `samples.lines.area`
+- `samples.lines.custom`
+- `samples.lines.custompoints`
+- `samples.lines.autoupdate`
+- `samples.lines.xy`
+- `samples.lines.zoom`
+- `samples.steplines.basic`
+- `samples.stackedArea.basic`
+- `samples.stackedArea.stepArea`
+- `samples.bars.basic`
+- `samples.bars.withBackground`
+- `samples.bars.custom`
+- `samples.bars.spacing`
+- `samples.bars.layered`
+- `samples.bars.rowsWithLabels`
+- `samples.bars.delayedAnimation`
+- `samples.bars.race`
+- `samples.stackedBars.basic`
+- `samples.stackedBars.groups`
+- `samples.pies.basic`
+- `samples.pies.pushout`
+- `samples.pies.doughnut`
+- `samples.pies.outlabels`
+- `samples.pies.custom`
+- `samples.pies.icons`
+- `samples.pies.nightingaleRose`
+- `samples.pies.nested`
+- `samples.pies.gauge1`
+- `samples.pies.gauge2`
+- `samples.pies.gauge3`
+- `samples.pies.gauge4`
+- `samples.pies.gauge5`
+- `samples.pies.angularGauge`
+- `samples.error.basic`
+- `samples.box.basic`
+- `samples.scatter.basic`
+- `samples.scatter.bubbles`
+- `samples.scatter.custom`
+- `samples.financial.basicCandlesticks`
+- `samples.heat.basic`
+- `samples.polar.basic`
+- `samples.polar.radialArea`
+- `samples.polar.coordinates`
+- `samples.maps.world`
+- `samples.events.tutorial`
+- `samples.events.addPointOnClick`
+- `samples.axes.labelsFormat`
+- `samples.axes.labelsFormat2`
+- `samples.axes.multiple`
+- `samples.axes.shared`
+- `samples.axes.style`
+- `samples.axes.crosshairs`
+- `samples.axes.dateTimeScaled`
+- `samples.axes.timeSpanScaled`
+- `samples.axes.matchScale`
+- `samples.axes.logarithmic`
+- `samples.axes.customSeparatorsInterval`
+- `samples.axes.paging`
+- `samples.general.multiThreading`
+- `samples.general.realTime`
+- `samples.general.sections`
+- `samples.general.chartToImage`
+- `samples.general.visualElements`
+- `samples.general.visibility`
+- `samples.general.nullPoints`
+- `samples.general.customTooltips`
+- `samples.general.customLegends`
+- `samples.general.mapPoints`
+- `samples.general.drawOnCanvas`
+- `samples.general.conditionalDraw`
+- `samples.general.scrollable`
+- `samples.design.linearGradients`
+- `samples.design.radialGradients`
+- `samples.design.strokeDashArray`

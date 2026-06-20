@@ -18,36 +18,4 @@
     <DefineConstants>$(DefineConstants);__DIAGNOSE__</DefineConstants>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(FPS)' == '10'">
-    <DefineConstants>$(DefineConstants);__FPS_10__</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(FPS)' == '20'">
-    <DefineConstants>$(DefineConstants);__FPS_20__</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(FPS)' == '30'">
-    <DefineConstants>$(DefineConstants);__FPS_30__</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(FPS)' == '45'">
-    <DefineConstants>$(DefineConstants);__FPS_45__</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(FPS)' == '60'">
-    <DefineConstants>$(DefineConstants);__FPS_60__</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(FPS)' == '75'">
-    <DefineConstants>$(DefineConstants);__FPS_75__</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(FPS)' == '90'">
-    <DefineConstants>$(DefineConstants);__FPS_90__</DefineConstants>
-  </PropertyGroup>
-  
-  <PropertyGroup Condition="'$(FPS)' == '120'">
-    <DefineConstants>$(DefineConstants);__FPS_120__</DefineConstants>
-  </PropertyGroup>
-
 </Project>

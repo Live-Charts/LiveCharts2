@@ -1,4 +1,4 @@
-﻿// The MIT License(MIT)
+// The MIT License(MIT)
 //
 // Copyright(c) 2021 Alberto Rodriguez Orozco & LiveCharts Contributors
 //
@@ -118,138 +118,296 @@ public abstract class CoreScatterSeries<TModel, TVisual, TLabel, TErrorGeometry>
     /// <inheritdoc cref="IScatterSeries.StackGroup"/>
     public int? StackGroup { get; set => SetProperty(ref field, value); }
 
-    /// <inheritdoc cref="ChartElement.Invalidate(Chart)"/>
-    public override void Invalidate(Chart chart)
-    {
-        var cartesianChart = (CartesianChartEngine)chart;
-        var primaryAxis = cartesianChart.GetYAxis(this);
-        var secondaryAxis = cartesianChart.GetXAxis(this);
+    // ---- template method ----------------------------------------------------
 
-        var drawLocation = cartesianChart.DrawMarginLocation;
-        var drawMarginSize = cartesianChart.DrawMarginSize;
+    /// <summary>
+    /// Builds a per-frame measure context from the chart. Subclasses may
+    /// override to refine context construction (e.g. additional pre-computed
+    /// per-frame values).
+    /// </summary>
+    protected virtual ScatterMeasureContext BeginMeasure(CartesianChartEngine chart)
+    {
+        var primaryAxis = chart.GetYAxis(this);
+        var secondaryAxis = chart.GetXAxis(this);
+
+        var drawLocation = chart.DrawMarginLocation;
+        var drawMarginSize = chart.DrawMarginSize;
         var xScale = new Scaler(drawLocation, drawMarginSize, secondaryAxis);
         var yScale = new Scaler(drawLocation, drawMarginSize, primaryAxis);
-
-        var actualZIndex = ZIndex == 0 ? ((ISeries)this).SeriesId : ZIndex;
 
         var weightStackIndex = StackGroup ?? ((ISeries)this).SeriesId;
         var weightBounds = chart.SeriesContext.GetWeightBounds(weightStackIndex);
 
+        IsWeighted = weightBounds.Max - weightBounds.Min > 0;
+        var wm = -(GeometrySize - MinGeometrySize) / (weightBounds.Max - weightBounds.Min);
+
+        var hasSvg = this.HasVariableSvgGeometry();
+        var isFirstDraw = !((Chart)chart).IsDrawn(((ISeries)this).SeriesId);
+
+        return new ScatterMeasureContext(
+            chart, primaryAxis, secondaryAxis,
+            xScale, yScale,
+            baseGeometrySize: (float)GeometrySize,
+            isWeighted: IsWeighted,
+            weightBounds: weightBounds,
+            weightMultiplier: wm,
+            isFirstDraw: isFirstDraw,
+            hasSvg: hasSvg,
+            drawLocation: drawLocation,
+            drawMarginSize: drawMarginSize,
+            dataLabelsSize: (float)DataLabelsSize);
+    }
+
+    /// <summary>
+    /// Computes the final-frame marker geometry for a single point. Default
+    /// implementation produces a square marker of <see cref="GeometrySize"/>
+    /// (or weight-adjusted size when the stack group carries a weight range)
+    /// centered on the data point.
+    /// </summary>
+    protected virtual ScatterLayout MeasureScatterLayout(ChartPoint point, in ScatterMeasureContext ctx)
+    {
+        var coordinate = point.Coordinate;
+        var dataX = ctx.XScale.ToPixels(coordinate.SecondaryValue);
+        var dataY = ctx.YScale.ToPixels(coordinate.PrimaryValue);
+
+        var gs = ctx.BaseGeometrySize;
+        if (ctx.IsWeighted)
+            gs = (float)(ctx.WeightMultiplier * (ctx.WeightBounds.Max - coordinate.TertiaryValue) + GeometrySize);
+        var hgs = gs * 0.5f;
+
+        return new ScatterLayout(
+            x: dataX - hgs,
+            y: dataY - hgs,
+            width: gs,
+            height: gs,
+            dataX: dataX,
+            dataY: dataY);
+    }
+
+    /// <summary>
+    /// Ensures the visual + any additional visuals (error bars) exist for the
+    /// point. On first creation initializes the visual at the data point with
+    /// zero size so the marker animates from a point.
+    /// </summary>
+    protected virtual TVisual EnsureVisualForPoint(ChartPoint point, in ScatterMeasureContext ctx)
+    {
+        var visual = (TVisual?)point.Context.Visual;
+
+        if (visual is not null)
+        {
+            AttachErrorVisualsToPaint(point.Context.AdditionalVisuals as ErrorVisual<TErrorGeometry>, ctx.Chart.Canvas);
+            return visual;
+        }
+
+        var coordinate = point.Coordinate;
+        var x = ctx.XScale.ToPixels(coordinate.SecondaryValue);
+        var y = ctx.YScale.ToPixels(coordinate.PrimaryValue);
+
+        var r = new TVisual
+        {
+            X = x,
+            Y = y,
+            Width = 0,
+            Height = 0,
+        };
+
+        ErrorVisual<TErrorGeometry>? e = null;
+        if (ShowError && ErrorPaint is not null && ErrorPaint != Paint.Default)
+        {
+            e = new ErrorVisual<TErrorGeometry>();
+
+            e.YError.X = x;
+            e.YError.X1 = x;
+            e.YError.Y = y;
+            e.YError.Y1 = y;
+
+            e.XError.X = x;
+            e.XError.X1 = x;
+            e.XError.Y = y;
+            e.XError.Y1 = y;
+
+            point.Context.AdditionalVisuals = e;
+        }
+
+        point.Context.Visual = r;
+        OnPointCreated(point);
+
+        _ = everFetched.Add(point);
+
+        AttachErrorVisualsToPaint(e, ctx.Chart.Canvas);
+
+        return r;
+    }
+
+    /// <summary>
+    /// Per-frame error-bar geometry update. No-op when the series carries no
+    /// error visuals or no point error data.
+    /// </summary>
+    protected virtual void MeasureErrorBars(ChartPoint point, in ScatterLayout layout, in ScatterMeasureContext ctx)
+    {
+        var coordinate = point.Coordinate;
+        if (coordinate.PointError.IsEmpty) return;
+        if (!ShowError || ErrorPaint is null || ErrorPaint == Paint.Default) return;
+        if (point.Context.AdditionalVisuals is not ErrorVisual<TErrorGeometry> e) return;
+
+        var pe = coordinate.PointError;
+
+        e.YError!.X = layout.DataX;
+        e.YError.X1 = layout.DataX;
+        e.YError.Y = layout.DataY + ctx.YScale.MeasureInPixels(pe.Yi);
+        e.YError.Y1 = layout.DataY - ctx.YScale.MeasureInPixels(pe.Yj);
+        e.YError.RemoveOnCompleted = false;
+
+        e.XError!.X = layout.DataX - ctx.XScale.MeasureInPixels(pe.Xi);
+        e.XError.X1 = layout.DataX + ctx.XScale.MeasureInPixels(pe.Xj);
+        e.XError.Y = layout.DataY;
+        e.XError.Y1 = layout.DataY;
+        e.XError.RemoveOnCompleted = false;
+    }
+
+    /// <summary>
+    /// Collapses the point's visual to zero size at the data point for
+    /// empty/invisible points.
+    /// </summary>
+    protected virtual void CollapseEmptyVisual(ChartPoint point, in ScatterMeasureContext ctx)
+    {
+        var coordinate = point.Coordinate;
+        var x = ctx.XScale.ToPixels(coordinate.SecondaryValue);
+        var y = ctx.YScale.ToPixels(coordinate.PrimaryValue);
+        var hgs = ctx.BaseGeometrySize * 0.5f;
+
+        if (point.Context.Visual is TVisual visual)
+        {
+            visual.X = x - hgs;
+            visual.Y = y - hgs;
+            visual.Width = 0;
+            visual.Height = 0;
+            visual.RemoveOnCompleted = true;
+            point.Context.Visual = null;
+        }
+
+        if (point.Context.Label is TLabel label)
+        {
+            // Preserves the original CoreScatterSeries.Invalidate collapse pattern,
+            // where the empty-label X / Y both used (x - hgs). Snapshot baselines
+            // pin this; if it ever looks wrong the fix is to set label.Y = y - hgs.
+            label.X = x - hgs;
+            label.Y = x - hgs;
+            label.Opacity = 0;
+            label.RemoveOnCompleted = true;
+            point.Context.Label = null;
+        }
+    }
+
+    /// <summary>
+    /// Sets the per-Z-index ordering on each non-default paint and registers it as a
+    /// drawable task on the chart's canvas (within the DrawMargin zone). Run once at
+    /// the top of <see cref="Invalidate"/>.
+    /// </summary>
+    private void InitializePaints(CartesianChartEngine chart)
+    {
+        var actualZIndex = ZIndex == 0 ? ((ISeries)this).SeriesId : ZIndex;
         if (Fill is not null && Fill != Paint.Default)
         {
             Fill.ZIndex = actualZIndex + PaintConstants.SeriesFillZIndexOffset;
-            cartesianChart.Canvas.AddDrawableTask(Fill, zone: CanvasZone.DrawMargin);
+            chart.Canvas.AddDrawableTask(Fill, zone: CanvasZone.DrawMargin);
         }
         if (Stroke is not null && Stroke != Paint.Default)
         {
             Stroke.ZIndex = actualZIndex + PaintConstants.SeriesStrokeZIndexOffset;
-            cartesianChart.Canvas.AddDrawableTask(Stroke, zone: CanvasZone.DrawMargin);
+            chart.Canvas.AddDrawableTask(Stroke, zone: CanvasZone.DrawMargin);
         }
         if (ShowError && ErrorPaint is not null && ErrorPaint != Paint.Default)
         {
             ErrorPaint.ZIndex = actualZIndex + PaintConstants.SeriesGeometryFillZIndexOffset;
-            cartesianChart.Canvas.AddDrawableTask(ErrorPaint, zone: CanvasZone.DrawMargin);
+            chart.Canvas.AddDrawableTask(ErrorPaint, zone: CanvasZone.DrawMargin);
         }
         if (ShowDataLabels && DataLabelsPaint is not null && DataLabelsPaint != Paint.Default)
         {
             DataLabelsPaint.ZIndex = actualZIndex + PaintConstants.SeriesGeometryStrokeZIndexOffset;
-            cartesianChart.Canvas.AddDrawableTask(DataLabelsPaint, zone: CanvasZone.DrawMargin);
+            chart.Canvas.AddDrawableTask(DataLabelsPaint, zone: CanvasZone.DrawMargin);
+        }
+    }
+
+    /// <summary>
+    /// Creates the data label visual if it doesn't exist yet (animation-sourced from
+    /// the marker's top-left), updates its text + style, and positions it via
+    /// <c>GetLabelPosition</c> with the marker rect and the point's "above pivot" hint.
+    /// No-op when the series has no data-label paint configured.
+    /// </summary>
+    private void MeasureDataLabel(ChartPoint point, in ScatterLayout layout, in ScatterMeasureContext ctx)
+    {
+        if (!ShowDataLabels || DataLabelsPaint is null || DataLabelsPaint == Paint.Default) return;
+
+        var chart = ctx.Chart;
+        var label = (TLabel?)point.Context.Label;
+
+        if (label is null)
+        {
+            var l = new TLabel
+            {
+                X = layout.X,
+                Y = layout.Y,
+                RotateTransform = (float)DataLabelsRotation,
+                MaxWidth = (float)DataLabelsMaxWidth
+            };
+            l.Animate(
+                GetAnimation(chart),
+                BaseLabelGeometry.XProperty,
+                BaseLabelGeometry.YProperty);
+            label = l;
+            point.Context.Label = l;
         }
 
-        var dls = (float)DataLabelsSize;
+        DataLabelsPaint.AddGeometryToPaintTask(chart.Canvas, label);
+
+        label.Text = DataLabelsFormatter(new ChartPoint<TModel, TVisual, TLabel>(point));
+        label.TextSize = ctx.DataLabelsSize;
+        label.Padding = DataLabelsPadding;
+        label.Paint = DataLabelsPaint;
+
+        if (ctx.IsFirstDraw)
+            label.CompleteTransition(
+                BaseLabelGeometry.TextSizeProperty,
+                BaseLabelGeometry.XProperty,
+                BaseLabelGeometry.YProperty,
+                BaseLabelGeometry.RotateTransformProperty);
+
+        var m = label.Measure();
+        var labelPosition = GetLabelPosition(
+            layout.X, layout.Y, layout.Width, layout.Height, m, DataLabelsPosition,
+            SeriesProperties, point.Coordinate.PrimaryValue > 0, ctx.DrawLocation, ctx.DrawMarginSize);
+        if (DataLabelsTranslate is not null)
+            label.TranslateTransform = new LvcPoint(
+                m.Width * DataLabelsTranslate.Value.X, m.Height * DataLabelsTranslate.Value.Y);
+
+        label.X = labelPosition.X;
+        label.Y = labelPosition.Y;
+    }
+
+    /// <inheritdoc cref="ChartElement.Invalidate(Chart)"/>
+    public sealed override void Invalidate(Chart chart)
+    {
+        var cartesianChart = (CartesianChartEngine)chart;
+        _ = GetAnimation(cartesianChart);
+
+        var ctx = BeginMeasure(cartesianChart);
         var pointsCleanup = ChartPointCleanupContext.For(everFetched);
 
-        var gs = (float)GeometrySize;
-        var hgs = gs / 2f;
-        var sw = Stroke?.StrokeThickness ?? 0;
-        IsWeighted = weightBounds.Max - weightBounds.Min > 0;
-        var wm = -(GeometrySize - MinGeometrySize) / (weightBounds.Max - weightBounds.Min);
-
-        var hy = chart.ControlSize.Height * .5f;
-        var hasSvg = this.HasVariableSvgGeometry();
-
-        var isFirstDraw = !chart.IsDrawn(((ISeries)this).SeriesId);
+        InitializePaints(cartesianChart);
 
         foreach (var point in Fetch(cartesianChart))
         {
-            var coordinate = point.Coordinate;
-
-            var visual = (TVisual?)point.Context.Visual;
-            var e = point.Context.AdditionalVisuals as ErrorVisual<TErrorGeometry>;
-
-            var x = xScale.ToPixels(coordinate.SecondaryValue);
-            var y = yScale.ToPixels(coordinate.PrimaryValue);
-
             if (point.IsEmpty || !IsVisible)
             {
-                if (visual is not null)
-                {
-                    visual.X = x - hgs;
-                    visual.Y = y - hgs;
-                    visual.Width = 0;
-                    visual.Height = 0;
-                    visual.RemoveOnCompleted = true;
-                    point.Context.Visual = null;
-                }
-
-                if (point.Context.Label is not null)
-                {
-                    var label = (TLabel)point.Context.Label;
-
-                    label.X = x - hgs;
-                    label.Y = x - hgs;
-                    label.Opacity = 0;
-                    label.RemoveOnCompleted = true;
-
-                    point.Context.Label = null;
-                }
-
+                CollapseEmptyVisual(point, in ctx);
                 pointsCleanup.Clean(point);
-
                 continue;
             }
 
-            if (IsWeighted)
-            {
-                gs = (float)(wm * (weightBounds.Max - coordinate.TertiaryValue) + GeometrySize);
-                hgs = gs / 2f;
-            }
+            var visual = EnsureVisualForPoint(point, in ctx);
 
-            if (visual is null)
-            {
-                var r = new TVisual
-                {
-                    X = x,
-                    Y = y,
-                    Width = 0,
-                    Height = 0
-                };
-
-                if (ShowError && ErrorPaint is not null && ErrorPaint != Paint.Default)
-                {
-                    e = new ErrorVisual<TErrorGeometry>();
-
-                    e.YError.X = x;
-                    e.YError.X1 = x;
-                    e.YError.Y = y;
-                    e.YError.Y1 = y;
-
-                    e.XError.X = x;
-                    e.XError.X1 = x;
-                    e.XError.Y = y;
-                    e.XError.Y1 = y;
-
-                    point.Context.AdditionalVisuals = e;
-                }
-
-                visual = r;
-                point.Context.Visual = visual;
-                OnPointCreated(point);
-
-                _ = everFetched.Add(point);
-            }
-
-            if (hasSvg)
+            if (ctx.HasSvg)
             {
                 var svgVisual = (IVariableSvgPath)visual;
                 if (_geometrySvgChanged || svgVisual.SVGPath is null)
@@ -260,86 +418,39 @@ public abstract class CoreScatterSeries<TModel, TVisual, TLabel, TErrorGeometry>
                 Fill.AddGeometryToPaintTask(cartesianChart.Canvas, visual);
             if (Stroke is not null && Stroke != Paint.Default)
                 Stroke.AddGeometryToPaintTask(cartesianChart.Canvas, visual);
-            if (ErrorPaint is not null && ErrorPaint != Paint.Default)
-            {
-                ErrorPaint.AddGeometryToPaintTask(cartesianChart.Canvas, e!.YError);
-                ErrorPaint.AddGeometryToPaintTask(cartesianChart.Canvas, e!.XError);
-            }
 
-            var sizedGeometry = visual;
+            var layout = MeasureScatterLayout(point, in ctx);
 
-            sizedGeometry.X = x - hgs;
-            sizedGeometry.Y = y - hgs;
-            sizedGeometry.Width = gs;
-            sizedGeometry.Height = gs;
+            visual.X = layout.X;
+            visual.Y = layout.Y;
+            visual.Width = layout.Width;
+            visual.Height = layout.Height;
 
-            if (!coordinate.PointError.IsEmpty && ShowError && ErrorPaint is not null && ErrorPaint != Paint.Default)
-            {
-                var pe = coordinate.PointError;
+            MeasureErrorBars(point, in layout, in ctx);
 
-                e!.YError!.X = x;
-                e.YError.X1 = x;
-                e.YError.Y = y + yScale.MeasureInPixels(pe.Yi);
-                e.YError.Y1 = y - yScale.MeasureInPixels(pe.Yj);
-                e.YError.RemoveOnCompleted = false;
-
-                e.XError!.X = x - xScale.MeasureInPixels(pe.Xi);
-                e.XError.X1 = x + xScale.MeasureInPixels(pe.Xj);
-                e.XError.Y = y;
-                e.XError.Y1 = y;
-                e.XError.RemoveOnCompleted = false;
-            }
-
-            sizedGeometry.RemoveOnCompleted = false;
+            visual.RemoveOnCompleted = false;
 
             if (point.Context.HoverArea is not RectangleHoverArea ha)
                 point.Context.HoverArea = ha = new RectangleHoverArea();
-            _ = ha.SetDimensions(x - hgs, y - hgs, gs, gs).CenterXToolTip().CenterYToolTip();
+            _ = ha.SetDimensions(layout.X, layout.Y, layout.Width, layout.Height).CenterXToolTip().CenterYToolTip();
 
             pointsCleanup.Clean(point);
 
-            if (ShowDataLabels && DataLabelsPaint is not null && DataLabelsPaint != Paint.Default)
-            {
-                if (point.Context.Label is not TLabel label)
-                {
-                    var l = new TLabel { X = x - hgs, Y = y - hgs, RotateTransform = (float)DataLabelsRotation, MaxWidth = (float)DataLabelsMaxWidth };
-                    l.Animate(
-                        EasingFunction ?? cartesianChart.ActualEasingFunction,
-                        AnimationsSpeed ?? cartesianChart.ActualAnimationsSpeed,
-                        BaseLabelGeometry.XProperty,
-                        BaseLabelGeometry.YProperty);
-                    label = l;
-                    point.Context.Label = l;
-                }
-
-                DataLabelsPaint.AddGeometryToPaintTask(cartesianChart.Canvas, label);
-                label.Text = DataLabelsFormatter(new ChartPoint<TModel, TVisual, TLabel>(point));
-                label.TextSize = dls;
-                label.Padding = DataLabelsPadding;
-                label.Paint = DataLabelsPaint;
-
-                if (isFirstDraw)
-                    label.CompleteTransition(
-                        BaseLabelGeometry.TextSizeProperty,
-                        BaseLabelGeometry.XProperty,
-                        BaseLabelGeometry.YProperty,
-                        BaseLabelGeometry.RotateTransformProperty);
-
-                var m = label.Measure();
-                var labelPosition = GetLabelPosition(
-                    x - hgs, y - hgs, gs, gs, m, DataLabelsPosition,
-                    SeriesProperties, coordinate.PrimaryValue > 0, drawLocation, drawMarginSize);
-                if (DataLabelsTranslate is not null) label.TranslateTransform =
-                        new LvcPoint(m.Width * DataLabelsTranslate.Value.X, m.Height * DataLabelsTranslate.Value.Y);
-                label.X = labelPosition.X;
-                label.Y = labelPosition.Y;
-            }
+            MeasureDataLabel(point, in layout, in ctx);
 
             OnPointMeasured(point);
         }
 
-        pointsCleanup.CollectPoints(everFetched, cartesianChart.View, yScale, xScale, SoftDeleteOrDisposePoint);
+        pointsCleanup.CollectPoints(everFetched, cartesianChart.View, ctx.YScale, ctx.XScale, SoftDeleteOrDisposePoint);
         _geometrySvgChanged = false;
+    }
+
+    private void AttachErrorVisualsToPaint(ErrorVisual<TErrorGeometry>? e, CoreMotionCanvas canvas)
+    {
+        if (e is null) return;
+        if (ErrorPaint is null || ErrorPaint == Paint.Default) return;
+        ErrorPaint.AddGeometryToPaintTask(canvas, e.YError);
+        ErrorPaint.AddGeometryToPaintTask(canvas, e.XError);
     }
 
     /// <inheritdoc cref="CartesianSeries{TModel, TVisual, TLabel}.GetBounds(Chart, ICartesianAxis, ICartesianAxis)"/>
@@ -386,16 +497,15 @@ public abstract class CoreScatterSeries<TModel, TVisual, TLabel, TErrorGeometry>
 
         if (visual is null) throw new Exception("Unable to initialize the point instance.");
 
-        var easing = EasingFunction ?? chart.CoreChart.ActualEasingFunction;
-        var speed = AnimationsSpeed ?? chart.CoreChart.ActualAnimationsSpeed;
+        var animation = GetAnimation(chart.CoreChart);
 
-        visual.Animate(easing, speed);
+        visual.Animate(animation);
 
         if (chartPoint.Context.AdditionalVisuals is not null)
         {
             var e = (ErrorVisual<TErrorGeometry>)chartPoint.Context.AdditionalVisuals;
-            e.YError.Animate(easing, speed);
-            e.XError.Animate(easing, speed);
+            e.YError.Animate(animation);
+            e.XError.Animate(animation);
         }
     }
 

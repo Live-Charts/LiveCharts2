@@ -11,7 +11,7 @@
         <vms:ViewModel/>
     </ContentPage.BindingContext>
 
-    <Grid RowDefinitions="50, 50, *">
+    <Grid RowDefinitions="50, 50, *" x:Name="grid">
         <StackLayout Grid.Row="0" Orientation="Horizontal">
             <Button Margin="6" Command="{Binding AddItemCommand}" Text="Add item" />
             <Button Margin="6" Command="{Binding ReplaceItemCommand}" Text="Replace item"/>
@@ -23,7 +23,7 @@
             <Button Margin="6" Command="{Binding RemoveSeriesCommand}" Text="Remove Series" />
         </StackLayout>
 
-        <lvc:CartesianChart Grid.Row="2" SeriesSource="{Binding Data}">
+        <lvc:CartesianChart Grid.Row="2" SeriesSource="{Binding Data}" x:Name="chart">
             <lvc:CartesianChart.SeriesTemplate>
                 <DataTemplate x:DataType="vms:ChartData">
                     <lvc:XamlColumnSeries

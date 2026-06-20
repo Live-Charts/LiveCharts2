@@ -52,12 +52,24 @@ public class Stacker
     public int MaxLength { get; } = 0;
 
     /// <summary>
+    /// Gets the largest <see cref="ISeries.SeriesId"/> among the series registered in
+    /// this stack group. Used by the stacked area / step / polar line series to
+    /// derive a z-index that anchors the whole stack at one rank while sub-ordering
+    /// by stack position so the bottom layer (position 0) draws on top of the
+    /// later, larger-fill layers. Callers must ensure all peer stacked series have
+    /// registered (via <see cref="GetSeriesStackPosition"/>) before reading this.
+    /// </summary>
+    public int MaxSeriesId { get; private set; } = -1;
+
+    /// <summary>
     /// Gets the series stack position.
     /// </summary>
     /// <param name="series">The series.</param>
     /// <returns></returns>
     public int GetSeriesStackPosition(ISeries series)
     {
+        if (series.SeriesId > MaxSeriesId) MaxSeriesId = series.SeriesId;
+
         if (!_stackPositions.TryGetValue(series, out var i))
         {
             var n = new Dictionary<double, StackedValue>(_knownMaxLenght);
@@ -83,6 +95,7 @@ public class Stacker
         var value = coordinate.PrimaryValue;
         var positiveStart = 0d;
         var negativeStart = 0d;
+        var cumulativeStart = 0d;
 
         if (seriesStackPosition > 0)
         {
@@ -97,6 +110,7 @@ public class Stacker
                 {
                     positiveStart = previousActiveStack.End;
                     negativeStart = previousActiveStack.NegativeEnd;
+                    cumulativeStart = previousActiveStack.CumulativeEnd;
                     found = true;
                 }
                 else
@@ -115,12 +129,21 @@ public class Stacker
                 Start = positiveStart,
                 End = positiveStart,
                 NegativeStart = negativeStart,
-                NegativeEnd = negativeStart
+                NegativeEnd = negativeStart,
+                CumulativeStart = cumulativeStart,
+                CumulativeEnd = cumulativeStart
             };
             si.Add(index, currentStack);
             if (!_totals.TryGetValue(index, out var _)) _totals.Add(index, new());
             _knownMaxLenght++;
         }
+
+        // CumulativeEnd accumulates every point regardless of sign so stacked
+        // area/line series can render a continuous baseline across mixed signs
+        // (issue #2073). Positive/Negative tracks stay sign-segregated so stacked
+        // column/row bars still grow from 0 in their respective direction
+        // (issue #2152).
+        currentStack.CumulativeEnd += value;
 
         if (value >= 0)
         {
@@ -158,6 +181,8 @@ public class Stacker
                 End = 0,
                 NegativeStart = 0,
                 NegativeEnd = 0,
+                CumulativeStart = 0,
+                CumulativeEnd = 0,
             };
         }
 
@@ -173,7 +198,9 @@ public class Stacker
             Total = total.Positive,
             NegativeStart = p.NegativeStart,
             NegativeEnd = p.NegativeEnd,
-            NegativeTotal = total.Negative
+            NegativeTotal = total.Negative,
+            CumulativeStart = p.CumulativeStart,
+            CumulativeEnd = p.CumulativeEnd
         };
     }
 }

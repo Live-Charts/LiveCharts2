@@ -35,6 +35,8 @@ namespace LiveChartsCore.SkiaSharpView.Painting;
 public class RadialGradientPaint : SkiaPaint
 {
     private SKShader? _shader;
+    internal SKColorFilter? _opacityFilter;
+    internal float _opacityFilterAlpha = -1f;
     private SKRect _activeClip = new();
     private readonly SKColor[] _gradientStops;
     private SKPoint _center;
@@ -108,10 +110,20 @@ public class RadialGradientPaint : SkiaPaint
     {
         if (_skiaPaint is null || opacity > 0.99) return;
 
-        _skiaPaint.ColorFilter =
-            SKColorFilter.CreateBlendMode(
+        // See LinearGradientPaint.ApplyOpacityMask — same leak fix: previously a fresh
+        // SKColorFilter was created every call and Restore dropped the reference without
+        // disposing. Cache by opacity; for steady-state opacity the native filter is
+        // created once and reused.
+        if (_opacityFilter is null || _opacityFilterAlpha != opacity)
+        {
+            _opacityFilter?.Dispose();
+            _opacityFilter = SKColorFilter.CreateBlendMode(
                 new SKColor(255, 255, 255, (byte)(255 * opacity)),
                 SKBlendMode.DstIn);
+            _opacityFilterAlpha = opacity;
+        }
+
+        _skiaPaint.ColorFilter = _opacityFilter;
     }
 
     internal override void RestoreOpacityMask(DrawingContext context, float opacity, IDrawnElement? drawnElement)
@@ -164,6 +176,10 @@ public class RadialGradientPaint : SkiaPaint
 
         _shader?.Dispose();
         _shader = null;
+
+        _opacityFilter?.Dispose();
+        _opacityFilter = null;
+        _opacityFilterAlpha = -1f;
     }
 
     private SKShader GetShader()

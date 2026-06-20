@@ -1,0 +1,43 @@
+@page "/Lines/Range"
+@using LiveChartsCore
+@using LiveChartsCore.SkiaSharpView
+@using LiveChartsCore.SkiaSharpView.Blazor
+
+<CartesianChart
+    Series="@series"
+    XAxes="@xAxes"
+    YAxes="@yAxes">
+</CartesianChart>
+
+@code {
+    // Blazor is code-only — no XAML wrappers. Reuse the same VM for raw data
+    // + formatters and instantiate the chart objects locally.
+    private readonly ViewModelsSamples.Lines.Range.ViewModel vm = new();
+
+    private ISeries[] series;
+    private Axis[] xAxes;
+    private Axis[] yAxes;
+
+    protected override void OnInitialized()
+    {
+        series =
+        [
+            new RangeLineSeries<LiveChartsCore.Defaults.RangeValue>
+            {
+                Name = "Temperature",
+                Values = vm.Temperatures,
+                YToolTipLabelFormatter = vm.TempTooltipFormatter,
+            },
+        ];
+
+        xAxes =
+        [
+            new Axis { Labels = vm.Months },
+        ];
+
+        yAxes =
+        [
+            new Axis { Labeler = vm.TempLabeler },
+        ];
+    }
+}

@@ -1,4 +1,4 @@
-﻿// The MIT License(MIT)
+// The MIT License(MIT)
 //
 // Copyright(c) 2021 Alberto Rodriguez Orozco & LiveCharts Contributors
 //
@@ -23,6 +23,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using LiveChartsCore.Painting;
 
 namespace LiveChartsCore.Geo;
@@ -97,23 +98,27 @@ public class MapLayer(string layerName, Paint stroke, Paint fill)
                 $"The {nameof(GeoJsonFile.Features)} property is required to build a {nameof(DrawnMap)} instance. " +
                 $"Ensure the property is not null.");
 
+        var featureIndex = -1;
         foreach (var feature in file.Features)
         {
-            if (feature.Geometry is null || feature.Geometry.Coordinates is null) continue;
+            featureIndex++;
+            if (feature.Geometry?.Coordinates is null) continue;
 
-            var name = (feature.Properties?["name"] ?? "?").ToLowerInvariant();
-            var shortName = (feature.Properties?["shortName"] ?? "?").ToLowerInvariant();
-            var setOf = (feature.Properties?["setOf"] ?? "?").ToLowerInvariant();
+            var polygons = TryReadPolygons(feature.Geometry.Type, feature.Geometry.Coordinates.Value);
+            if (polygons is null) continue;
+
+            var name = GetProperty(feature.Properties, "name") ?? $"feature_{featureIndex}";
+            var shortName = GetProperty(feature.Properties, "shortName") ?? name;
+            var setOf = GetProperty(feature.Properties, "setOf") ?? "?";
 
             var definition = new LandDefinition(shortName, name, setOf);
-
             var dataCollection = new List<LandData>();
 
-            foreach (var geometry in feature.Geometry.Coordinates)
+            foreach (var polygon in polygons)
             {
-                foreach (var segment in geometry)
+                foreach (var ring in polygon)
                 {
-                    var data = new LandData(segment);
+                    var data = new LandData(ring);
 
                     if (data.MaxBounds[0] > definition.MaxBounds[0]) definition.MaxBounds[0] = data.MaxBounds[0];
                     if (data.MinBounds[0] < definition.MinBounds[0]) definition.MinBounds[0] = data.MinBounds[0];
@@ -126,7 +131,83 @@ public class MapLayer(string layerName, Paint stroke, Paint fill)
             }
 
             definition.Data = [.. dataCollection.OrderByDescending(x => x.BoundsHypotenuse)];
-            Lands.Add(shortName, definition);
+
+            // Two features can resolve to the same shortName (e.g., duplicate "name"
+            // properties). Suffix the index instead of throwing so arbitrary GeoJson
+            // imports don't abort halfway.
+            var key = Lands.ContainsKey(shortName) ? $"{shortName}_{featureIndex}" : shortName;
+            Lands.Add(key, definition);
         }
+    }
+
+    // Reads coordinates per RFC 7946 Geometry.Type. A Polygon is wrapped into a
+    // single-element MultiPolygon so the rendering loop sees a uniform shape. All
+    // other geometry types return null and are skipped silently.
+    private static double[][][][]? TryReadPolygons(string? type, JsonElement coordinates)
+    {
+        if (coordinates.ValueKind != JsonValueKind.Array) return null;
+        return type switch
+        {
+            "Polygon" => [ReadPolygon(coordinates)],
+            "MultiPolygon" => ReadMultiPolygon(coordinates),
+            _ => null
+        };
+    }
+
+    private static double[][][][] ReadMultiPolygon(JsonElement element)
+    {
+        var result = new double[element.GetArrayLength()][][][];
+        var i = 0;
+        foreach (var polygon in element.EnumerateArray()) result[i++] = ReadPolygon(polygon);
+        return result;
+    }
+
+    private static double[][][] ReadPolygon(JsonElement element)
+    {
+        var rings = new double[element.GetArrayLength()][][];
+        var i = 0;
+        foreach (var ring in element.EnumerateArray())
+        {
+            var points = new double[ring.GetArrayLength()][];
+            var j = 0;
+            foreach (var point in ring.EnumerateArray())
+            {
+                var coords = new double[point.GetArrayLength()];
+                var k = 0;
+                foreach (var c in point.EnumerateArray()) coords[k++] = c.GetDouble();
+                points[j++] = coords;
+            }
+            rings[i++] = points;
+        }
+        return rings;
+    }
+
+    private static string? GetProperty(Dictionary<string, JsonElement>? properties, string key)
+    {
+        if (properties is null) return null;
+
+        // RFC 7946 doesn't constrain property casing, so accept e.g. "Name" or "SHORTNAME"
+        // by falling back to a case-insensitive scan when the exact key isn't present.
+        if (!properties.TryGetValue(key, out var value))
+        {
+            var found = false;
+            foreach (var kvp in properties)
+            {
+                if (!string.Equals(kvp.Key, key, StringComparison.OrdinalIgnoreCase)) continue;
+                value = kvp.Value;
+                found = true;
+                break;
+            }
+            if (!found) return null;
+        }
+
+        return value.ValueKind switch
+        {
+            JsonValueKind.String => value.GetString()?.ToLowerInvariant(),
+            JsonValueKind.Number => value.ToString().ToLowerInvariant(),
+            JsonValueKind.True => "true",
+            JsonValueKind.False => "false",
+            _ => null
+        };
     }
 }

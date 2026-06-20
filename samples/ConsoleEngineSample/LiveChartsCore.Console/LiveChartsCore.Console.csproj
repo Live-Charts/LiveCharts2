@@ -1,0 +1,56 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>LiveChartsCore.Console</RootNamespace>
+    <AssemblyName>LiveChartsCore.Console</AssemblyName>
+    <PathToPackAssets>../../../</PathToPackAssets>
+  </PropertyGroup>
+
+  <Import Project="../../../nuget.props" />
+  <PropertyGroup>
+    <Description>
+      $(Description) This package renders LiveCharts charts in the terminal — HalfBlock, Braille and Sixel modes with mouse / keyboard input. Pair with LiveChartsCore.Console.Cli for a ready-made `lvc` command, or use this package directly to embed the engine in your own .NET app.
+    </Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\generators\LiveChartsGenerators\LiveChartsGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\..\src\LiveChartsCore\LiveChartsCore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ConsoleTests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\..\src\skiasharp\_Shared\SourceGenChart.*.cs">
+      <Link>%(Filename).cs</Link>
+      <DependentUpon>SourceGenChart.cs</DependentUpon>
+    </Compile>
+    <Compile Include="..\..\..\src\skiasharp\_Shared\SourceGenCartesianChart.*.cs">
+      <Link>%(Filename).cs</Link>
+      <DependentUpon>CartesianChart.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SourceGenCartesianChart.*.cs">
+      <DependentUpon>CartesianChart.cs</DependentUpon>
+    </Compile>
+    <Compile Include="..\..\..\src\skiasharp\_Shared\SourceGenPieChart.*.cs">
+      <Link>%(Filename).cs</Link>
+      <DependentUpon>PieChart.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SourceGenPieChart.*.cs">
+      <DependentUpon>PieChart.cs</DependentUpon>
+    </Compile>
+    <Compile Include="..\..\..\src\skiasharp\_Shared\SourceGenPolarChart.*.cs">
+      <Link>%(Filename).cs</Link>
+      <DependentUpon>PolarChart.cs</DependentUpon>
+    </Compile>
+    <Compile Update="SourceGenPolarChart.*.cs">
+      <DependentUpon>PolarChart.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+</Project>

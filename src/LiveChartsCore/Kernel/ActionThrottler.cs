@@ -38,15 +38,13 @@ public class ActionThrottler(Func<Task> targetAction, TimeSpan time)
     private readonly object _sync = new();
     private bool _isWaiting = false;
 
-#if DEBUG
     /// <summary>
     /// Gets the calls.
     /// </summary>
     /// <value>
     /// The calls.
     /// </value>
-    public int Calls { get; private set; } = 0;
-#endif
+    internal int Calls { get; private set; } = 0;
 
     /// <summary>
     /// Gets or sets the throttler time span.
@@ -64,9 +62,7 @@ public class ActionThrottler(Func<Task> targetAction, TimeSpan time)
     {
         lock (_sync)
         {
-#if DEBUG
             Calls++;
-#endif
 
             if (_isWaiting) return;
             _isWaiting = true;

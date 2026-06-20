@@ -179,6 +179,13 @@ public class Theme
     public List<Action<IPieSeries>> GaugeFillSeriesBuilder { get; set; } = [];
 
     /// <summary>
+    /// Theme rules applied to sankey series. Mirrors the
+    /// <see cref="PieSeriesBuilder"/> shape so the same defaults-system
+    /// pattern (palette colors, default LinkFill alpha) works for sankey.
+    /// </summary>
+    public List<Action<ISankeySeries>> SankeySeriesBuilder { get; set; } = [];
+
+    /// <summary>
     /// Gets or sets the Cartesian series builder.
     /// </summary>
     /// <value>
@@ -488,6 +495,11 @@ public class Theme
         {
             var financialSeries = (IFinancialSeries)series;
             foreach (var rule in FinancialSeriesBuilder) rule(financialSeries);
+        }
+
+        if ((series.SeriesProperties & SeriesProperties.Sankey) == SeriesProperties.Sankey)
+        {
+            foreach (var rule in SankeySeriesBuilder) rule((ISankeySeries)series);
         }
     }
 

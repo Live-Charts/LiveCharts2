@@ -1,6 +1,6 @@
-<div id="edit-this-article-source">
-    {{ edit_source | replace_local_to_server}}
-</div>
+<!--
+To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/master/docs/readme.md
+-->
 
 # About MVVM and this site examples
 
@@ -56,11 +56,11 @@ using CommunityToolkit.Mvvm.ComponentModel;
 public partial class ViewModel : ObservableObject
 {
     [ObservableProperty]
-    public ISeries[] _series;
+    public partial ISeries[] Series { get; set; }
 }
 ```
 
-Now we inherited from `ObservableObject` and marked the *_series* field with the `ObservableProperty` attribute; by convention and with 
-the magic of source generators, the property `Series` now exists in our class, source generators are adding all this boring and repetitive 
+Now we inherited from `ObservableObject` and marked the *Series* property with the `ObservableProperty` attribute; The source generator
+will add all this boring and repetitive 
 code for us, this is just a quick guide to get started with the docs in this site but you can learn more about the 
 toolkit [here](https://www.youtube.com/watch?v=aCxl0z04BN8) or in the [official docs](https://learn.microsoft.com/en-us/dotnet/communitytoolkit/mvvm/).

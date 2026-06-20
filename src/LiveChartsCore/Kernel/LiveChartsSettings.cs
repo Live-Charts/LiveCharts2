@@ -257,7 +257,7 @@ public class LiveChartsSettings
                 "for example to plot a collection of double add the x:TypeArguments=\"x:Double\" attribute " +
                 "to the series XAML, the mapper must also be configured, alternatively, you can also " +
                 "implement IChartEntity in the type your are plotting, for more info see: " +
-                "https://livecharts.dev/docs/wpf/2.0.0-rc5.4/Overview.Mappers");
+                "https://livecharts.dev/docs/select/latest/Overview.Mappers");
 
         throw new NotImplementedException(
             $"A mapper for type {typeof(TModel)} is not implemented yet, consider using " +

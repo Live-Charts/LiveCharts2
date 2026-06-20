@@ -1,4 +1,5 @@
-﻿using ViewModelsSamples.Bars.AutoUpdate;
+﻿using LiveChartsCore.SkiaSharpView.Maui;
+using ViewModelsSamples.Bars.AutoUpdate;
 
 namespace MauiSample.Bars.AutoUpdate;
 
@@ -9,4 +10,11 @@ public partial class View : ContentPage
     {
         InitializeComponent();
     }
+
+#if UI_TESTING
+    public CartesianChart Chart => chart;
+
+    public void UnloadChart() => grid.Children.Remove(chart);
+    public void ReloadChart() => grid.Children.Add(chart);
+#endif
 }

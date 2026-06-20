@@ -25,10 +25,11 @@ using LiveChartsCore.Kernel.Sketches;
 namespace LiveChartsCore.SkiaSharpView.Maui;
 
 // ==============================================================================
-// 
-// use the LiveChartsGeneratedCode.SourceGenPieChart class to add maui specific
-// code, this class is just to expose the PieChart class in this namespace.
-// 
+// this file exposes the control at this namespace.
+// to see the code expand this file in the solution explorer, it will include 3 files:
+//    - *.uiFramework.cs:   The UI framework specific code
+//    - *.shared.cs:        shared code between all UI frameworks
+//    - *.sgp.cs:           the source generated properties
 // ==============================================================================
 
 /// <inheritdoc cref="IPieChartView"/>

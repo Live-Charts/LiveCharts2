@@ -20,9 +20,18 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+using LiveChartsGeneratedCode;
+
 namespace LiveChartsCore.Vortice;
 
-public class CartesianChart : LiveChartsGeneratedCode.SourceGenCartesianChart
-{
+// ==============================================================================
+// this file exposes the control at this namespace.
+// to see the code expand this file in the solution explorer, it will include 3 files:
+//    - *.uiFramework.cs:   The UI framework specific code
+//    - *.shared.cs:        shared code between all UI frameworks
+//    - *.sgp.cs:           the source generated properties
+// ==============================================================================
 
+public class CartesianChart : SourceGenCartesianChart
+{
 }

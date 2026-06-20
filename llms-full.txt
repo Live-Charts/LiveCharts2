@@ -1,0 +1,868 @@
+# LiveCharts2 — Comprehensive Knowledge Base for LLMs
+
+> **⚠️ Version Warning:** This document covers **LiveCharts v2** (package prefix `LiveChartsCore.SkiaSharpView.*`).
+> The legacy **v0** (`LiveCharts` / `LiveCharts.Wpf`) is completely obsolete and has a different API.
+> Do NOT mix v0 and v2 syntax. v0 reference: https://github.com/Live-Charts/Live-Charts
+
+---
+
+## Overview
+
+LiveCharts2 (v2) is a flexible, cross-platform charting library for .NET. It fixes the main design issues of its
+predecessor (v0), is focused on running everywhere, and improves flexibility. It uses **SkiaSharp** as its default
+rendering backend — a cross-platform 2D graphics API for .NET based on Google's Skia graphics library.
+
+- **Website / full docs:** https://livecharts.dev
+- **GitHub:** https://github.com/Live-Charts/LiveCharts2
+- **License:** MIT
+- **Current version:** 2.1.0 (check NuGet for latest stable/prerelease)
+- **Target frameworks (core):** `net462`, `netstandard2.0`, `net8.0`, `net8.0-windows`
+- **C# language version:** 14.0
+
+### Supported Platforms & NuGet Packages
+
+| Platform | NuGet package |
+|---|---|
+| MAUI | `LiveChartsCore.SkiaSharpView.Maui` |
+| Uno Platform (WinUI) | `LiveChartsCore.SkiaSharpView.Uno.WinUI` |
+| Avalonia | `LiveChartsCore.SkiaSharpView.Avalonia` |
+| WPF | `LiveChartsCore.SkiaSharpView.WPF` |
+| WinForms | `LiveChartsCore.SkiaSharpView.WinForms` |
+| WinUI | `LiveChartsCore.SkiaSharpView.WinUI` |
+| Blazor WASM | `LiveChartsCore.SkiaSharpView.Blazor` |
+| Eto.Forms | `LiveChartsCore.SkiaSharpView.Eto` |
+
+SkiaSharp minimum supported version: **2.88.9** (default: 3.119.0 for GPU support).
+
+---
+
+## Architecture
+
+The library is divided into three main modules:
+
+### Core (`LiveChartsCore`)
+
+Platform-agnostic. Contains:
+- A drawing **API** (interfaces) that defines all the shapes the library needs to build a chart
+- The charting engine: measures sizes, calculates positions for every geometry
+- The animation system (`Motion/` namespace) — `IAnimatable`, `MotionProperty`
+- Change-detection via `CollectionDeepObserver` (wraps `INotifyPropertyChanged` / `INotifyCollectionChanged`)
+- Series implementations: `LineSeries<T>`, `ColumnSeries<T>`, `PieSeries<T>`, `ScatterSeries<T>`, etc.
+
+### Renderer (`LiveChartsCore.SkiaSharp`)
+
+Implements the Core drawing API using SkiaSharp. Responsible for materializing geometry objects to pixels.
+You can replace SkiaSharp with any other rendering engine (see `VorticeSample` using DirectX11 via Vortice.Windows).
+
+### View (platform packages)
+
+Platform-specific controls (`CartesianChart`, `PieChart`, `PolarChart`, `GeoMap`) that:
+1. Ask the **Core** *what* to draw (geometry sizes and positions)
+2. Ask the **Renderer** *how* to draw it (render to the platform surface)
+
+### Animation System
+
+LiveCharts generates animations by producing many frames over time. Each animatable object has
+`MotionProperty` fields whose getter returns the *current interpolated value* for the current point
+in time — not the last assigned value. This means:
+
+```csharp
+var line = new LineGeometry();
+line.X1 = 0;
+line.X1 = 100;
+var x1 = line.X1; // returns 0 (animation has not elapsed yet)
+// After 5 seconds (of a 10s linear transition): line.X1 returns ~50
+```
+
+### Automatic Update Cycle
+
+1. User changes data (property or collection).
+2. `CollectionDeepObserver` detects the change via `INotifyPropertyChanged` / `INotifyCollectionChanged`.
+3. The chart **throttles** a *Measure request* (fires at most once every ~10 ms).
+4. On measure: Core recalculates geometry positions → Update cycle draws frames until all `MotionProperty` animations complete.
+
+---
+
+## Installation
+
+### Install via NuGet (pick your platform)
+
+```
+dotnet add package LiveChartsCore.SkiaSharpView.WPF
+dotnet add package LiveChartsCore.SkiaSharpView.Avalonia
+dotnet add package LiveChartsCore.SkiaSharpView.Maui
+dotnet add package LiveChartsCore.SkiaSharpView.Blazor
+dotnet add package LiveChartsCore.SkiaSharpView.WinForms
+dotnet add package LiveChartsCore.SkiaSharpView.WinUI
+dotnet add package LiveChartsCore.SkiaSharpView.Uno.WinUI
+dotnet add package LiveChartsCore.SkiaSharpView.Eto
+```
+
+> **Note for WPF / WinForms:** By default these projects target `netX.0-windows`, but SkiaSharp 3 does not provide
+> a build for that TFM. Consider specifying a minimum Windows version: `net8.0-windows10.0.19041`.
+
+### Configure LiveCharts at startup
+
+Create a `CustomLiveChartsExtensions` class (shared across all platforms):
+
+```csharp
+using LiveChartsCore.Kernel;
+using LiveChartsCore.SkiaSharpView;
+
+public static partial class CustomLiveChartsExtensions
+{
+    public static LiveChartsSettings AddLiveChartsAppSettings(this LiveChartsSettings settings) =>
+        settings
+            .AddSkiaSharp()           // use SkiaSharp as renderer
+            .AddDefaultMappers()      // register built-in type mappers
+            .AddDefaultTheme()        // light/dark theme based on OS
+            // optionally register a mapper for a custom type:
+            .HasMap<City>((city, index) => new(index, city.Population));
+}
+```
+
+#### WPF — `App.xaml.cs`
+
+```csharp
+protected override void OnStartup(StartupEventArgs e)
+{
+    base.OnStartup(e);
+    LiveCharts.Configure(c => c.AddLiveChartsAppSettings());
+}
+```
+
+#### Avalonia — `App.axaml.cs`
+
+```csharp
+public override void OnFrameworkInitializationCompleted()
+{
+    LiveCharts.Configure(c => c.AddLiveChartsAppSettings());
+    // ...
+}
+```
+
+#### MAUI — `MauiProgram.cs`
+
+```csharp
+builder
+    .UseMauiApp<App>()
+    .UseLiveCharts(config => config.AddLiveChartsAppSettings());
+```
+
+#### Blazor — `App.razor`
+
+```razor
+@inject IJSRuntime JS
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        LiveCharts.Configure(c => c.AddLiveChartsAppSettings());
+    }
+}
+```
+
+---
+
+## Core Concepts
+
+### Series and Values
+
+Every series is generic over its data type `T`. LiveCharts natively supports `short`, `int`, `long`, `float`,
+`double`, `decimal` and their nullable forms. It also provides observable wrappers:
+
+| Type | Use case |
+|---|---|
+| `ObservableValue` | Single Y value that notifies changes |
+| `ObservablePoint` | Explicit X and Y |
+| `WeightedPoint` | X, Y, Weight (bubble charts) |
+| `DateTimePoint` | X is `DateTime` |
+| `TimeSpanPoint` | X is `TimeSpan` |
+| `ObservablePolarPoint` | Polar charts |
+| `FinancialPoint` / `FinancialPointI` | OHLC candlestick charts |
+
+```csharp
+// simple array — static, no auto-update:
+new LineSeries<double> { Values = new double[] { 1, 2, 3 } }
+
+// ObservableCollection — auto-updates when items are added/removed:
+var values = new ObservableCollection<ObservableValue>();
+new LineSeries<ObservableValue> { Values = values }
+values.Add(new ObservableValue(5));  // chart updates automatically
+```
+
+### Mappers
+
+Use a **mapper** to teach LiveCharts how to plot a custom type:
+
+```csharp
+// Per-series mapper:
+new LineSeries<TempSample>
+{
+    Values = samples,
+    Mapping = (sample, index) => new Coordinate(sample.Time, sample.Temperature)
+}
+
+// Global mapper (applied to every series using TempSample):
+LiveCharts.Configure(config =>
+    config.HasMap<TempSample>((sample, index) => new Coordinate(sample.Time, sample.Temperature)));
+```
+
+### IChartEntity (high-performance custom types)
+
+Implement `IChartEntity` directly on your model for best performance (no delegate overhead per point):
+
+```csharp
+public partial class TempSample : ObservableObject, IChartEntity
+{
+    [ObservableProperty] private int _time;
+    [ObservableProperty] private double _temperature;
+
+    public Coordinate Coordinate { get; protected set; }
+    public ChartEntityMetaData? MetaData { get; set; }
+
+    protected override void OnPropertyChanged(PropertyChangedEventArgs e)
+    {
+        Coordinate = new Coordinate(Time, Temperature);
+        base.OnPropertyChanged(e);
+    }
+}
+```
+
+### Paints
+
+A `Paint` is the v2 equivalent of WPF/Avalonia `Brush`. It wraps SkiaSharp's paint and adds animation support.
+
+```csharp
+using SkiaSharp;
+using LiveChartsCore.SkiaSharpView.Painting;
+
+// Solid color
+new SolidColorPaint(SKColors.Blue) { StrokeThickness = 4 }
+
+// Linear gradient
+new LinearGradientPaint(
+    new[] { new SKColor(255, 140, 148), new SKColor(220, 237, 194) },
+    new SKPoint(0.5f, 0),   // gradient start (center-top)
+    new SKPoint(0.5f, 1))   // gradient end   (center-bottom)
+
+// Radial gradient
+new RadialGradientPaint(new SKColor(255, 96, 96), new SKColor(255, 234, 96))
+
+// null means "do not draw" (hides fill, stroke, etc.)
+Fill = null
+```
+
+Available paint properties: `StrokeThickness`, `PathEffect` (for dashed lines), `ImageFilter`, etc.
+
+### Animations
+
+All charts animate automatically. Customize with:
+
+```csharp
+// Chart-level speed:
+myChart.AnimationsSpeed = TimeSpan.FromMilliseconds(300);
+
+// Easing function:
+myChart.EasingFunction = EasingFunctions.BounceOut;
+
+// Disable animations:
+myChart.AnimationsSpeed = TimeSpan.Zero;
+// or:
+myChart.EasingFunction = null;
+```
+
+Series and Axes also have their own `AnimationsSpeed` and `EasingFunction` properties
+(override the chart-level value when non-null).
+
+### Null / missing points
+
+Set a value to `null` or a `Coordinate` to `Coordinate.Empty` to create gaps:
+
+```csharp
+new LineSeries<double?>
+{
+    Values = new double?[] { 2, 6, null, 3, 5 }
+}
+```
+
+### Hardware Acceleration (GPU)
+
+```csharp
+using LiveChartsCore.SkiaSharpView.SKCharts;
+
+LiveCharts.Configure(c => c
+    .AddLiveChartsRenderSettings());  // see LiveChartsRenderSettings.cs in samples
+```
+
+GPU is disabled by default. On Avalonia/Uno with SkiaRenderer the GPU setting is ignored
+(the UI framework controls rendering).
+
+---
+
+## Chart Types
+
+### CartesianChart
+
+Standard X/Y chart. Hosts `Series` (collection of `ICartesianSeries`), `XAxes`, `YAxes`.
+
+Supports: `LineSeries`, `ColumnSeries`, `ScatterSeries`, `StepLineSeries`, `HeatSeries`,
+`CandlesticksSeries`, `StackedLineSeries`, `StackedColumnSeries`, `StackedStepLineSeries`, `BoxSeries`, `ErrorSeries`.
+
+Key properties: `Series`, `XAxes`, `YAxes`, `ZoomMode`, `AnimationsSpeed`, `TooltipPosition`, `LegendPosition`.
+
+### PieChart
+
+Hosts `PieSeries<T>`. Used for pie, doughnut, gauge, and Nightingale rose charts.
+
+### PolarChart
+
+Hosts `PolarLineSeries<T>` and `PolarScatterSeries<T>`. Uses polar (angle + radius) coordinates.
+
+### GeoMap
+
+Displays geographic maps. Hosts `HeatLandSeries` to color countries/regions by value.
+
+---
+
+## XAML Integration (WPF, Avalonia, MAUI, WinUI)
+
+### XAML Types (Xaml-prefixed)
+
+Every `Series<T>` and `Axis` has a XAML-friendly counterpart (prefix `Xaml`). These live in the visual tree
+and support data bindings, styles, hot-reload and designer previews:
+
+- `XamlLineSeries`, `XamlColumnSeries`, `XamlPieSeries`, `XamlScatterSeries`, etc.
+- `XamlAxis`, `XamlDrawnLabelVisual`
+
+The non-Xaml types (`LineSeries<T>`, `ColumnSeries<T>`) are plain C# objects and do **not** live in the
+visual tree — use them in ViewModels when you want to keep UI logic separate from SkiaSharp dependencies.
+
+### SeriesCollection (WPF / WinUI / Uno)
+
+WPF, WinUI and Uno use `SeriesCollection` as a container in XAML to hold multiple series children:
+
+```xml
+<lvc:CartesianChart.Series>
+    <lvc:SeriesCollection>
+        <lvc:XamlLineSeries Values="{Binding Values1}"/>
+        <lvc:XamlColumnSeries Values="{Binding Values2}"/>
+    </lvc:SeriesCollection>
+</lvc:CartesianChart.Series>
+```
+
+Avalonia and MAUI support multiple children directly (no wrapper needed).
+
+---
+
+## Code Examples
+
+### Example 1 — Basic Line Chart (WPF, code-behind + XAML MVVM)
+
+**ViewModel (shared, no UI dependencies):**
+
+```csharp
+// samples/ViewModelsSamples/Lines/Basic/ViewModel.cs
+namespace ViewModelsSamples.Lines.Basic;
+
+public class ViewModel
+{
+    public double[] Values1 { get; set; } = [2, 1, 3, 5, 3, 4, 6];
+    public int[]    Values2 { get; set; } = [4, 2, 5, 2, 4, 5, 3];
+}
+```
+
+**WPF View (View.xaml):**
+
+```xml
+<UserControl
+    x:Class="WPFSample.Lines.Basic.View"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
+    xmlns:vms="clr-namespace:ViewModelsSamples.Lines.Basic;assembly=ViewModelsSamples">
+
+    <UserControl.DataContext>
+        <vms:ViewModel/>
+    </UserControl.DataContext>
+
+    <lvc:CartesianChart>
+        <lvc:CartesianChart.Series>
+            <lvc:SeriesCollection>
+                <lvc:XamlLineSeries Values="{Binding Values1}" Fill="{x:Null}" GeometrySize="20"/>
+                <lvc:XamlLineSeries Values="{Binding Values2}" Fill="{x:Null}" GeometrySize="20"/>
+            </lvc:SeriesCollection>
+        </lvc:CartesianChart.Series>
+    </lvc:CartesianChart>
+
+</UserControl>
+```
+
+**Avalonia View (View.axaml):**
+
+```xml
+<UserControl
+    x:Class="AvaloniaSample.Lines.Basic.View"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
+    xmlns:vms="using:ViewModelsSamples.Lines.Basic"
+    x:DataType="vms:ViewModel">
+
+    <UserControl.DataContext>
+        <vms:ViewModel/>
+    </UserControl.DataContext>
+
+    <lvc:CartesianChart>
+        <lvc:CartesianChart.Series>
+            <lvc:XamlLineSeries Values="{Binding Values1}" Fill="{x:Null}" GeometrySize="20"/>
+            <lvc:XamlLineSeries Values="{Binding Values2}" Fill="{x:Null}" GeometrySize="20"/>
+        </lvc:CartesianChart.Series>
+    </lvc:CartesianChart>
+
+</UserControl>
+```
+
+---
+
+### Example 2 — Bar Chart with Axis Labels (WPF)
+
+**ViewModel:**
+
+```csharp
+namespace ViewModelsSamples.Bars.Basic;
+
+public class ViewModel
+{
+    public double[] MaryValues { get; set; } = [2, 5, 4];
+    public double[] AnaValues  { get; set; } = [3, 1, 6];
+    public string[] Labels     { get; set; } = ["Category 1", "Category 2", "Category 3"];
+}
+```
+
+**WPF View:**
+
+```xml
+<UserControl
+    x:Class="WPFSample.Bars.Basic.View"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
+    xmlns:vms="clr-namespace:ViewModelsSamples.Bars.Basic;assembly=ViewModelsSamples">
+
+    <UserControl.DataContext>
+        <vms:ViewModel/>
+    </UserControl.DataContext>
+
+    <lvc:CartesianChart LegendPosition="Right">
+
+        <lvc:CartesianChart.Series>
+            <lvc:SeriesCollection>
+                <lvc:XamlColumnSeries SeriesName="Mary" Values="{Binding MaryValues}"/>
+                <lvc:XamlColumnSeries SeriesName="Ana"  Values="{Binding AnaValues}"/>
+            </lvc:SeriesCollection>
+        </lvc:CartesianChart.Series>
+
+        <lvc:CartesianChart.XAxes>
+            <lvc:AxesCollection>
+                <lvc:XamlAxis
+                    Labels="{Binding Labels}"
+                    SeparatorsPaint="#c8c8c8"
+                    SeparatorsAtCenter="False"
+                    TicksPaint="#232323"
+                    TicksAtCenter="True"
+                    MinStep="1"
+                    ForceStepToMin="True"/>
+            </lvc:AxesCollection>
+        </lvc:CartesianChart.XAxes>
+
+    </lvc:CartesianChart>
+
+</UserControl>
+```
+
+---
+
+### Example 3 — Real-Time Chart (shared ViewModel, any platform)
+
+Adds a new `DateTimePoint` every 100 ms using `ObservableCollection` — the chart updates automatically
+because `ObservableCollection` implements `INotifyCollectionChanged`.
+
+```csharp
+using System;
+using System.Collections.ObjectModel;
+using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
+using LiveChartsCore.Defaults;
+
+namespace ViewModelsSamples.General.RealTime;
+
+public partial class ViewModel : ObservableObject
+{
+    public ViewModel() { _ = ReadData(); }
+
+    // 'partial' is required by CommunityToolkit.Mvvm source generator (C# 14 partial properties)
+    [ObservableProperty]
+    public partial double[] Separators { get; set; } = [];
+
+    public ObservableCollection<DateTimePoint> Values { get; set; } = [];
+
+    public Func<DateTime, string> LabelsFormatter { get; } =
+        date => (DateTime.Now - date).TotalSeconds < 1 ? "now" : $"{(DateTime.Now - date).TotalSeconds:N0}s ago";
+
+    // Use a lock so background thread writes are safe
+    public object Sync { get; } = new object();
+    public bool IsReading { get; set; } = true;
+
+    private async Task ReadData()
+    {
+        var random = new Random();
+        while (IsReading)
+        {
+            await Task.Delay(100);
+            lock (Sync)
+            {
+                Values.Add(new DateTimePoint(DateTime.Now, random.Next(0, 10)));
+                if (Values.Count > 250) Values.RemoveAt(0);
+                Separators = GetSeparators();
+            }
+        }
+    }
+
+    private static double[] GetSeparators()
+    {
+        var now = DateTime.Now;
+        return [
+            now.AddSeconds(-25).Ticks,
+            now.AddSeconds(-20).Ticks,
+            now.AddSeconds(-15).Ticks,
+            now.AddSeconds(-10).Ticks,
+            now.AddSeconds(-5).Ticks,
+            now.Ticks
+        ];
+    }
+}
+```
+
+> **Threading note:** When updating chart data from a non-UI thread, use a lock object (`Sync`) and assign
+> it to the chart's `SyncContext` property so LiveCharts can coordinate reads/writes safely.
+
+---
+
+### Example 4 — Pie Chart with Named Slices
+
+```csharp
+namespace ViewModelsSamples.Pies.Basic;
+
+public class PieData(string name, double value)
+{
+    public string Name   { get; set; } = name;
+    public double[] Values { get; set; } = [value];
+}
+
+public class ViewModel
+{
+    public PieData[] Data { get; set; } =
+    [
+        new("Mary",    10),
+        new("John",    20),
+        new("Alice",   30),
+        new("Bob",     40),
+        new("Charlie", 50),
+    ];
+}
+```
+
+**WPF View (using XAML template):**
+
+```xml
+<lvc:PieChart SeriesSource="{Binding Data}">
+    <lvc:PieChart.SeriesTemplate>
+        <DataTemplate>
+            <lvc:XamlPieSeries
+                SeriesName="{Binding Name}"
+                Values="{Binding Values}"/>
+        </DataTemplate>
+    </lvc:PieChart.SeriesTemplate>
+</lvc:PieChart>
+```
+
+---
+
+### Example 5 — Custom Mapper (CLI / Console / Server)
+
+Render a chart to an image without any UI framework using `SKCartesianChart`:
+
+```csharp
+using LiveChartsCore.SkiaSharpView.SKCharts;
+using LiveChartsCore.SkiaSharpView;
+
+// Custom data type
+public class TempSample { public int Time { get; set; } public double Temperature { get; set; } }
+
+var samples = new[]
+{
+    new TempSample { Time = 1, Temperature = 65.65 },
+    new TempSample { Time = 5, Temperature = 62.23 },
+    new TempSample { Time = 8, Temperature = 85.12 },
+};
+
+var chart = new SKCartesianChart
+{
+    Width  = 900,
+    Height = 600,
+    Series = new[]
+    {
+        new LineSeries<TempSample>
+        {
+            Values  = samples,
+            Mapping = (sample, index) => new(sample.Time, sample.Temperature)
+        }
+    },
+    XAxes = new[] { new Axis { Labeler = value => $"{value} s" } },
+    YAxes = new[] { new Axis { Labeler = value => $"{value} °C" } },
+};
+
+chart.SaveImage("chart.png");
+```
+
+---
+
+## Axes
+
+The `CartesianChart` exposes `XAxes` and `YAxes` (both `IEnumerable<IAxis>`). Default: one `Axis` each.
+
+### Key Axis properties
+
+| Property | Description |
+|---|---|
+| `Labeler` | `Func<double, string>` — formats axis tick labels |
+| `Labels` | `IList<string>` — named labels (index-based, used for category axes) |
+| `MinLimit` / `MaxLimit` | Fix the visible range (used for zooming/panning) |
+| `MinStep` / `ForceStepToMin` | Force minimum separation between ticks |
+| `SeparatorsPaint` | Paint for grid lines |
+| `TicksPaint` | Paint for axis tick marks |
+| `NamePaint` | Paint for the axis name label |
+| `DataLabelsPaint` | Paint for data labels on the series |
+| `CrosshairPaint` | Paint for crosshair lines |
+| `IsVisible` | Show/hide the axis |
+| `Position` | `AxisPosition.Start` or `AxisPosition.End` |
+
+### Zooming and Panning
+
+```csharp
+// Enable X-axis zoom and pan:
+myChart.ZoomMode = ZoomAndPanMode.X;
+
+// Enable both axes:
+myChart.ZoomMode = ZoomAndPanMode.Both;
+
+// Disable:
+myChart.ZoomMode = ZoomAndPanMode.None;
+```
+
+Each gesture also has its own flag (`PanX`, `ZoomX`, `PanY`, `ZoomY`) so zoom and pan can be enabled independently. The composites `X = PanX | ZoomX`, `Y = PanY | ZoomY` and `Both = X | Y` keep their original pan+zoom semantics.
+
+```csharp
+// Allow zooming on the X axis but disable panning (e.g. so pan gestures don't hide tooltips on mobile):
+myChart.ZoomMode = ZoomAndPanMode.ZoomX;
+
+// Zoom on X, pan on Y:
+myChart.ZoomMode = ZoomAndPanMode.ZoomX | ZoomAndPanMode.PanY;
+```
+
+`ZoomAndPanMode` is a flags enum — combine values:
+```csharp
+myChart.ZoomMode = ZoomAndPanMode.X | ZoomAndPanMode.NoFit | ZoomAndPanMode.NoZoomBySection;
+```
+
+### DateTime / TimeSpan Axes
+
+Use `DateTimePoint` or `TimeSpanPoint` for time-based X axes and format with a `Labeler`:
+
+```csharp
+XAxes = new[]
+{
+    new Axis
+    {
+        Labeler = value => new DateTime((long)value).ToString("HH:mm:ss"),
+        UnitWidth = TimeSpan.FromSeconds(1).Ticks,
+        MinStep  = TimeSpan.FromSeconds(1).Ticks,
+    }
+};
+```
+
+---
+
+## Tooltips & Legends
+
+```csharp
+// Tooltip position options: Top (default), Bottom, Left, Right, Center, Hidden
+myChart.TooltipPosition = TooltipPosition.Bottom;
+
+// Legend position: Hidden (default), Top, Bottom, Left, Right
+myChart.LegendPosition = LegendPosition.Right;
+```
+
+Custom tooltips: implement `IChartTooltip<TDrawingContext>` and assign to `Chart.Tooltip`.  
+Custom legends: implement `IChartLegend<TDrawingContext>` and assign to `Chart.Legend`.
+
+---
+
+## Sections (Reference Lines / Bands)
+
+```csharp
+using LiveChartsCore;
+
+myChart.Sections = new[]
+{
+    new RectangularSection
+    {
+        Yi = 4,
+        Yj = 8,
+        Fill = new SolidColorPaint(new SKColor(255, 205, 210, 100))
+    }
+};
+```
+
+---
+
+## Drawing on Canvas
+
+Use `Chart.VisualElements` to overlay custom SkiaSharp drawing:
+
+```csharp
+myChart.VisualElements = new[]
+{
+    new DrawnVisual
+    {
+        OnDraw = (canvas, chart) =>
+        {
+            canvas.DrawText("Hello!", new SKPoint(100, 100), new SKPaint { Color = SKColors.Black });
+        }
+    }
+};
+```
+
+---
+
+## Server-Side / Console Chart Generation
+
+Install only the core packages (no UI framework required):
+
+```
+dotnet add package LiveChartsCore.SkiaSharpView
+```
+
+Use `SKCartesianChart`, `SKPieChart`, `SKPolarChart`, `SKGeoMap` — they all inherit from `InMemorySkiaSharpChart`
+and expose a `GetImage()` method that returns an `SKImage`:
+
+```csharp
+var chart = new SKCartesianChart
+{
+    Width = 900, Height = 600,
+    Series = new ISeries[] { new LineSeries<int> { Values = new[] { 1, 2, 3 } } }
+};
+
+// Save to file:
+chart.SaveImage("output.png");
+
+// Or get bytes for HTTP response:
+using var image  = chart.GetImage();
+using var data   = image.Encode(SKEncodedImageFormat.Png, 100);
+using var stream = data.AsStream();
+```
+
+---
+
+## Multi-threading
+
+When modifying chart data from a background thread, always use a `lock`:
+
+```csharp
+// 1. Define a sync object in your ViewModel:
+public object Sync { get; } = new object();
+
+// 2. Assign it to the chart control (XAML or code-behind):
+//    myChart.SyncContext = viewModel.Sync;
+
+// 3. Wrap all data mutations in the lock:
+lock (Sync)
+{
+    Values.Add(new ObservableValue(random.Next(0, 10)));
+    if (Values.Count > 200) Values.RemoveAt(0);
+}
+```
+
+---
+
+## Themes and Color Palettes
+
+```csharp
+LiveCharts.Configure(settings =>
+    settings
+        .AddDefaultTheme(theme =>
+            theme.OnInitialized(() =>
+            {
+                theme.AnimationsSpeed  = TimeSpan.FromMilliseconds(300);
+                theme.EasingFunction   = EasingFunctions.QuadraticOut;
+                theme.Colors           = ColorPalletes.MaterialDesign500;
+            })));
+```
+
+Built-in palettes: `MaterialDesign200`, `MaterialDesign500`, `MaterialDesign800`, `FluentDesign`, etc.
+
+---
+
+## Common Namespaces
+
+```csharp
+using LiveChartsCore;                            // ISeries, IAxis, LiveCharts.Configure, etc.
+using LiveChartsCore.Defaults;                   // ObservableValue, ObservablePoint, DateTimePoint, etc.
+using LiveChartsCore.Kernel;                     // Coordinate, ChartEntityMetaData, IChartEntity
+using LiveChartsCore.Measure;                    // ZoomAndPanMode, TooltipPosition, LegendPosition, etc.
+using LiveChartsCore.SkiaSharpView;              // LineSeries, ColumnSeries, Axis, etc. (non-XAML)
+using LiveChartsCore.SkiaSharpView.Painting;     // SolidColorPaint, LinearGradientPaint, etc.
+using LiveChartsCore.SkiaSharpView.WPF;          // CartesianChart, PieChart (WPF controls)
+using LiveChartsCore.SkiaSharpView.Avalonia;     // CartesianChart, PieChart (Avalonia controls)
+using LiveChartsCore.SkiaSharpView.Maui;         // CartesianChart, PieChart (MAUI controls)
+using LiveChartsCore.SkiaSharpView.SKCharts;     // SKCartesianChart, SKPieChart (server-side)
+using SkiaSharp;                                 // SKColor, SKPoint, SKPaint, etc.
+```
+
+---
+
+## API Reference URL Pattern
+
+```
+https://livecharts.dev/api/{LiveChartsVersion}/{objectFullName}
+```
+
+Use `latest` as the version for the most recent docs, or a specific version string.
+`{objectFullName}` uses CLI metadata naming (e.g. `LiveChartsCore.SkiaSharpView.WPF.CartesianChart`).
+
+Full docs: `https://livecharts.dev/docs/{UIFramework}/{LiveChartsVersion}/{ArticleName}`
+
+Where `{UIFramework}` ∈ `maui`, `unowinui`, `avalonia`, `eto`, `blazor`, `wpf`, `winforms`, `winui`.
+
+---
+
+## Frequently Asked Questions
+
+**Q: My chart is blank / not showing.**  
+A: The chart control has no default size constraint. Set an explicit `Width` and `Height`, or ensure the
+parent layout does not collapse the control to zero size.
+
+**Q: Changes to my data don't update the chart.**  
+A: Use `ObservableCollection<T>` for the `Series` collection and the `Values` collection.
+For property-level updates, implement `INotifyPropertyChanged` on your data class (or use `ObservableValue`).
+
+**Q: How do I use LiveCharts without SkiaSharp?**  
+A: Implement the Core drawing interfaces (`IDrawingContext`, etc.) and register your custom renderer.
+The `VorticeSample` in the repository demonstrates this using DirectX11 via Vortice.Windows.
+
+**Q: Can I use LiveCharts in a Blazor Server app?**  
+A: The official package targets Blazor WASM. For server-side use, use `SKCartesianChart` to generate
+PNG/JPEG images on the server and serve them as `<img>` tags.
+
+**Q: How do I disable animations?**  
+A: Set `myChart.EasingFunction = null;` or `myChart.AnimationsSpeed = TimeSpan.Zero;`.

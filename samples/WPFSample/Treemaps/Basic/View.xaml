@@ -1,0 +1,25 @@
+<UserControl x:Class="WPFSample.Treemaps.Basic.View"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
+             xmlns:vms="clr-namespace:ViewModelsSamples.Treemaps.Basic;assembly=ViewModelsSamples">
+
+    <UserControl.DataContext>
+        <vms:ViewModel/>
+    </UserControl.DataContext>
+
+    <lvc:TreemapChart>
+        <lvc:TreemapChart.Series>
+            <lvc:SeriesCollection>
+                <lvc:XamlTreemapSeries
+                    Values="{Binding Regions}"
+                    Padding="4"
+                    Stroke="{lvc:SolidColorPaint Color='#fff', StrokeWidth=2}"
+                    Fill="{lvc:SolidColorPaint Color='#608ada'}"
+                    DataLabelsPaint="{lvc:SolidColorPaint Color='#fff'}"
+                    DataLabelsSize="16"/>
+            </lvc:SeriesCollection>
+        </lvc:TreemapChart.Series>
+    </lvc:TreemapChart>
+
+</UserControl>

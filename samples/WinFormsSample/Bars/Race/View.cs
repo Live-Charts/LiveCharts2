@@ -10,7 +10,6 @@ using LiveChartsCore.SkiaSharpView.Painting;
 using LiveChartsCore.SkiaSharpView.WinForms;
 using LiveChartsCore.Themes;
 using SkiaSharp;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WinFormsSample.Bars.Race;
 

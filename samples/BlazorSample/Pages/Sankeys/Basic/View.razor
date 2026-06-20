@@ -1,0 +1,55 @@
+@page "/Sankeys/Basic"
+@using LiveChartsCore.SkiaSharpView.Blazor
+@using LiveChartsCore
+@using LiveChartsCore.Defaults
+@using LiveChartsCore.SkiaSharpView
+@using LiveChartsCore.SkiaSharpView.Painting
+@using SkiaSharp
+
+<SankeyChart @ref="Chart" Series="@series"/>
+
+@code {
+    public SankeyChart Chart;
+
+    private static SankeyNode bills = new("Bills");
+    private static SankeyNode groceries = new("Groceries");
+    private static SankeyNode transport = new("Transport");
+    private static SankeyNode entertainment = new("Entertainment");
+    private static SankeyNode rent = new("Rent");
+    private static SankeyNode fixedExpenses = new("Fixed Expenses");
+    private static SankeyNode savings = new("Savings");
+    private static SankeyNode leisure = new("Leisure");
+
+    private static SankeyNode[] nodes =
+    [
+        bills, groceries, transport, entertainment,
+        rent, fixedExpenses, savings, leisure,
+    ];
+
+    private static SankeyLink<SankeyNode>[] links =
+    [
+        new(bills, fixedExpenses, 320),
+        new(bills, savings, 80),
+        new(groceries, fixedExpenses, 420),
+        new(groceries, savings, 60),
+        new(transport, fixedExpenses, 180),
+        new(transport, leisure, 40),
+        new(rent, fixedExpenses, 950),
+        new(entertainment, leisure, 220),
+        new(entertainment, savings, 30),
+    ];
+
+    private ISeries[] series =
+    [
+        new SankeySeries<SankeyNode>
+        {
+            Values = nodes,
+            Links = links,
+            NodeWidth = 14,
+            NodePadding = 10,
+            Fill = new SolidColorPaint(new SKColor(96, 138, 218)),
+            DataLabelsPaint = new SolidColorPaint(new SKColor(69, 69, 77)),
+            DataLabelsSize = 13,
+        }
+    ];
+}

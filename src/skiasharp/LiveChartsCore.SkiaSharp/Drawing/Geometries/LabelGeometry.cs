@@ -39,11 +39,24 @@ public class LabelGeometry : BaseLabelGeometry, IDrawnElement<SkiaSharpDrawingCo
     {
         get
         {
-            PeekPaintInfo(out var skPaint, out _);
+            // Only the paint identity matters for the cache check — building the SKFont
+            // (PeekPaintInfo) on every access wasted an allocation on the cache-hit path,
+            // and label getters are hit per-frame for every axis/legend/data label.
+            //
+            // Do NOT call UpdateSkiaPaint here — DrawingTextExtensions.DrawLabel calls
+            // PeekPaintInfo earlier in the same frame to set up the SKPaint (including the
+            // font-builder's text-specific properties like IsAntialias / LcdRenderText).
+            // Calling UpdateSkiaPaint inside this getter would clobber those settings on
+            // the cache-hit path (see PR #2256 review thread). Read the cached _skiaPaint
+            // reference directly — the cache-miss path below runs AsBlobArray which calls
+            // PeekPaintInfo and handles initial setup.
+            var lvcPaint = PeekPaintCore();
+            var skPaint = lvcPaint._skiaPaint;
 
-            var changed =                         // changed if:
-                _previousKey != BuildBlobKey() || //   - the key changed, structural equality between previous and current
-                _previousPaint != skPaint;        //   - the paint changed, otherwise we will be using disposed resources
+            var changed =                                  // changed if:
+                skPaint is null ||                         //   - never set up yet (first access; force cache miss)
+                _previousKey != BuildBlobKey() ||          //   - the key changed, structural equality between previous and current
+                _previousPaint != skPaint;                 //   - the paint changed, otherwise we will be using disposed resources
 
             if (!changed || string.IsNullOrEmpty(Text))
                 return _activeBlobs;
@@ -52,7 +65,7 @@ public class LabelGeometry : BaseLabelGeometry, IDrawnElement<SkiaSharpDrawingCo
 
             _activeBlobs = this.AsBlobArray();
             _previousKey = BuildBlobKey();
-            _previousPaint = skPaint;
+            _previousPaint = lvcPaint._skiaPaint;          // non-null after AsBlobArray ran
 
             return _activeBlobs;
         }
@@ -74,13 +87,15 @@ public class LabelGeometry : BaseLabelGeometry, IDrawnElement<SkiaSharpDrawingCo
 
     internal void PeekPaintInfo(out SKPaint skPaint, out SKFont font)
     {
-        var lvcSkiaPaint = (SkiaPaint?)Paint;
-        skPaint = lvcSkiaPaint?.UpdateSkiaPaint(null, null)
-            ?? throw new Exception("A paint is required to measure a label.");
+        var lvcSkiaPaint = PeekPaintCore();
+        skPaint = lvcSkiaPaint.UpdateSkiaPaint(null, null);
 
         font = lvcSkiaPaint._fontBuilder(
             skPaint, lvcSkiaPaint.GetSKTypeface(), TextSize);
     }
+
+    private SkiaPaint PeekPaintCore() =>
+        (SkiaPaint?)Paint ?? throw new Exception("A paint is required to measure a label.");
 
     private (string Text, float Size, Padding Padding, float MaxWidth) BuildBlobKey() =>
         (Text, TextSize, Padding, MaxWidth);

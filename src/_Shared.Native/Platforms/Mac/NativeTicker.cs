@@ -53,18 +53,21 @@ internal partial class NativeFrameTicker : IFrameTicker
 
     private void OnFrameTick()
     {
-        if (_canvas.IsValid) return;
+        if (_canvas is null || _canvas.IsValid) return;
         _renderMode.InvalidateRenderer();
     }
 
     public void DisposeTicker()
     {
-        _canvas.Invalidated -= OnCoreInvalidated;
+        // _canvas / _displayLink can be null when DisposeTicker is called
+        // without a prior InitializeTicker, or twice in a row — same #2216
+        // contract violation guarded in the WPF CompositionTargetTicker.
+        if (_canvas is not null) _canvas.Invalidated -= OnCoreInvalidated;
 
         _canvas = null!;
         _renderMode = null!;
-        _displayLink.Invalidate();
-        _displayLink.Dispose();
+        _displayLink?.Invalidate();
+        _displayLink?.Dispose();
         _displayLink = null!;
     }
 }

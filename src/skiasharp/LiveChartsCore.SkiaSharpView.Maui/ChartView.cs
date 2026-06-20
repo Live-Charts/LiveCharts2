@@ -20,7 +20,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using System;
 using Microsoft.Maui.Controls;
 
 namespace LiveChartsCore.SkiaSharpView.Maui;
@@ -30,17 +29,6 @@ namespace LiveChartsCore.SkiaSharpView.Maui;
 /// </summary>
 public abstract partial class ChartView : ContentView
 {
-    static ChartView()
-    {
-        if (!LiveChartsCoreMauiAppBuilderExtensions.AreHandlersRegistered)
-        {
-            throw new InvalidOperationException(
-                "Since rc5 version, `.UseLiveCharts()` and `.UseSkiaSharp()` must be " +
-                "chained to `.UseMauiApp<T>()`, in the MauiProgram.cs file. For more info see:" +
-                "https://livecharts.dev/docs/Maui/2.0.0-rc5/Overview.Installation");
-        }
-    }
-
     internal virtual void OnPressed(object? sender, Native.Events.PressedEventArgs args) { }
     internal virtual void OnMoved(object? sender, Native.Events.ScreenEventArgs args) { }
     internal virtual void OnReleased(object? sender, Native.Events.PressedEventArgs args) { }

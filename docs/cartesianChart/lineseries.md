@@ -1,6 +1,6 @@
-<div id="edit-this-article-source">
-    {{ edit_source | replace_local_to_server}}
-</div>
+<!--
+To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/master/docs/readme.md
+-->
 
 # {{ name | to_title_case }}
 
@@ -13,7 +13,7 @@
 If the stroke property is not set, then LiveCharts will create it based on the series position in your series collection
 and the current theme.
 
-![image]({{ assets_url }}/docs/_assets/linestroke.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/linestroke.png)
 
 ```csharp
 Series = new ISeries[]
@@ -57,7 +57,7 @@ and the current theme.
 
 The alpha channel enables transparency, it goes from 0 to 255, 0 is transparent and 255 disables transparency completely.
 
-![image]({{ assets_url }}/docs/_assets/linefill.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/linefill.png)
 
 ```csharp
 Series = new ISeries[]
@@ -98,9 +98,11 @@ a look at the [Paints article]({{ website_url }}/docs/{{ platform }}/{{ version 
 
 The geometry is the circle shape (by default) that the line series draws for every point, you can customize
 the fill and stroke of this shape, if none of these properties are set then LiveCharts will create them based on 
-the series position in your series collection and the current theme.
+the series position in your series collection and the current theme. As long as you don't set `GeometryStroke`,
+the default theme rule derives it from the series' `Stroke` (when `Stroke` is a `SolidColorPaint`) so the marker
+matches the line; if you do set `GeometryStroke` explicitly, your value wins.
 
-![image]({{ assets_url }}/docs/_assets/geometrystrokefill.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/geometrystrokefill.png)
 
 ```csharp
 Series = new ISeries[]
@@ -133,7 +135,7 @@ a look at the [Paints article]({{ website_url }}/docs/{{ platform }}/{{ version 
 
 Determines the size of the geometry, if this property is not set, then the library will decide it based on the theme.
 
-![image]({{ assets_url }}/docs/_assets/geometrysize.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/geometrysize.png)
 
 ```csharp
 Series = new ISeries[]
@@ -156,7 +158,7 @@ Series = new ISeries[]
 Determines if the series line is straight or curved, this property is of type `double` and goes from `0` to `1` any other
 value will be ignored, where 0 is straight and 1 is the most curved line.
 
-![image]({{ assets_url }}/docs/_assets/linesmothness.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/linesmothness.png)
 
 ```csharp
 Series = new ISeries[]
@@ -179,7 +181,7 @@ Series = new ISeries[]
 This property is enabled by default (`true`), it has a performance cost and allows the series to create gaps, when the
 series finds a `null` instance then the series will create a gap.
 
-![image]({{ assets_url }}/docs/_assets/linesnullsplit.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/linesnullsplit.png)
 
 ```csharp
 Series = new ISeries[]

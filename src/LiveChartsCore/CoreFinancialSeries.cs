@@ -1,4 +1,4 @@
-﻿
+
 // The MIT License(MIT)
 //
 // Copyright(c) 2021 Alberto Rodriguez Orozco & LiveCharts Contributors
@@ -39,7 +39,7 @@ namespace LiveChartsCore;
 /// <typeparam name="TModel">The type of the model.</typeparam>
 /// <typeparam name="TVisual">The type of the visual.</typeparam>
 /// <typeparam name="TLabel">The type of the label.</typeparam>
-/// <typeparam name="TMiniatureGeometry">The type of the miniature geometry, used in tool tips and legends.</typeparam> 
+/// <typeparam name="TMiniatureGeometry">The type of the miniature geometry, used in tool tips and legends.</typeparam>
 /// <seealso cref="CartesianSeries{TModel, TVisual, TLabel}" />
 /// <seealso cref="ICartesianSeries" />
 public abstract class CoreFinancialSeries<TModel, TVisual, TLabel, TMiniatureGeometry>
@@ -103,25 +103,32 @@ public abstract class CoreFinancialSeries<TModel, TVisual, TLabel, TMiniatureGeo
         set => SetPaintProperty(ref field, value);
     } = Paint.Default;
 
-    /// <inheritdoc cref="ChartElement.Invalidate(Chart)"/>
-    public override void Invalidate(Chart chart)
+    // ---- template method ----------------------------------------------------
+
+    /// <summary>
+    /// Builds a per-frame measure context from the chart.
+    /// </summary>
+    protected virtual FinancialMeasureContext BeginMeasure(CartesianChartEngine chart)
     {
-        var cartesianChart = (CartesianChartEngine)chart;
-        var primaryAxis = cartesianChart.GetYAxis(this);
-        var secondaryAxis = cartesianChart.GetXAxis(this);
+        var primaryAxis = chart.GetYAxis(this);
+        var secondaryAxis = chart.GetXAxis(this);
 
-        var drawLocation = cartesianChart.DrawMarginLocation;
-        var drawMarginSize = cartesianChart.DrawMarginSize;
-        var secondaryScale = secondaryAxis.GetNextScaler(cartesianChart);
-        var primaryScale = primaryAxis.GetNextScaler(cartesianChart);
-        var previousPrimaryScale = primaryAxis.GetActualScaler(cartesianChart);
-        var previousSecondaryScale = secondaryAxis.GetActualScaler(cartesianChart);
+        var drawLocation = chart.DrawMarginLocation;
+        var drawMarginSize = chart.DrawMarginSize;
+        var secondaryScale = secondaryAxis.GetNextScaler(chart);
+        var primaryScale = primaryAxis.GetNextScaler(chart);
+        var previousPrimaryScale = primaryAxis.GetActualScaler(chart);
+        var previousSecondaryScale = secondaryAxis.GetActualScaler(chart);
 
-        var uw = secondaryScale.MeasureInPixels(secondaryAxis.UnitWidth);
+        // categoryWidth is the full axis-unit slot in pixels; candleWidth is
+        // the same value clamped by MaxBarWidth (defaults to 25 px). Keeping
+        // them apart lets the hover area cover the whole category column
+        // while the visual still respects MaxBarWidth — mirroring the
+        // actualUw / uw split BoxMeasureHelper and BarMeasureHelper use.
+        var categoryWidth = secondaryScale.MeasureInPixels(secondaryAxis.UnitWidth);
+        var uw = categoryWidth;
         var puw = previousSecondaryScale is null ? 0 : previousSecondaryScale.MeasureInPixels(secondaryAxis.UnitWidth);
         var uwm = 0.5f * uw;
-
-        var tp = chart.TooltipPosition;
 
         if (uw > MaxBarWidth)
         {
@@ -130,215 +137,326 @@ public abstract class CoreFinancialSeries<TModel, TVisual, TLabel, TMiniatureGeo
             puw = uw;
         }
 
+        var isFirstDraw = !((Chart)chart).IsDrawn(((ISeries)this).SeriesId);
+
+        return new FinancialMeasureContext(
+            chart, primaryAxis, secondaryAxis,
+            primaryScale, secondaryScale,
+            previousPrimaryScale, previousSecondaryScale,
+            candleWidth: uw,
+            previousCandleWidth: puw,
+            halfCandleWidth: uwm,
+            categoryWidth: categoryWidth,
+            tooltipPosition: chart.TooltipPosition,
+            isFirstDraw: isFirstDraw,
+            drawLocation: drawLocation,
+            drawMarginSize: drawMarginSize,
+            dataLabelsSize: (float)DataLabelsSize);
+    }
+
+    /// <summary>
+    /// Computes the final-frame candle geometry — body rect + OHLC pixel-Y
+    /// values + bullish flag.
+    /// </summary>
+    protected virtual FinancialLayout MeasureFinancialLayout(ChartPoint point, in FinancialMeasureContext ctx)
+    {
+        var coordinate = point.Coordinate;
+        var secondary = ctx.SecondaryScale.ToPixels(coordinate.SecondaryValue);
+
+        var high = ctx.PrimaryScale.ToPixels(coordinate.PrimaryValue);
+        var open = ctx.PrimaryScale.ToPixels(coordinate.TertiaryValue);
+        var close = ctx.PrimaryScale.ToPixels(coordinate.QuaternaryValue);
+        var low = ctx.PrimaryScale.ToPixels(coordinate.QuinaryValue);
+
+        // open > close in pixel-Y means lower open VALUE than close VALUE — bullish.
+        return new FinancialLayout(
+            x: secondary - ctx.HalfCandleWidth,
+            y: high,
+            width: ctx.CandleWidth,
+            open: open,
+            close: close,
+            low: low,
+            isBullish: open > close,
+            categoryHoverX: secondary - ctx.CategoryWidth * 0.5f,
+            categoryHoverWidth: ctx.CategoryWidth);
+    }
+
+    /// <summary>
+    /// Ensures the visual exists. On first creation initializes it at the candle's
+    /// X position with all OHLC values collapsed to the open price, so the candle
+    /// expands from a horizontal line into its final shape.
+    /// </summary>
+    protected virtual TVisual EnsureVisualForPoint(ChartPoint point, in FinancialMeasureContext ctx)
+    {
+        var visual = point.Context.Visual as TVisual;
+        if (visual is not null) return visual;
+
+        var coordinate = point.Coordinate;
+        var secondary = ctx.SecondaryScale.ToPixels(coordinate.SecondaryValue);
+        var open = ctx.PrimaryScale.ToPixels(coordinate.TertiaryValue);
+
+        var xi = secondary - ctx.HalfCandleWidth;
+        var uwi = ctx.CandleWidth;
+
+        // Mid-life entry: animate from previous-frame's position so a new candle
+        // joining an existing series doesn't pop in from origin.
+        if (ctx.PreviousSecondaryScale is not null && ctx.PreviousPrimaryScale is not null)
+        {
+            xi = ctx.PreviousSecondaryScale.ToPixels(coordinate.SecondaryValue) - ctx.HalfCandleWidth;
+            uwi = ctx.PreviousCandleWidth;
+        }
+
+        var middle = open;
+        var r = new TVisual
+        {
+            X = xi,
+            Width = uwi,
+            Y = middle,
+            Open = middle,
+            Close = middle,
+            Low = middle,
+        };
+
+        point.Context.Visual = r;
+        OnPointCreated(point);
+
+        _ = everFetched.Add(point);
+
+        return r;
+    }
+
+    /// <summary>
+    /// Collapses the candle to its open-Y line for empty/invisible points so the
+    /// visual fades out cleanly via the RemoveOnCompleted transition.
+    /// </summary>
+    protected virtual void CollapseEmptyVisual(ChartPoint point, in FinancialMeasureContext ctx)
+    {
+        var coordinate = point.Coordinate;
+        var secondary = ctx.SecondaryScale.ToPixels(coordinate.SecondaryValue);
+        var middle = ctx.PrimaryScale.ToPixels(coordinate.TertiaryValue);
+
+        if (point.Context.Visual is TVisual visual)
+        {
+            visual.X = secondary - ctx.HalfCandleWidth;
+            visual.Width = ctx.CandleWidth;
+            visual.Y = middle;
+            visual.Open = middle;
+            visual.Close = middle;
+            visual.Low = middle;
+            visual.RemoveOnCompleted = true;
+            point.Context.Visual = null;
+        }
+
+        if (point.Context.Label is TLabel label)
+        {
+            label.X = secondary - ctx.HalfCandleWidth;
+            label.Y = middle;
+            label.Opacity = 0;
+            label.RemoveOnCompleted = true;
+            point.Context.Label = null;
+        }
+    }
+
+    /// <summary>
+    /// Sets per-Z-index ordering on the four candle paints + data-labels paint and
+    /// registers them as drawable tasks. Per-candle add/remove cycling between
+    /// Up* and Down* paints based on bullish/bearish state happens later via
+    /// <see cref="AttachVisualToPaints"/>.
+    /// </summary>
+    private void InitializePaints(CartesianChartEngine chart)
+    {
         var actualZIndex = ZIndex == 0 ? ((ISeries)this).SeriesId : ZIndex;
 
         if (UpFill is not null && UpFill != Paint.Default)
         {
             UpFill.ZIndex = actualZIndex + PaintConstants.SeriesFillZIndexOffset;
-            cartesianChart.Canvas.AddDrawableTask(UpFill, zone: CanvasZone.DrawMargin);
+            chart.Canvas.AddDrawableTask(UpFill, zone: CanvasZone.DrawMargin);
         }
         if (DownFill is not null && DownFill != Paint.Default)
         {
             DownFill.ZIndex = actualZIndex + PaintConstants.SeriesFillZIndexOffset;
-            cartesianChart.Canvas.AddDrawableTask(DownFill, zone: CanvasZone.DrawMargin);
+            chart.Canvas.AddDrawableTask(DownFill, zone: CanvasZone.DrawMargin);
         }
         if (UpStroke is not null && UpStroke != Paint.Default)
         {
             UpStroke.ZIndex = actualZIndex + PaintConstants.SeriesStrokeZIndexOffset;
-            cartesianChart.Canvas.AddDrawableTask(UpStroke, zone: CanvasZone.DrawMargin);
+            chart.Canvas.AddDrawableTask(UpStroke, zone: CanvasZone.DrawMargin);
         }
         if (DownStroke is not null && DownStroke != Paint.Default)
         {
             DownStroke.ZIndex = actualZIndex + PaintConstants.SeriesStrokeZIndexOffset;
-            cartesianChart.Canvas.AddDrawableTask(DownStroke, zone: CanvasZone.DrawMargin);
+            chart.Canvas.AddDrawableTask(DownStroke, zone: CanvasZone.DrawMargin);
         }
         if (ShowDataLabels && DataLabelsPaint is not null && DataLabelsPaint != Paint.Default)
         {
             DataLabelsPaint.ZIndex = actualZIndex + PaintConstants.SeriesGeometryFillZIndexOffset;
-            cartesianChart.Canvas.AddDrawableTask(DataLabelsPaint, zone: CanvasZone.DrawMargin);
+            chart.Canvas.AddDrawableTask(DataLabelsPaint, zone: CanvasZone.DrawMargin);
+        }
+    }
+
+    /// <summary>
+    /// Attaches the candle visual to the bullish or bearish paint pair, and
+    /// detaches it from the opposite pair — so the same visual can switch sides
+    /// as the candle flips between bullish and bearish across frames.
+    /// </summary>
+    private void AttachVisualToPaints(TVisual visual, bool isBullish, CartesianChartEngine chart)
+    {
+        if (isBullish)
+        {
+            if (UpFill is not null && UpFill != Paint.Default)
+                UpFill.AddGeometryToPaintTask(chart.Canvas, visual);
+            if (UpStroke is not null && UpStroke != Paint.Default)
+                UpStroke.AddGeometryToPaintTask(chart.Canvas, visual);
+            if (DownFill is not null && DownFill != Paint.Default)
+                DownFill.RemoveGeometryFromPaintTask(chart.Canvas, visual);
+            if (DownStroke is not null && DownStroke != Paint.Default)
+                DownStroke.RemoveGeometryFromPaintTask(chart.Canvas, visual);
+        }
+        else
+        {
+            if (DownFill is not null && DownFill != Paint.Default)
+                DownFill.AddGeometryToPaintTask(chart.Canvas, visual);
+            if (DownStroke is not null && DownStroke != Paint.Default)
+                DownStroke.AddGeometryToPaintTask(chart.Canvas, visual);
+            if (UpFill is not null && UpFill != Paint.Default)
+                UpFill.RemoveGeometryFromPaintTask(chart.Canvas, visual);
+            if (UpStroke is not null && UpStroke != Paint.Default)
+                UpStroke.RemoveGeometryFromPaintTask(chart.Canvas, visual);
+        }
+    }
+
+    /// <summary>
+    /// Configures the hover-area tooltip anchor based on the chart's
+    /// <see cref="TooltipPosition"/>. Unlike Cartesian bars (Start/EndY by pivot),
+    /// candlesticks honor the full set of positions because tooltips usually
+    /// follow the OHLC summary panel.
+    /// </summary>
+    private static void ConfigureHoverAnchor(RectangleHoverArea ha, TooltipPosition tp)
+    {
+        switch (tp)
+        {
+            case TooltipPosition.Hidden:
+                break;
+            case TooltipPosition.Auto:
+            case TooltipPosition.Top: _ = ha.CenterXToolTip().StartYToolTip(); break;
+            case TooltipPosition.Bottom: _ = ha.CenterXToolTip().EndYToolTip(); break;
+            case TooltipPosition.Left: _ = ha.StartXToolTip().CenterYToolTip(); break;
+            case TooltipPosition.Right: _ = ha.EndXToolTip().CenterYToolTip(); break;
+            case TooltipPosition.Center: _ = ha.CenterXToolTip().CenterYToolTip(); break;
+            default:
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Creates the data label visual if needed, updates its text + style, and
+    /// positions it via <c>GetLabelPosition</c> with the candle's body rect.
+    /// </summary>
+    private void MeasureDataLabel(ChartPoint point, in FinancialLayout layout, in FinancialMeasureContext ctx)
+    {
+        if (!ShowDataLabels || DataLabelsPaint is null || DataLabelsPaint == Paint.Default) return;
+
+        var chart = ctx.Chart;
+        var label = (TLabel?)point.Context.Label;
+
+        if (label is null)
+        {
+            var l = new TLabel
+            {
+                X = layout.X,
+                Y = layout.Y,
+                RotateTransform = (float)DataLabelsRotation,
+                MaxWidth = (float)DataLabelsMaxWidth,
+            };
+            l.Animate(
+                GetAnimation(chart),
+                BaseLabelGeometry.XProperty,
+                BaseLabelGeometry.YProperty);
+            label = l;
+            point.Context.Label = l;
         }
 
-        var dls = (float)DataLabelsSize;
+        DataLabelsPaint.AddGeometryToPaintTask(chart.Canvas, label);
+
+        label.Text = DataLabelsFormatter(new ChartPoint<TModel, TVisual, TLabel>(point));
+        label.TextSize = ctx.DataLabelsSize;
+        label.Padding = DataLabelsPadding;
+        label.Paint = DataLabelsPaint;
+
+        if (ctx.IsFirstDraw)
+            label.CompleteTransition(
+                BaseLabelGeometry.TextSizeProperty,
+                BaseLabelGeometry.XProperty,
+                BaseLabelGeometry.YProperty,
+                BaseLabelGeometry.RotateTransformProperty);
+
+        var m = label.Measure();
+        var labelPosition = GetLabelPosition(
+            layout.X, layout.Y, layout.Width, layout.Height, m, DataLabelsPosition,
+            SeriesProperties, point.Coordinate.PrimaryValue > Pivot, ctx.DrawLocation, ctx.DrawMarginSize);
+        if (DataLabelsTranslate is not null)
+            label.TranslateTransform = new LvcPoint(
+                m.Width * DataLabelsTranslate.Value.X, m.Height * DataLabelsTranslate.Value.Y);
+
+        label.X = labelPosition.X;
+        label.Y = labelPosition.Y;
+    }
+
+    /// <inheritdoc cref="ChartElement.Invalidate(Chart)"/>
+    public sealed override void Invalidate(Chart chart)
+    {
+        var cartesianChart = (CartesianChartEngine)chart;
+        _ = GetAnimation(cartesianChart);
+
+        var ctx = BeginMeasure(cartesianChart);
         var pointsCleanup = ChartPointCleanupContext.For(everFetched);
 
-        var isFirstDraw = !chart.IsDrawn(((ISeries)this).SeriesId);
+        InitializePaints(cartesianChart);
 
         foreach (var point in Fetch(cartesianChart))
         {
-            var coordinate = point.Coordinate;
-            var visual = point.Context.Visual as TVisual;
-            var secondary = secondaryScale.ToPixels(coordinate.SecondaryValue);
-
-            var high = primaryScale.ToPixels(coordinate.PrimaryValue);
-            var open = primaryScale.ToPixels(coordinate.TertiaryValue);
-            var close = primaryScale.ToPixels(coordinate.QuaternaryValue);
-            var low = primaryScale.ToPixels(coordinate.QuinaryValue);
-            var middle = open;
-
             if (point.IsEmpty || !IsVisible)
             {
-                if (visual is not null)
-                {
-                    visual.X = secondary - uwm;
-                    visual.Width = uw;
-                    visual.Y = middle; // y coordinate is the highest
-                    visual.Open = middle;
-                    visual.Close = middle;
-                    visual.Low = middle;
-                    visual.RemoveOnCompleted = true;
-                    point.Context.Visual = null;
-                }
-
-                if (point.Context.Label is not null)
-                {
-                    var label = (TLabel)point.Context.Label;
-
-                    label.X = secondary - uwm;
-                    label.Y = middle;
-                    label.Opacity = 0;
-                    label.RemoveOnCompleted = true;
-
-                    point.Context.Label = null;
-                }
-
+                CollapseEmptyVisual(point, in ctx);
                 pointsCleanup.Clean(point);
-
                 continue;
             }
 
-            if (visual is null)
-            {
-                var xi = secondary - uwm;
-                var uwi = uw;
+            var visual = EnsureVisualForPoint(point, in ctx);
 
-                if (previousSecondaryScale is not null && previousPrimaryScale is not null)
-                {
-                    var previousP = previousPrimaryScale.ToPixels(pivot);
-                    var previousPrimary = previousPrimaryScale.ToPixels(coordinate.PrimaryValue);
-                    var bp = Math.Abs(previousPrimary - previousP);
-                    var cyp = coordinate.PrimaryValue > pivot ? previousPrimary : previousPrimary - bp;
+            var layout = MeasureFinancialLayout(point, in ctx);
 
-                    xi = previousSecondaryScale.ToPixels(coordinate.SecondaryValue) - uwm;
-                    uwi = puw;
-                }
+            AttachVisualToPaints(visual, layout.IsBullish, cartesianChart);
 
-                var r = new TVisual
-                {
-                    X = xi,
-                    Width = uwi,
-                    Y = middle, // y == high
-                    Open = middle,
-                    Close = middle,
-                    Low = middle
-                };
-
-                visual = r;
-                point.Context.Visual = visual;
-                OnPointCreated(point);
-
-                _ = everFetched.Add(point);
-            }
-
-            if (open > close)
-            {
-                if (UpFill is not null && UpFill != Paint.Default)
-                    UpFill.AddGeometryToPaintTask(cartesianChart.Canvas, visual);
-                if (UpStroke is not null && UpStroke != Paint.Default)
-                    UpStroke.AddGeometryToPaintTask(cartesianChart.Canvas, visual);
-                if (DownFill is not null && DownFill != Paint.Default)
-                    DownFill.RemoveGeometryFromPaintTask(cartesianChart.Canvas, visual);
-                if (DownStroke is not null && DownStroke != Paint.Default)
-                    DownStroke.RemoveGeometryFromPaintTask(cartesianChart.Canvas, visual);
-            }
-            else
-            {
-                if (DownFill is not null && DownFill != Paint.Default)
-                    DownFill.AddGeometryToPaintTask(cartesianChart.Canvas, visual);
-                if (DownStroke is not null && DownStroke != Paint.Default)
-                    DownStroke.AddGeometryToPaintTask(cartesianChart.Canvas, visual);
-                if (UpFill is not null && UpFill != Paint.Default)
-                    UpFill.RemoveGeometryFromPaintTask(cartesianChart.Canvas, visual);
-                if (UpStroke is not null && UpStroke != Paint.Default)
-                    UpStroke.RemoveGeometryFromPaintTask(cartesianChart.Canvas, visual);
-            }
-
-            var x = secondary - uwm;
-
-            visual.X = x;
-            visual.Width = uw;
-            visual.Y = high;
-            visual.Open = open;
-            visual.Close = close;
-            visual.Low = low;
+            visual.X = layout.X;
+            visual.Width = layout.Width;
+            visual.Y = layout.Y;
+            visual.Open = layout.Open;
+            visual.Close = layout.Close;
+            visual.Low = layout.Low;
             visual.RemoveOnCompleted = false;
 
             if (point.Context.HoverArea is not RectangleHoverArea ha)
                 point.Context.HoverArea = ha = new RectangleHoverArea();
 
-            _ = ha.SetDimensions(secondary - uwm, high, uw, Math.Abs(low - high));
+            // Hover area uses the full category width so candles spaced by
+            // MaxBarWidth (default 25 px) remain hoverable across the whole
+            // axis slot — matches the BoxSeries / BarSeries gap-padding UX.
+            // The visual (layout.X / layout.Width) stays at the clamped
+            // candle width.
+            _ = ha.SetDimensions(layout.CategoryHoverX, layout.Y, layout.CategoryHoverWidth, layout.Height);
 
-            switch (tp)
-            {
-                case TooltipPosition.Hidden:
-                    break;
-                case TooltipPosition.Auto:
-                case TooltipPosition.Top: _ = ha.CenterXToolTip().StartYToolTip(); break;
-                case TooltipPosition.Bottom: _ = ha.CenterXToolTip().EndYToolTip(); break;
-                case TooltipPosition.Left: _ = ha.StartXToolTip().CenterYToolTip(); break;
-                case TooltipPosition.Right: _ = ha.EndXToolTip().CenterYToolTip(); break;
-                case TooltipPosition.Center: _ = ha.CenterXToolTip().CenterYToolTip(); break;
-                default:
-                    break;
-            }
+            ConfigureHoverAnchor(ha, ctx.TooltipPosition);
 
             pointsCleanup.Clean(point);
 
-            if (ShowDataLabels && DataLabelsPaint is not null && DataLabelsPaint != Paint.Default)
-            {
-                var label = (TLabel?)point.Context.Label;
-
-                if (label is null)
-                {
-                    var l = new TLabel { X = secondary - uwm, Y = high, RotateTransform = (float)DataLabelsRotation, MaxWidth = (float)DataLabelsMaxWidth };
-                    l.Animate(
-                        EasingFunction ?? cartesianChart.ActualEasingFunction,
-                        AnimationsSpeed ?? cartesianChart.ActualAnimationsSpeed,
-                        BaseLabelGeometry.XProperty,
-                        BaseLabelGeometry.YProperty);
-                    label = l;
-                    point.Context.Label = l;
-                }
-
-                DataLabelsPaint.AddGeometryToPaintTask(cartesianChart.Canvas, label);
-
-                label.Text = DataLabelsFormatter(new ChartPoint<TModel, TVisual, TLabel>(point));
-                label.TextSize = dls;
-                label.Padding = DataLabelsPadding;
-                label.Paint = DataLabelsPaint;
-
-                if (isFirstDraw)
-                    label.CompleteTransition(
-                        BaseLabelGeometry.TextSizeProperty,
-                        BaseLabelGeometry.XProperty,
-                        BaseLabelGeometry.YProperty,
-                        BaseLabelGeometry.RotateTransformProperty);
-
-                var m = label.Measure();
-                var labelPosition = GetLabelPosition(
-                    x, high, uw, Math.Abs(low - high), m, DataLabelsPosition,
-                    SeriesProperties, coordinate.PrimaryValue > Pivot, drawLocation, drawMarginSize);
-                if (DataLabelsTranslate is not null) label.TranslateTransform =
-                        new LvcPoint(m.Width * DataLabelsTranslate.Value.X, m.Height * DataLabelsTranslate.Value.Y);
-
-                label.X = labelPosition.X;
-                label.Y = labelPosition.Y;
-            }
+            MeasureDataLabel(point, in layout, in ctx);
 
             OnPointMeasured(point);
         }
 
         pointsCleanup.CollectPoints(
-            everFetched, cartesianChart.View, primaryScale, secondaryScale, SoftDeleteOrDisposePoint);
+            everFetched, cartesianChart.View, ctx.PrimaryScale, ctx.SecondaryScale, SoftDeleteOrDisposePoint);
     }
 
     /// <inheritdoc cref="ICartesianSeries.GetBounds(Chart, ICartesianAxis, ICartesianAxis)"/>
@@ -405,7 +523,7 @@ public abstract class CoreFinancialSeries<TModel, TVisual, TLabel, TMiniatureGeo
     {
         var chart = chartPoint.Context.Chart;
         if (chartPoint.Context.Visual is not TVisual visual) throw new Exception("Unable to initialize the point instance.");
-        visual.Animate(EasingFunction ?? chart.CoreChart.ActualEasingFunction, AnimationsSpeed ?? chart.CoreChart.ActualAnimationsSpeed);
+        visual.Animate(GetAnimation(chart.CoreChart));
     }
 
     /// <inheritdoc cref="CartesianSeries{TModel, TVisual, TLabel}.SoftDeleteOrDisposePoint(ChartPoint, Scaler, Scaler)"/>

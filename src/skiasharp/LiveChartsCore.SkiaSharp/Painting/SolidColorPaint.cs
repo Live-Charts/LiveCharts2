@@ -82,7 +82,11 @@ public class SolidColorPaint : SkiaPaint
     {
         var skiaContext = (SkiaSharpDrawingContext)drawingContext;
         _skiaPaint = UpdateSkiaPaint(skiaContext, drawnElement);
-        _skiaPaint.Color = Color;
+
+        // SKPaint.Color is a managed property that marshals to the native paint on next use;
+        // skipping the write when the source color hasn't moved avoids that pair on every
+        // paint-task selection. Most paints carry a static color in steady state.
+        if (_skiaPaint.Color != Color) _skiaPaint.Color = Color;
     }
 
     internal override Paint Transitionate(float progress, Paint target)

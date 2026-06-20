@@ -103,4 +103,8 @@ public class View : Panel
             new ObservableValue(random.Next(0, 10))
         };
     }
+
+#if UI_TESTING
+    public CartesianChart Chart => cartesianChart;
+#endif
 }

@@ -1,0 +1,32 @@
+<Project>
+  <ItemGroup>
+    <Compile Include="..\_Shared.WinUI\**\*.cs">
+      <Link>%(RecursiveDir)%(Filename).cs</Link>
+    </Compile>
+
+    <Compile Update="..\_Shared.WinUI\SourceGenCartesianChart.*.cs">
+      <DependentUpon>CartesianChart.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="..\_Shared.WinUI\SourceGenPieChart.*.cs">
+      <DependentUpon>PieChart.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="..\_Shared.WinUI\SourceGenPolarChart.*.cs">
+      <DependentUpon>PolarChart.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="..\_Shared.WinUI\SourceGenMapChart.*.cs">
+      <DependentUpon>GeoMap.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="..\_Shared.WinUI\SourceGenSankeyChart.*.cs">
+      <DependentUpon>SankeyChart.cs</DependentUpon>
+    </Compile>
+
+    <Compile Update="..\_Shared.WinUI\SourceGenTreemapChart.*.cs">
+      <DependentUpon>TreemapChart.cs</DependentUpon>
+    </Compile>
+
+  </ItemGroup>
+</Project>

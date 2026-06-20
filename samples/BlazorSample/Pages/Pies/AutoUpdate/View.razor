@@ -1,0 +1,61 @@
+﻿@page "/Pies/AutoUpdate"
+@using LiveChartsCore.SkiaSharpView.Blazor
+@using LiveChartsCore
+@using LiveChartsCore.SkiaSharpView
+@using System.Collections.ObjectModel
+
+<div>
+	<button type="button" class="btn btn-primary" @onclick="AddSeries">Add series</button>
+	<button type="button" class="btn btn-primary" @onclick="RemoveSeries">Remove series</button>
+	<button type="button" class="btn btn-primary" @onclick="UpdateAll">Update all</button>
+</div>
+
+<PieChart
+    @ref="Chart"
+	Series="Series">
+</PieChart>
+
+@code {
+    private readonly Random _random = new();
+    private ObservableCollection<ISeries> Series { get; set; } = new();
+
+    protected override void OnInitialized()
+    {
+        Series.Add(new PieSeries<int> { Values = Fetch() });
+        Series.Add(new PieSeries<int> { Values = Fetch() });
+    }
+
+    private void AddSeries()
+    {
+        Series.Add(new PieSeries<int> { Values = Fetch() });
+        StateHasChanged();
+    }
+
+    private void RemoveSeries()
+    {
+        if (Series.Count > 0)
+        {
+            Series.RemoveAt(Series.Count - 1);
+            StateHasChanged();
+        }
+    }
+
+    private void UpdateAll()
+    {
+        foreach (var series in Series)
+        {
+            if (series is PieSeries<int> pieSeries)
+            {
+                pieSeries.Values = Fetch();
+            }
+        }
+        StateHasChanged();
+    }
+
+    private int[] Fetch()
+    {
+        return new[] { _random.Next(1, 10) };
+    }
+
+    public PieChart Chart;
+}

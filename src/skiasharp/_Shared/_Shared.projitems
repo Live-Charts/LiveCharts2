@@ -6,13 +6,19 @@
     <SharedGUID>2ad18dd8-c567-4bcf-a4fa-42519466d6a3</SharedGUID>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)SourceGenCartesianChart.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SourceGenCartesianChart.shared.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SourceGenCartesianChart.sgp.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)SourceGenChartControl.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)SourceGenChartControl.sgp.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)SourceGenPieChart.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SourceGenChart.shared.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SourceGenChart.sgp.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SourceGenMapChart.shared.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SourceGenMapChart.sgp.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SourceGenPieChart.shared.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SourceGenPieChart.sgp.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)SourceGenPolarChart.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SourceGenPolarChart.shared.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SourceGenPolarChart.sgp.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SourceGenSankeyChart.shared.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SourceGenSankeyChart.sgp.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SourceGenTreemapChart.shared.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SourceGenTreemapChart.sgp.cs" />
   </ItemGroup>
 </Project>

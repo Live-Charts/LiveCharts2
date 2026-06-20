@@ -55,7 +55,7 @@
             <lvc:CartesianChart.XAxes>
                 <!--
                 To get more help about DateTime axes see:
-                https://livecharts.dev/docs/wpf/latest/samples.axes.dateTimeScaled
+                https://livecharts.dev/docs/wpf/{{ version }}/samples.axes.dateTimeScaled
                 -->
                 <lvc:AxesCollection>
                     <lvc:XamlDateTimeAxis

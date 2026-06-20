@@ -96,6 +96,14 @@ public abstract class VisualElement : ChartElement, INotifyPropertyChanged, IInt
     /// </value>
     public int ScalesYAt { get; set => SetProperty(ref field, value); }
 
+    /// <summary>
+    /// Gets or sets the z-index applied to every paint produced by this visual element.
+    /// When 0 (default) the underlying paint z-index is left untouched, which means the
+    /// visual is drawn behind series whose paints sit at <c>SeriesId + offset</c>.
+    /// Set a positive value (e.g. 1000) to render the visual on top of series.
+    /// </summary>
+    public int ZIndex { get; set => SetProperty(ref field, value); }
+
     /// <inheritdoc cref="IInteractable.PointerDown"/>
     public event VisualElementHandler? PointerDown;
 
@@ -116,6 +124,9 @@ public abstract class VisualElement : ChartElement, INotifyPropertyChanged, IInt
         foreach (var paintTask in GetPaintTasks())
         {
             if (paintTask is null) continue;
+            // 0 means "do not override"; gauge subclasses bump untouched paints in
+            // OnInvalidated, so leaving 0-valued paints alone keeps that path working.
+            if (ZIndex != 0) paintTask.ZIndex = ZIndex;
             chart.Canvas.AddDrawableTask(paintTask);
         }
 

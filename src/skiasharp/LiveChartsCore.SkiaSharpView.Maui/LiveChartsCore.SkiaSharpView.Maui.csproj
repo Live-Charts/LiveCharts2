@@ -1,17 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-    <Nullable>enable</Nullable>
-    <LangVersion>$(GlobalLangVersion)</LangVersion>
-
     <SingleProject>true</SingleProject>
+    <ImplicitUsings>disable</ImplicitUsings>
 
     <TargetFrameworks>
-      net8.0;net8.0-android;net8.0-ios;net8.0-maccatalyst;
+      net9.0;net9.0-android;net9.0-ios;net9.0-maccatalyst;
+      net10.0;net10.0-android;net10.0-ios;net10.0-maccatalyst;
     </TargetFrameworks>
+    
     <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">
       $(TargetFrameworks);
-      net8.0-windows10.0.19041.0
+      net9.0-windows10.0.19041.0;
+      net10.0-windows10.0.19041.0;
     </TargetFrameworks>
 
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">11.0</SupportedOSPlatformVersion>
@@ -21,62 +22,61 @@
     <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
 
-    <RuntimeIdentifiers Condition="$(TargetFramework.Contains('8.0-windows'))">win-x86;win-x64;win-arm64</RuntimeIdentifiers>
-
-    <Version>$(LiveChartsVersion)</Version>
-    <PackageIcon>icon.png</PackageIcon>
-    <Description>Simple, flexible, interactive and powerful data visualization for Maui.</Description>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Authors>$(LiveChartsAuthors)</Authors>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <RepositoryUrl>https://github.com/beto-rodriguez/LiveCharts2</RepositoryUrl>
-    <GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
-
-    <Deterministic>true</Deterministic>
-    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <AssemblyName>LiveChartsCore.SkiaSharpView.Maui</AssemblyName>
+    <RootNamespace>LiveChartsCore.SkiaSharpView.Maui</RootNamespace>
+    <PathToPackAssets>../../../</PathToPackAssets>
 	</PropertyGroup>
 
-  <Import Project="..\..\_Shared.Native\_Shared.Native.projitems" Label="Shared" />
-  <Import Project="..\_Shared\_Shared.projitems" Label="Shared" />
-  <Import Project="..\_Shared.Xaml\_Shared.Xaml.projitems" Label="Shared" />
+  <PropertyGroup>
+    <!-- ignore: Found version-specific or distribution-specific runtime identifier(s): win10-arm64, win10-x64, win10-x86. Affected libraries: Microsoft.WindowsAppSDK. In .NET 8.0 and higher, assets for version-specific and distribution-specific runtime identifiers will not be found by default -->
+    <NoWarn>$(NoWarn);NETSDK1206</NoWarn>
+  </PropertyGroup>
+
+  <Import Project="../../../nuget.props" />
+  <PropertyGroup>
+    <Description>
+      $(Description) This package includes all the required code and dependencies for rendering charts in MAUI with SkiaSharp.
+    </Description>
+  </PropertyGroup>
+
+  <Import Project="../../../build/SharedLinks.Build.props" />
+  <Import Project="../../../build/XamlSharedLinks.Build.props" />
+  <Import Project="../../../build/NativeSharedLinks.Build.props" />
 
   <PropertyGroup>
     <DefineConstants>$(DefineConstants);MAUI_LVC;XAML_LVC</DefineConstants>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <!--
+    hack for:
+    https://github.com/dotnet/maui/issues/26952#issuecomment-2576012286
+    lets force maui controls versions to match the maui version, skiasharp is not doing that for us :(
+    -->
+    <LvcMauiVersion Condition="$(TargetFramework.Contains('net9.0'))">
+      9.0.120
+    </LvcMauiVersion>
+    <LvcMauiVersion Condition="$(TargetFramework.Contains('net10.0'))">
+      10.0.0
+    </LvcMauiVersion>
+  </PropertyGroup>
+
   <ItemGroup>
 	  <PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="$(LatestSkiaSharpVersion)" />
     <PackageReference Include="SkiaSharp.HarfBuzz" Version="$(LatestSkiaSharpVersion)" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
-	</ItemGroup>
-
-	<ItemGroup>
-    <ProjectReference Include="..\..\LiveChartsCore\LiveChartsCore.csproj" />
-	  <ProjectReference Include="..\LiveChartsCore.SkiaSharp\LiveChartsCore.SkiaSharpView.csproj" />
-	</ItemGroup>
-
-  <ItemGroup Condition="$(UseNuGetForGenerator)">
-    <PackageReference Include="LiveChartsGenerators" Version="$(LiveChartsCodeGenVersion)">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>analyzers</IncludeAssets>
-    </PackageReference>
+    <PackageReference Include="Microsoft.Maui.Controls" Version="$(LvcMauiVersion)" />
   </ItemGroup>
 
-  <ItemGroup Condition="!$(UseNuGetForGenerator)">
-    <ProjectReference Include="..\..\..\generators\LiveChartsGenerators\LiveChartsGenerators.csproj">
+	<ItemGroup>
+    <ProjectReference Include="../../LiveChartsCore/LiveChartsCore.csproj" />
+	  <ProjectReference Include="../LiveChartsCore.SkiaSharp/LiveChartsCore.SkiaSharpView.csproj" />
+	</ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../../generators/LiveChartsGenerators/LiveChartsGenerators.csproj">
       <OutputItemType>Analyzer</OutputItemType>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="images\icon.png" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>

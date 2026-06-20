@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="MauiSample.Maps.CustomMap.View"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Maui;assembly=LiveChartsCore.SkiaSharpView.Maui"
+             xmlns:vms="clr-namespace:ViewModelsSamples.Maps.CustomMap;assembly=ViewModelsSamples"
+             x:DataType="vms:ViewModel">
+    <ContentPage.BindingContext>
+        <vms:ViewModel/>
+    </ContentPage.BindingContext>
+    <lvc:GeoMap
+        x:Name="geoMap"
+        Series="{Binding Series}"
+        ActiveMap="{Binding ActiveMap}"
+        MapProjection="Mercator"
+        MinLatitude="13"
+        MaxLatitude="33"
+        MinLongitude="-120"
+        MaxLongitude="-85"/>
+</ContentPage>

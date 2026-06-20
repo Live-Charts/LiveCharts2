@@ -20,118 +20,32 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using System;
-using System.Collections.Generic;
 using LiveChartsCore.Geo;
-using LiveChartsCore.Motion;
-using LiveChartsCore.Painting;
-using LiveChartsCore.SkiaSharpView.Drawing;
-using LiveChartsCore.SkiaSharpView.Painting;
-using SkiaSharp;
+
+// ==============================================================================
+// 
+// use the LiveChartsGeneratedCode.SourceGenSKMapChart class to add Skia (image generation) specific
+// code, this class is just to expose the GeoMap class in this namespace.
+// 
+// ==============================================================================
 
 namespace LiveChartsCore.SkiaSharpView.SKCharts;
 
 /// <inheritdoc cref="IGeoMapView"/>
-public class SKGeoMap : InMemorySkiaSharpChart, IGeoMapView
+public class SKGeoMap : LiveChartsGeneratedCode.SourceGenSKMapChart
 {
-    private readonly GeoMapChart _core;
-
     /// <summary>
     /// Initializes a new instance of the <see cref="SKGeoMap"/> class.
     /// </summary>
     public SKGeoMap()
-    {
-        _core = new GeoMapChart(this);
-        ActiveMap = Maps.GetWorldMap();
-    }
+        : base(null)
+    { }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SKGeoMap"/> class.
     /// </summary>
-    /// <param name="mapView">The map view.</param>
-    public SKGeoMap(IGeoMapView mapView) : this()
-    {
-        MapProjection = mapView.MapProjection;
-        Stroke = mapView.Stroke;
-        Fill = mapView.Fill;
-        Series = mapView.Series;
-    }
-
-    /// <inheritdoc cref="IGeoMapView.AutoUpdateEnabled" />
-    public bool AutoUpdateEnabled { get; set; } = true;
-
-    /// <inheritdoc cref="IGeoMapView.SyncContext" />
-    public object SyncContext { get; set; } = new();
-
-    /// <inheritdoc cref="IGeoMapView.DesignerMode" />
-    public bool DesignerMode { get; set; } = false;
-
-    /// <inheritdoc cref="IGeoMapView.ActiveMap"/>
-    public DrawnMap ActiveMap { get; set; }
-
-    float IGeoMapView.Width => Width;
-
-    float IGeoMapView.Height => Height;
-
-    /// <inheritdoc cref="IGeoMapView.Canvas"/>
-    public CoreMotionCanvas Canvas { get; } = new();
-
-    /// <inheritdoc cref="IGeoMapView.MapProjection"/>
-    public MapProjection MapProjection { get; set; }
-
-    /// <inheritdoc cref="IGeoMapView.Stroke"/>
-    public Paint? Stroke
-    {
-        get;
-        set
-        {
-            if (value is not null) value.PaintStyle = PaintStyle.Stroke;
-            field = value;
-        }
-    } = new SolidColorPaint(new SKColor(255, 255, 255, 255)) { PaintStyle = PaintStyle.Stroke };
-
-    /// <inheritdoc cref="IGeoMapView.Fill"/>
-    public Paint? Fill
-    {
-        get;
-        set
-        {
-            if (value is not null) value.PaintStyle = PaintStyle.Fill;
-            field = value;
-        }
-    } = new SolidColorPaint(new SKColor(240, 240, 240, 255)) { PaintStyle = PaintStyle.Fill };
-
-    /// <inheritdoc cref="IGeoMapView.Series"/>
-    public IEnumerable<IGeoSeries> Series { get; set; } = [];
-
-    /// <inheritdoc cref="IGeoMapView.ViewCommand"/>
-    public object? ViewCommand
-    {
-        get;
-        set
-        {
-            field = value;
-            if (value is not null) _core.ViewTo(value);
-        }
-    }
-
-    /// <inheritdoc cref="InMemorySkiaSharpChart.DrawOnCanvas(SKCanvas)"/>
-    public override void DrawOnCanvas(SKCanvas canvas)
-    {
-        Canvas.DisableAnimations = true;
-
-        _core.Measure();
-
-        Canvas.DrawFrame(
-            new SkiaSharpDrawingContext(Canvas, canvas, Background));
-
-        _core.Unload();
-    }
-
-    void IGeoMapView.InvokeOnUIThread(Action action) =>
-        action();
-
-    /// <inheritdoc cref="InMemorySkiaSharpChart.GetCoreChart"/>
-    protected override Chart GetCoreChart() =>
-        throw new NotImplementedException();
+    /// <param name="chartView">The control to create the image from.</param>
+    public SKGeoMap(IGeoMapView chartView)
+        : base(chartView)
+    { }
 }

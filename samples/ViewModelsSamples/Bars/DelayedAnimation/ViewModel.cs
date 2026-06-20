@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using CommunityToolkit.Mvvm.Input;
+﻿using CommunityToolkit.Mvvm.Input;
 using LiveChartsCore;
 using LiveChartsCore.Drawing;
 using LiveChartsCore.Kernel;
@@ -39,7 +37,14 @@ public partial class ViewModel
 
         var remappedT = (t - delay) / (1f - delay);
         var baseEasing = EasingFunctions.BuildCustomElasticOut(1.5f, 0.60f);
-        return baseEasing(Math.Clamp(remappedT, 0f, 1f));
+        return baseEasing(Clamp(remappedT, 0f, 1f));
+    }
+
+    public static float Clamp(float value, float min, float max)
+    {
+        if (value < min) return min;
+        if (value > max) return max;
+        return value;
     }
 
     private static float[] FetchVales(float offset)

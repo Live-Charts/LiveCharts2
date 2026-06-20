@@ -53,4 +53,45 @@ public abstract class MapProjector
     /// <param name="point">The point.</param>
     /// <returns></returns>
     public abstract float[] ToMap(double[] point);
+
+    /// <summary>
+    /// Allocation-free projection. Default implementation forwards to the
+    /// array-based <see cref="ToMap(double[])"/> for back-compat with custom
+    /// projectors that only override the array-based overload; built-in
+    /// projectors override this to skip the per-point allocation entirely.
+    /// During orthographic rotation this is called tens of thousands of
+    /// times per frame, so the difference is material.
+    /// </summary>
+    /// <param name="longitude">The longitude.</param>
+    /// <param name="latitude">The latitude.</param>
+    /// <param name="x">Projected screen X.</param>
+    /// <param name="y">Projected screen Y.</param>
+    public virtual void ToMap(double longitude, double latitude, out float x, out float y)
+    {
+        var r = ToMap([longitude, latitude]);
+        x = r[0];
+        y = r[1];
+    }
+
+    /// <summary>
+    /// Determines whether a point at the given longitude and latitude is visible
+    /// in this projection. Always returns true for flat projections.
+    /// </summary>
+    /// <param name="longitude">The longitude.</param>
+    /// <param name="latitude">The latitude.</param>
+    /// <returns>True if the point is visible.</returns>
+    public virtual bool IsVisible(double longitude, double latitude) => true;
+
+    /// <summary>
+    /// Inverse of <see cref="ToMap(double, double, out float, out float)"/> —
+    /// converts a screen-space pixel back to (longitude, latitude). Returns
+    /// false when the pixel is outside the projection's visible region
+    /// (e.g. the back hemisphere on Orthographic).
+    /// </summary>
+    /// <param name="screenX">Pixel X.</param>
+    /// <param name="screenY">Pixel Y.</param>
+    /// <param name="longitude">The longitude, if recoverable.</param>
+    /// <param name="latitude">The latitude, if recoverable.</param>
+    /// <returns>True if the pixel maps back to a valid coordinate.</returns>
+    public abstract bool ToCoordinates(float screenX, float screenY, out double longitude, out double latitude);
 }

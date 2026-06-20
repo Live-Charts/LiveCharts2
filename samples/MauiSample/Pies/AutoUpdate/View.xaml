@@ -11,14 +11,14 @@
         <vms:ViewModel/>
     </ContentPage.BindingContext>
 
-    <Grid RowDefinitions="Auto, *">
+    <Grid RowDefinitions="Auto, *" x:Name="grid">
         <StackLayout Grid.Row="0" Orientation="Horizontal">
             <Button Margin="6" Command="{Binding AddSeriesCommand}" Text="Add series" />
             <Button Margin="6" Command="{Binding RemoveSeriesCommand}" Text="Remove series"/>
             <Button Margin="6" Command="{Binding UpdateAllCommand}" Text="Update Series"/>
         </StackLayout>
 
-        <lvc:PieChart Grid.Row="1" SeriesSource="{Binding Data}">
+        <lvc:PieChart Grid.Row="1" SeriesSource="{Binding Data}" x:Name="chart">
             <lvc:PieChart.SeriesTemplate>
                 <DataTemplate x:DataType="vms:ChartData">
                     <lvc:XamlPieSeries

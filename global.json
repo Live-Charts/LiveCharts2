@@ -1,9 +1,5 @@
 {
-  "sdk": {
-    "version": "9.0.101",
-    "rollForward": "latestFeature"
-  },
-  "msbuild-sdks": {
-    "Uno.Sdk": "6.2.36"
+  "test": {
+    "runner": "Microsoft.Testing.Platform"
   }
 }

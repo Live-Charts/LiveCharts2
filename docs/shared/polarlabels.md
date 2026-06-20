@@ -1,8 +1,13 @@
+<!--
+To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/master/docs/readme.md
+content is normally pulled from the examples in the repository.
+-->
+
 ## DataLabels
 
 {{~ if name != "Pie series" ~}}
 :::info
-The the following block uses the `PieChart` class as an example but all labels in polar series work the same way.
+The following block uses the `PieChart` class as an example but all labels in polar series work the same way.
 :::
 {{~ end ~}}
 
@@ -43,18 +48,18 @@ Series { get; set; } = new List<ISeries>
 
 The series above result in the following chart:
 
-![image]({{ assets_url }}/docs/_assets/pielabels.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/pielabels.png)
 
 You can also use the `DataLabelsRotation` property to set an angle in degrees for the labels in the chart,
 notice the constants `LiveCharts.CotangentAngle` and `LiveCharts.TangentAngle` to build labels rotation.
 
 This is the result when we set all the series to `LiveCharts.CotangentAngle`:
 
-![image]({{ assets_url }}/docs/_assets/pielabelscotan.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/pielabelscotan.png)
 
 And this is the result when we set all the series to `LiveCharts.TangentAngle`:
 
-![image]({{ assets_url }}/docs/_assets/pielabelstan.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/pielabelstan.png)
 
 Finally you can also combine tangent and cotangent angles with decimal degrees:
 

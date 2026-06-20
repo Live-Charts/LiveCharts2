@@ -45,4 +45,12 @@ public class TimeSpanAxis : Axis
         Labeler = value => formatter(value.AsTimeSpan());
         MinStep = unit.Ticks;
     }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the axis should group its time units into adaptive,
+    /// multi-level labels (e.g. a fine unit on the first line and a coarser context on the second,
+    /// updating as you zoom). Default is false. Requires a chart engine that supplies an axis render
+    /// override for this axis (otherwise the flag is ignored).
+    /// </summary>
+    public bool GroupTimeUnits { get; set => SetProperty(ref field, value); }
 }

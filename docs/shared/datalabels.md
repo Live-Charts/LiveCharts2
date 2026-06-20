@@ -1,3 +1,8 @@
+<!--
+To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/master/docs/readme.md
+content is normally pulled from the examples in the repository.
+-->
+
 ## Data labels 
 
 Data labels are labels for every point in a series, there are multiple properties to customize them, take a look at the 
@@ -23,4 +28,4 @@ new {{ name  | to_title_case_no_spaces }}<double>
 
 The previous series will result in the following chart:
 
-![image]({{ assets_url }}/docs/_assets/1.8.datalabels.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/1.8.datalabels.png)

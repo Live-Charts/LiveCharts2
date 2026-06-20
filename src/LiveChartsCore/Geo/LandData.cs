@@ -86,4 +86,9 @@ public class LandData
     /// Gets or sets the shape.
     /// </summary>
     public BaseVectorGeometry? Shape { get; set; }
+
+    /// <summary>
+    /// Gets or sets the parent land definition.
+    /// </summary>
+    public LandDefinition? Land { get; set; }
 }

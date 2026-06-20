@@ -1,0 +1,32 @@
+<UserControl
+    x:Class="AvaloniaSample.Bars.Gantt.View"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
+    xmlns:vms="using:ViewModelsSamples.Bars.Gantt"
+    x:DataType="vms:ViewModel">
+
+    <UserControl.DataContext>
+        <vms:ViewModel/>
+    </UserControl.DataContext>
+
+    <lvc:CartesianChart>
+        <lvc:CartesianChart.Series>
+            <lvc:XamlRangeRowSeries
+                Values="{Binding Tasks}"
+                SeriesName="Project"
+                YToolTipLabelFormatter="{Binding TaskTooltipFormatter}"/>
+        </lvc:CartesianChart.Series>
+
+        <lvc:CartesianChart.XAxes>
+            <lvc:XamlDateTimeAxis
+                AxisName="Date"
+                Interval="2.00:00:00"
+                DateFormatter="{Binding DateFormatter}"/>
+        </lvc:CartesianChart.XAxes>
+
+        <lvc:CartesianChart.YAxes>
+            <lvc:XamlAxis Labels="{Binding TaskNames}"/>
+        </lvc:CartesianChart.YAxes>
+    </lvc:CartesianChart>
+</UserControl>

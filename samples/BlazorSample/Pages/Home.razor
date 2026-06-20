@@ -1,7 +1,22 @@
 ﻿@page "/"
 
+@if(isUITest)
+{
+    <Factos.Blazor.ContentControl/>
+}
+else
+{
 <PageTitle>Home</PageTitle>
 
 <h1>Hello, world!</h1>
 
-Welcome to your new app.
+<p>Welcome to your new app.</p>
+}
+
+@code {
+#if UI_TESTING
+    private bool isUITest = true;
+#else
+    private bool isUITest = false;
+#endif
+}

@@ -93,15 +93,17 @@ public class SemicircleHoverArea : HoverArea
     /// <inheritdoc cref="HoverArea.DistanceTo(LvcPoint, FindingStrategy)"/>
     public override double DistanceTo(LvcPoint point, FindingStrategy strategy)
     {
-        var a = (StartAngle + EndAngle) * 0.5;
-        var r = Radius * 0.5f;
+        // Pixel midpoint of the slice = pie center + (mid-radius * mid-angle).
+        // The strategy is intentionally ignored: a pie slice's containment is
+        // angular + radial, neither of which decomposes into X-only / Y-only,
+        // so TakeClosest just uses Euclidean distance to the slice midpoint.
+        var midAngleRad = (StartAngle + EndAngle) * 0.5 * Math.PI / 180d;
+        var midRadius = (InnerRadius + Radius * 0.5f) * 0.5;
 
-        a *= Math.PI / 180d;
+        var midX = CenterX + midRadius * Math.Cos(midAngleRad);
+        var midY = CenterY + midRadius * Math.Sin(midAngleRad);
 
-        var y = r * Math.Cos(a);
-        var x = r * Math.Sin(a);
-
-        return Math.Sqrt(Math.Pow(point.X - x, 2) + Math.Pow(point.Y - y, 2));
+        return Math.Sqrt(Math.Pow(point.X - midX, 2) + Math.Pow(point.Y - midY, 2));
     }
 
     /// <inheritdoc cref="HoverArea.IsPointerOver(LvcPoint, FindingStrategy)"/>

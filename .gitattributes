@@ -3,6 +3,11 @@
 ###############################################################################
 * text=auto
 
+# Console renderer goldens contain byte-exact ANSI escape sequences and Braille
+# codepoints — autocrlf normalization on Windows would change the bytes and
+# break the comparison. Treat as binary so they round-trip unchanged.
+tests/ConsoleTests/Goldens/*.txt -text
+
 ###############################################################################
 # Set default behavior for command prompt diff.
 #
@@ -61,3 +66,7 @@
 #*.PDF   diff=astextplain
 #*.rtf   diff=astextplain
 #*.RTF   diff=astextplain
+
+# Always use LF for shell scripts so they remain executable on macOS/Linux
+# even when checked out on Windows.
+*.sh text eol=lf

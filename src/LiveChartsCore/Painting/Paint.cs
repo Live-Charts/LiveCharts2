@@ -24,7 +24,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using LiveChartsCore.Drawing;
 using LiveChartsCore.Motion;
 
@@ -164,10 +163,10 @@ public abstract partial class Paint : Animatable
         var geometries = GetGeometriesByCanvas(canvas);
         if (geometries is null || geometries.Count == 0) return;
 
-        var geometriesWithOwnPaints = geometries
-                .Where(x => (x.Fill ?? x.Stroke ?? x.Paint) is not null);
-
-        foreach (var geometry in geometriesWithOwnPaints)
+        // DisposePaints fires the OnDisposed hook on the geometry — needed for geometries
+        // that hold cached native resources (e.g. VectorGeometry's SKPath) even if they
+        // don't own their own paints. DisposePaints null-checks the paints internally.
+        foreach (var geometry in geometries)
             geometry.DisposePaints();
 
         GetGeometriesByCanvas(canvas)?.Clear();

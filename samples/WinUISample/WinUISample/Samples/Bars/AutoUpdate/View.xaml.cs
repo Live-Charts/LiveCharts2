@@ -1,6 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using LiveChartsCore.SkiaSharpView.WinUI;
 using Microsoft.UI.Xaml.Controls;
-using ViewModelsSamples.Bars.AutoUpdate;
 
 namespace WinUISample.Bars.AutoUpdate;
 
@@ -13,16 +12,7 @@ public sealed partial class View : UserControl
         InitializeComponent();
     }
 
-    private async void Button_PointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
-    {
-        var vm = (ViewModel)DataContext;
-        _isStreaming = _isStreaming is null ? true : !_isStreaming;
-
-        while (_isStreaming.Value)
-        {
-            vm.RemoveItem();
-            vm.AddItem();
-            await Task.Delay(1000);
-        }
-    }
+#if UI_TESTING
+    public CartesianChart Chart => chart;
+#endif
 }

@@ -1,0 +1,49 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Lvc.Cli</RootNamespace>
+    <AssemblyName>lvc</AssemblyName>
+
+    <!-- dotnet-tool packaging — once published to NuGet, users install with
+         `dotnet tool install -g LiveChartsCore.Console.Cli`. -->
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>lvc</ToolCommandName>
+    <PackageId>LiveChartsCore.Console.Cli</PackageId>
+    <!-- Track the central LiveChartsVersion (Directory.Build.props), overridable by
+         the publish workflow via /p:LiveChartsVersion=<tag>. -->
+    <Version>$(LiveChartsVersion)</Version>
+    <Authors>$(LiveChartsAuthors)</Authors>
+    <Description>
+      Render LiveCharts charts in the terminal from a JSON spec.
+      Supports HalfBlock, Braille, and Sixel rendering with auto-detection.
+      Designed for AI-driven clients and shell pipelines that want
+      animated, interactive-quality charts without integrating .NET directly.
+    </Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/Live-Charts/LiveCharts2</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Live-Charts/LiveCharts2</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>livecharts;chart;terminal;console;sixel;ansi;cli;dotnet-tool</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\LiveChartsCore.Console\LiveChartsCore.Console.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Embed the render-chart SKILL.md so the install-skill flag can drop it into
+         the user's ~/.claude/skills/ directory without needing the repo. LogicalName
+         is fixed so the runtime lookup doesn't depend on RootNamespace details. -->
+    <EmbeddedResource Include="..\..\..\.claude\skills\render-chart\SKILL.md" LogicalName="lvc.render-chart.SKILL.md" />
+  </ItemGroup>
+
+</Project>

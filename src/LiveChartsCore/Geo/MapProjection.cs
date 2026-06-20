@@ -37,5 +37,11 @@ public enum MapProjection
     /// The Mercator projections, it is a popular projection used by many map engines like
     /// Google maps or Bing maps.
     /// </summary>
-    Mercator
+    Mercator,
+
+    /// <summary>
+    /// The Orthographic projection, it renders the map as a 3D globe.
+    /// Points on the far side of the globe are clipped at the horizon.
+    /// </summary>
+    Orthographic
 }

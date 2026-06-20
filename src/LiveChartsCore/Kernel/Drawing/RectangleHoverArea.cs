@@ -205,12 +205,18 @@ public class RectangleHoverArea : HoverArea
     /// <inheritdoc cref="HoverArea.IsPointerOver(LvcPoint, FindingStrategy)"/>
     public override bool IsPointerOver(LvcPoint pointerLocation, FindingStrategy strategy)
     {
-        // at least one pixel to fire the tooltip.
-        var w = Width < 1 ? 1 : Width;
-        var h = Height < 1 ? 1 : Height;
+        // Width/Height may be negative (e.g. stacked bars with negative values), normalize to min/max.
+        var xMin = Math.Min(X, X + Width);
+        var xMax = Math.Max(X, X + Width);
+        var yMin = Math.Min(Y, Y + Height);
+        var yMax = Math.Max(Y, Y + Height);
 
-        var isInX = pointerLocation.X > X && pointerLocation.X < X + w;
-        var isInY = pointerLocation.Y > Y && pointerLocation.Y < Y + h;
+        // at least one pixel to fire the tooltip.
+        if (xMax - xMin < 1) xMax = xMin + 1;
+        if (yMax - yMin < 1) yMax = yMin + 1;
+
+        var isInX = pointerLocation.X > xMin && pointerLocation.X < xMax;
+        var isInY = pointerLocation.Y > yMin && pointerLocation.Y < yMax;
 
         return strategy switch
         {

@@ -20,9 +20,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using LiveChartsCore.Drawing;
 using LiveChartsCore.Drawing.Segments;
 using LiveChartsCore.Kernel;
@@ -123,51 +120,360 @@ public abstract class CoreLineSeries<TModel, TVisual, TLabel, TPathGeometry, TEr
         }
     } = Paint.Default;
 
-    /// <inheritdoc cref="ChartElement.Invalidate(Chart)"/>
-    public override void Invalidate(Chart chart)
-    {
-        var cartesianChart = (CartesianChartEngine)chart;
-        var primaryAxis = cartesianChart.GetYAxis(this);
-        var secondaryAxis = cartesianChart.GetXAxis(this);
+    // ---- template method ----------------------------------------------------
 
-        var drawLocation = cartesianChart.DrawMarginLocation;
-        var drawMarginSize = cartesianChart.DrawMarginSize;
-        var secondaryScale = secondaryAxis.GetNextScaler(cartesianChart);
-        var primaryScale = primaryAxis.GetNextScaler(cartesianChart);
-        var actualSecondaryScale = secondaryAxis.GetActualScaler(cartesianChart);
-        var actualPrimaryScale = primaryAxis.GetActualScaler(cartesianChart);
+    /// <summary>
+    /// Builds a per-frame measure context from the chart. Subclasses may override
+    /// to refine context construction (e.g. additional pre-computed per-frame values).
+    /// </summary>
+    protected virtual LineMeasureContext BeginMeasure(CartesianChartEngine chart)
+    {
+        var primaryAxis = chart.GetYAxis(this);
+        var secondaryAxis = chart.GetXAxis(this);
+
+        var drawLocation = chart.DrawMarginLocation;
+        var drawMarginSize = chart.DrawMarginSize;
+        var secondaryScale = secondaryAxis.GetNextScaler(chart);
+        var primaryScale = primaryAxis.GetNextScaler(chart);
+
+        // GetActualScaler is called purely for its cache/registration side-effect on
+        // the axis (matches the original Invalidate body, where the locals were never
+        // read). Dropping the call would change the axis state on the first frame.
+        _ = secondaryAxis.GetActualScaler(chart);
+        _ = primaryAxis.GetActualScaler(chart);
+
+        var stacker = (SeriesProperties & SeriesProperties.Stacked) == SeriesProperties.Stacked
+            ? chart.SeriesContext.GetStackPosition(this, GetStackGroup())
+            : null;
+
+        // #1923: anchor a default-ZIndex stacked area at the largest SeriesId in
+        // its stack group, then subtract Position so the bottom layer (Position 0)
+        // draws ON TOP of later, larger-fill layers. Stacked area fills extend
+        // from the line down to the pivot, so within-stack ordering is required
+        // for the layers to be individually visible. The whole stack sits as one
+        // rank against non-stacked siblings: a default-ZIndex Line added AFTER
+        // the last stacked series (SeriesId > MaxSeriesId) wins; a Line added
+        // BEFORE the first stacked series loses. User-set ZIndex always wins.
+        var actualZIndex = ZIndex != 0
+            ? ZIndex
+            : stacker is not null
+                ? stacker.Stacker.MaxSeriesId - stacker.Position
+                : ((ISeries)this).SeriesId;
 
         var gs = _geometrySize;
         var hgs = gs / 2f;
-        var sw = Stroke?.StrokeThickness ?? 0;
-        var p = primaryScale.ToPixels(pivot);
+        var pivotPx = primaryScale.ToPixels(pivot);
+
+        var uwx = secondaryScale.MeasureInPixels(secondaryAxis.UnitWidth);
+        if (uwx < gs) uwx = gs;
+
+        var hasSvg = this.HasVariableSvgGeometry();
+        var isFirstDraw = !chart.IsDrawn(((ISeries)this).SeriesId);
+
+        return new LineMeasureContext(
+            chart, primaryAxis, secondaryAxis,
+            primaryScale, secondaryScale,
+            drawLocation, drawMarginSize,
+            actualZIndex: actualZIndex,
+            pivotPx: pivotPx,
+            unitWidthX: uwx,
+            geometrySize: gs,
+            halfGeometrySize: hgs,
+            dataLabelsSize: (float)DataLabelsSize,
+            isFirstDraw: isFirstDraw,
+            hasSvg: hasSvg,
+            stacker: stacker);
+    }
+
+    /// <summary>
+    /// Ensures the visual + any additional visuals (error bars) exist for the
+    /// point and seeds them at the data point with zero size so the marker
+    /// animates from a point. On creation, the cubic segment is also seeded at
+    /// the pivot baseline; see issue #2132 for why this seed must run for every
+    /// new visual rather than just on first draw.
+    /// </summary>
+    protected virtual CubicSegmentVisualPoint EnsureLineVisualForPoint(ChartPoint point, BezierData data, in LineMeasureContext ctx)
+    {
+        var coordinate = point.Coordinate;
+        var v = new CubicSegmentVisualPoint(new TVisual());
+
+        if (ShowError && ErrorPaint is not null && ErrorPaint != Paint.Default)
+        {
+            v.YError = new TErrorGeometry();
+            v.XError = new TErrorGeometry();
+
+            v.YError.X = ctx.SecondaryScale.ToPixels(coordinate.SecondaryValue);
+            v.YError.X1 = ctx.SecondaryScale.ToPixels(coordinate.SecondaryValue);
+            v.YError.Y = ctx.PivotPx;
+            v.YError.Y1 = ctx.PivotPx;
+
+            v.XError.X = ctx.SecondaryScale.ToPixels(coordinate.SecondaryValue);
+            v.XError.X1 = ctx.SecondaryScale.ToPixels(coordinate.SecondaryValue);
+            v.XError.Y = ctx.PivotPx;
+            v.XError.Y1 = ctx.PivotPx;
+        }
+
+        // Seed motion state so the real-value setter below animates from a
+        // sensible place instead of the default (0, 0). Runs for every new
+        // visual — not just isFirstDraw — because a mid-life new visual that
+        // happens to be the first point of a brand-new sub-segment path will
+        // skip Follows() in AddConsecutiveSegment (list.Last is null), and
+        // without this init the segment would swoop in from the top-left
+        // corner (#2132). For non-first points in a sub-segment, Follows()
+        // overrides these values with the previous tail, so the "grow from
+        // previous" animation is preserved.
+        v.Geometry.X = ctx.SecondaryScale.ToPixels(coordinate.SecondaryValue);
+        v.Geometry.Y = ctx.PivotPx;
+        v.Geometry.Width = 0;
+        v.Geometry.Height = 0;
+
+        v.Segment.Xi = ctx.SecondaryScale.ToPixels(data.X0);
+        v.Segment.Xm = ctx.SecondaryScale.ToPixels(data.X1);
+        v.Segment.Xj = ctx.SecondaryScale.ToPixels(data.X2);
+        v.Segment.Yi = ctx.PivotPx;
+        v.Segment.Ym = ctx.PivotPx;
+        v.Segment.Yj = ctx.PivotPx;
+
+        point.Context.Visual = v.Geometry;
+        point.Context.AdditionalVisuals = v;
+        OnPointCreated(point);
+
+        return v;
+    }
+
+    /// <summary>
+    /// Collapses the point's visual and segment commands to the pivot baseline
+    /// when the series becomes invisible, and removes the visual / label from
+    /// the point so future paints don't redraw them.
+    /// </summary>
+    protected virtual void CollapseInvisibleLinePoint(ChartPoint point, BezierData data, in LineMeasureContext ctx)
+    {
+        if (point.Context.AdditionalVisuals is CubicSegmentVisualPoint visual)
+        {
+            var coordinate = point.Coordinate;
+
+            visual.Geometry.X = ctx.SecondaryScale.ToPixels(coordinate.SecondaryValue);
+            visual.Geometry.Y = ctx.PivotPx;
+            visual.Geometry.Opacity = 0;
+            visual.Geometry.RemoveOnCompleted = true;
+
+            visual.Segment.Xi = ctx.SecondaryScale.ToPixels(data.X0);
+            visual.Segment.Xm = ctx.SecondaryScale.ToPixels(data.X1);
+            visual.Segment.Xj = ctx.SecondaryScale.ToPixels(data.X2);
+            visual.Segment.Yi = ctx.PivotPx;
+            visual.Segment.Ym = ctx.PivotPx;
+            visual.Segment.Yj = ctx.PivotPx;
+
+            point.Context.Visual = null;
+            point.Context.AdditionalVisuals = null;
+        }
+
+        if (point.Context.Label is TLabel label)
+        {
+            label.X = ctx.SecondaryScale.ToPixels(point.Coordinate.SecondaryValue);
+            label.Y = ctx.PivotPx;
+            label.Opacity = 0;
+            label.RemoveOnCompleted = true;
+
+            point.Context.Label = null;
+        }
+    }
+
+    /// <summary>
+    /// Per-frame error-bar geometry update. No-op when the series carries no
+    /// error visuals or no point error data.
+    /// </summary>
+    protected virtual void MeasureLineErrorBars(CubicSegmentVisualPoint visual, BezierData data, in LineMeasureContext ctx)
+    {
+        var coordinate = data.TargetPoint.Coordinate;
+        if (coordinate.PointError.IsEmpty) return;
+        if (!ShowError || ErrorPaint is null || ErrorPaint == Paint.Default) return;
+
+        var e = coordinate.PointError;
+
+        visual.YError!.X = ctx.SecondaryScale.ToPixels(data.X2);
+        visual.YError.X1 = ctx.SecondaryScale.ToPixels(data.X2);
+        visual.YError.Y = ctx.PrimaryScale.ToPixels(data.Y2 + e.Yi);
+        visual.YError.Y1 = ctx.PrimaryScale.ToPixels(data.Y2 - e.Yj);
+        visual.YError.RemoveOnCompleted = false;
+
+        visual.XError!.X = ctx.SecondaryScale.ToPixels(data.X2 - e.Xi);
+        visual.XError.X1 = ctx.SecondaryScale.ToPixels(data.X2 + e.Xj);
+        visual.XError.Y = ctx.PrimaryScale.ToPixels(data.Y2);
+        visual.XError.Y1 = ctx.PrimaryScale.ToPixels(data.Y2);
+        visual.XError.RemoveOnCompleted = false;
+    }
+
+    /// <summary>
+    /// Registers per-segment fill / stroke paths on the chart canvas, sets their
+    /// Z-index and pivot, animates if newly-created, and returns fresh vector
+    /// managers wrapping their command lists. Called once per segment when the
+    /// first point in that segment is encountered.
+    /// </summary>
+    private void AttachSegmentPaths(
+        int segmentI,
+        List<TPathGeometry> fillContainer,
+        List<TPathGeometry> strokeContainer,
+        in LineMeasureContext ctx,
+        out VectorManager fillVector,
+        out VectorManager strokeVector)
+    {
+        var fillLookup = GetSegmentVisual(segmentI, fillContainer, VectorClosingMethod.CloseToPivot);
+        var strokeLookup = GetSegmentVisual(segmentI, strokeContainer, VectorClosingMethod.NotClosed);
+
+        // The previous "Count == 1 && !IsNextEmpty" branch tried to discard a
+        // stale single-segment path left behind when this slot used to host a
+        // one-point sub-segment. Its implementation called container.RemoveAt(segmentI)
+        // and then re-fetched the path, which shifted every subsequent sub-segment
+        // onto the WRONG path in the container — the root of #2132's resize/yellow-region
+        // regression. VectorManager.TrimTail now drops stale remnants without touching
+        // the container, so this cleanup is no longer necessary.
+
+        var isNew = fillLookup.IsNew || strokeLookup.IsNew;
+        var fillPath = fillLookup.Path;
+        var strokePath = strokeLookup.Path;
+
+        strokeVector = new VectorManager(strokePath.Commands);
+        fillVector = new VectorManager(fillPath.Commands);
+
+        var chart = ctx.Chart;
+
+        if (Fill is not null && Fill != Paint.Default)
+        {
+            Fill.AddGeometryToPaintTask(chart.Canvas, fillPath);
+            chart.Canvas.AddDrawableTask(Fill, zone: CanvasZone.DrawMargin);
+            Fill.ZIndex = ctx.ActualZIndex + PaintConstants.SeriesFillZIndexOffset;
+            fillPath.Pivot = ctx.PivotPx;
+            if (isNew) fillPath.Animate(GetAnimation(chart));
+        }
+
+        if (Stroke is not null && Stroke != Paint.Default)
+        {
+            Stroke.AddGeometryToPaintTask(chart.Canvas, strokePath);
+            chart.Canvas.AddDrawableTask(Stroke, zone: CanvasZone.DrawMargin);
+            Stroke.ZIndex = ctx.ActualZIndex + PaintConstants.SeriesStrokeZIndexOffset;
+            strokePath.Pivot = ctx.PivotPx;
+            if (isNew) strokePath.Animate(GetAnimation(chart));
+        }
+
+        strokePath.Opacity = IsVisible ? 1 : 0;
+        fillPath.Opacity = IsVisible ? 1 : 0;
+    }
+
+    /// <summary>
+    /// Removes per-canvas segment paths that are no longer referenced by any
+    /// active sub-segment (i.e. their index sits at or above the count of
+    /// segments produced this frame). Mirrors the original tail-cleanup loop.
+    /// </summary>
+    private void CleanupOrphanSegmentPaths(
+        int segmentI,
+        List<TPathGeometry> fillContainer,
+        List<TPathGeometry> strokeContainer,
+        CartesianChartEngine chart)
+    {
+        var maxSegment = fillContainer.Count > strokeContainer.Count
+            ? fillContainer.Count
+            : strokeContainer.Count;
+
+        for (var i = maxSegment - 1; i >= segmentI; i--)
+        {
+            if (i < fillContainer.Count)
+            {
+                var segmentFill = fillContainer[i];
+                Fill?.RemoveGeometryFromPaintTask(chart.Canvas, segmentFill);
+                segmentFill.Commands.Clear();
+                fillContainer.RemoveAt(i);
+            }
+
+            if (i < strokeContainer.Count)
+            {
+                var segmentStroke = strokeContainer[i];
+                Stroke?.RemoveGeometryFromPaintTask(chart.Canvas, segmentStroke);
+                segmentStroke.Commands.Clear();
+                strokeContainer.RemoveAt(i);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Creates the data label visual if it doesn't exist yet (animation-sourced from
+    /// the marker's top-left at the pivot baseline), updates its text + style, and
+    /// positions it via <c>GetLabelPosition</c>. No-op when the series has no
+    /// data-label paint configured.
+    /// </summary>
+    private void MeasureDataLabel(ChartPoint point, float x, float y, in LineMeasureContext ctx)
+    {
+        if (!ShowDataLabels || DataLabelsPaint is null || DataLabelsPaint == Paint.Default) return;
+
+        var coordinate = point.Coordinate;
+        var hgs = ctx.HalfGeometrySize;
+        var gs = ctx.GeometrySize;
+        var chart = ctx.Chart;
+        var label = (TLabel?)point.Context.Label;
+
+        if (label is null)
+        {
+            var l = new TLabel
+            {
+                X = x - hgs,
+                Y = ctx.PivotPx - hgs,
+                RotateTransform = (float)DataLabelsRotation,
+                MaxWidth = (float)DataLabelsMaxWidth
+            };
+            l.Animate(
+                GetAnimation(chart),
+                BaseLabelGeometry.XProperty,
+                BaseLabelGeometry.YProperty);
+            label = l;
+            point.Context.Label = l;
+        }
+
+        DataLabelsPaint.AddGeometryToPaintTask(chart.Canvas, label);
+        label.Text = DataLabelsFormatter(new ChartPoint<TModel, TVisual, TLabel>(point));
+        label.TextSize = ctx.DataLabelsSize;
+        label.Padding = DataLabelsPadding;
+        label.Paint = DataLabelsPaint;
+
+        if (ctx.IsFirstDraw)
+            label.CompleteTransition(
+                BaseLabelGeometry.TextSizeProperty,
+                BaseLabelGeometry.XProperty,
+                BaseLabelGeometry.YProperty,
+                BaseLabelGeometry.RotateTransformProperty);
+
+        var m = label.Measure();
+        var labelPosition = GetLabelPosition(
+            x - hgs, y - hgs, gs, gs, m, DataLabelsPosition,
+            SeriesProperties, coordinate.PrimaryValue > Pivot, ctx.DrawLocation, ctx.DrawMarginSize);
+        if (DataLabelsTranslate is not null)
+            label.TranslateTransform = new LvcPoint(
+                m.Width * DataLabelsTranslate.Value.X, m.Height * DataLabelsTranslate.Value.Y);
+
+        label.X = labelPosition.X;
+        label.Y = labelPosition.Y;
+    }
+
+    /// <inheritdoc cref="ChartElement.Invalidate(Chart)"/>
+    public sealed override void Invalidate(Chart chart)
+    {
+        var cartesianChart = (CartesianChartEngine)chart;
+        _ = GetAnimation(cartesianChart);
+
+        var ctx = BeginMeasure(cartesianChart);
+        var pointsCleanup = ChartPointCleanupContext.For(everFetched);
+
+        // Lifted out of the ref-struct context so the lambda below can close over
+        // the scales — ref locals can't be captured by an anonymous method.
+        var secondaryScale = ctx.SecondaryScale;
+        var primaryScale = ctx.PrimaryScale;
 
         // Note #240222
         // the following cases probably have a similar performance impact
         // this options were necessary at some older point when _enableNullSplitting = false could improve performance
         // ToDo: Check this out, maybe this is unnecessary now and we should just go for the first approach all the times.
         var segments = EnableNullSplitting
-            ? Fetch(cartesianChart).SplitByNullGaps(point => DeleteNullPoint(point, secondaryScale, primaryScale)) // calling this method is probably as expensive as the line bellow
+            ? Fetch(cartesianChart).SplitByNullGaps(point => DeleteNullPoint(point, secondaryScale, primaryScale))
             : [Fetch(cartesianChart)];
-        var stacker = (SeriesProperties & SeriesProperties.Stacked) == SeriesProperties.Stacked
-            ? cartesianChart.SeriesContext.GetStackPosition(this, GetStackGroup())
-            : null;
-
-        var actualZIndex = ZIndex == 0 ? ((ISeries)this).SeriesId : ZIndex;
-
-        if (stacker is not null)
-        {
-            // Note# 010621
-            // easy workaround to set an automatic and valid z-index for stacked area series
-            // the problem of this solution is that the user needs to set z-indexes above 1000
-            // if the user needs to add more series to the chart.
-            actualZIndex = (int)PaintConstants.StackedSeriesBaseZIndex - stacker.Position;
-            Fill?.ZIndex = actualZIndex;
-            Stroke?.ZIndex = actualZIndex;
-        }
-
-        var dls = (float)DataLabelsSize;
-        var pointsCleanup = ChartPointCleanupContext.For(everFetched);
 
         if (!_strokePathHelperDictionary.TryGetValue(chart.Canvas.Sync, out var strokePathHelperContainer))
         {
@@ -181,14 +487,7 @@ public abstract class CoreLineSeries<TModel, TVisual, TLabel, TPathGeometry, TEr
             _fillPathHelperDictionary[chart.Canvas.Sync] = fillPathHelperContainer;
         }
 
-        var uwx = secondaryScale.MeasureInPixels(secondaryAxis.UnitWidth);
-        uwx = uwx < gs ? gs : uwx;
-        var tooltipPositon = chart.TooltipPosition;
-
         var segmentI = 0;
-        var hasSvg = this.HasVariableSvgGeometry();
-
-        var isFirstDraw = !chart.IsDrawn(((ISeries)this).SeriesId);
 
         foreach (var segment in segments)
         {
@@ -196,160 +495,38 @@ public abstract class CoreLineSeries<TModel, TVisual, TLabel, TPathGeometry, TEr
             var isSegmentEmpty = true;
             VectorManager? strokeVector = null, fillVector = null;
 
-            foreach (var data in GetSpline(segment, stacker))
+            foreach (var data in GetSpline(segment, ctx.Stacker))
             {
                 if (!hasPaths)
                 {
                     hasPaths = true;
-
-                    var fillLookup = GetSegmentVisual(segmentI, fillPathHelperContainer, VectorClosingMethod.CloseToPivot);
-                    var strokeLookup = GetSegmentVisual(segmentI, strokePathHelperContainer, VectorClosingMethod.NotClosed);
-
-                    if (fillLookup.Path.Commands.Count == 1 && !data.IsNextEmpty)
-                    {
-                        Fill?.RemoveGeometryFromPaintTask(cartesianChart.Canvas, fillLookup.Path);
-                        fillLookup.Path.Commands.Clear();
-                        fillPathHelperContainer.RemoveAt(segmentI);
-
-                        fillLookup = GetSegmentVisual(segmentI, fillPathHelperContainer, VectorClosingMethod.CloseToPivot);
-                    }
-
-                    if (strokeLookup.Path.Commands.Count == 1 && !data.IsNextEmpty)
-                    {
-                        Stroke?.RemoveGeometryFromPaintTask(cartesianChart.Canvas, strokeLookup.Path);
-                        strokeLookup.Path.Commands.Clear();
-                        strokePathHelperContainer.RemoveAt(segmentI);
-
-                        strokeLookup = GetSegmentVisual(segmentI, strokePathHelperContainer, VectorClosingMethod.NotClosed);
-                    }
-
-                    var isNew = fillLookup.IsNew || strokeLookup.IsNew;
-                    var fillPath = fillLookup.Path;
-                    var strokePath = strokeLookup.Path;
-
-                    strokeVector = new VectorManager(strokePath.Commands);
-                    fillVector = new VectorManager(fillPath.Commands);
-
-                    if (Fill is not null && Fill != Paint.Default)
-                    {
-                        Fill.AddGeometryToPaintTask(cartesianChart.Canvas, fillPath);
-                        cartesianChart.Canvas.AddDrawableTask(Fill, zone: CanvasZone.DrawMargin);
-                        Fill.ZIndex = actualZIndex + PaintConstants.SeriesFillZIndexOffset;
-                        fillPath.Pivot = p;
-                        if (isNew)
-                        {
-                            fillPath.Animate(EasingFunction ?? cartesianChart.ActualEasingFunction, AnimationsSpeed ?? cartesianChart.ActualAnimationsSpeed);
-                        }
-                    }
-                    if (Stroke is not null && Stroke != Paint.Default)
-                    {
-                        Stroke.AddGeometryToPaintTask(cartesianChart.Canvas, strokePath);
-                        cartesianChart.Canvas.AddDrawableTask(Stroke, zone: CanvasZone.DrawMargin);
-                        Stroke.ZIndex = actualZIndex + PaintConstants.SeriesStrokeZIndexOffset;
-                        strokePath.Pivot = p;
-                        if (isNew)
-                        {
-                            strokePath.Animate(EasingFunction ?? cartesianChart.ActualEasingFunction, AnimationsSpeed ?? cartesianChart.ActualAnimationsSpeed);
-                        }
-                    }
-
-                    strokePath.Opacity = IsVisible ? 1 : 0;
-                    fillPath.Opacity = IsVisible ? 1 : 0;
+                    AttachSegmentPaths(
+                        segmentI, fillPathHelperContainer, strokePathHelperContainer, in ctx,
+                        out fillVector, out strokeVector);
                 }
 
-                var coordinate = data.TargetPoint.Coordinate;
-
                 isSegmentEmpty = false;
-                var s = 0d;
-                if (stacker is not null)
-                    s = coordinate.PrimaryValue > 0
-                        ? stacker.GetStack(data.TargetPoint).Start
-                        : stacker.GetStack(data.TargetPoint).NegativeStart;
+
+                var coordinate = data.TargetPoint.Coordinate;
+                var s = ctx.Stacker?.GetStack(data.TargetPoint).CumulativeStart ?? 0d;
 
                 var visual = (CubicSegmentVisualPoint?)data.TargetPoint.Context.AdditionalVisuals;
+                // Captured before the null check reassigns. Drives AddConsecutiveSegment's
+                // decision to Follows/Copy — only new visuals need a motion-state seed;
+                // preserved visuals already carry live state from last frame.
+                var isVisualNew = visual is null;
 
                 if (!IsVisible)
                 {
-                    if (visual is not null)
-                    {
-                        visual.Geometry.X = secondaryScale.ToPixels(coordinate.SecondaryValue);
-                        visual.Geometry.Y = p;
-                        visual.Geometry.Opacity = 0;
-                        visual.Geometry.RemoveOnCompleted = true;
-
-                        visual.Segment.Xi = secondaryScale.ToPixels(data.X0);
-                        visual.Segment.Xm = secondaryScale.ToPixels(data.X1);
-                        visual.Segment.Xj = secondaryScale.ToPixels(data.X2);
-                        visual.Segment.Yi = p;
-                        visual.Segment.Ym = p;
-                        visual.Segment.Yj = p;
-
-                        data.TargetPoint.Context.Visual = null;
-                        data.TargetPoint.Context.AdditionalVisuals = null;
-                    }
-
-                    if (data.TargetPoint.Context.Label is not null)
-                    {
-                        var label = (TLabel)data.TargetPoint.Context.Label;
-
-                        label.X = secondaryScale.ToPixels(coordinate.SecondaryValue);
-                        label.Y = p;
-                        label.Opacity = 0;
-                        label.RemoveOnCompleted = true;
-
-                        data.TargetPoint.Context.Label = null;
-                    }
-
+                    CollapseInvisibleLinePoint(data.TargetPoint, data, in ctx);
                     pointsCleanup.Clean(data.TargetPoint);
-
                     continue;
                 }
 
-                if (visual is null)
-                {
-                    var v = new CubicSegmentVisualPoint(new TVisual());
-
-                    if (ShowError && ErrorPaint is not null && ErrorPaint != Paint.Default)
-                    {
-                        v.YError = new TErrorGeometry();
-                        v.XError = new TErrorGeometry();
-
-                        v.YError.X = secondaryScale.ToPixels(coordinate.SecondaryValue);
-                        v.YError.X1 = secondaryScale.ToPixels(coordinate.SecondaryValue);
-                        v.YError.Y = p;
-                        v.YError.Y1 = p;
-
-                        v.XError.X = secondaryScale.ToPixels(coordinate.SecondaryValue);
-                        v.XError.X1 = secondaryScale.ToPixels(coordinate.SecondaryValue);
-                        v.XError.Y = p;
-                        v.XError.Y1 = p;
-                    }
-
-                    visual = v;
-
-                    if (isFirstDraw)
-                    {
-                        v.Geometry.X = secondaryScale.ToPixels(coordinate.SecondaryValue);
-                        v.Geometry.Y = p;
-                        v.Geometry.Width = 0;
-                        v.Geometry.Height = 0;
-
-                        v.Segment.Xi = secondaryScale.ToPixels(data.X0);
-                        v.Segment.Xm = secondaryScale.ToPixels(data.X1);
-                        v.Segment.Xj = secondaryScale.ToPixels(data.X2);
-                        v.Segment.Yi = p;
-                        v.Segment.Ym = p;
-                        v.Segment.Yj = p;
-                    }
-
-                    data.TargetPoint.Context.Visual = v.Geometry;
-                    data.TargetPoint.Context.AdditionalVisuals = v;
-                    OnPointCreated(data.TargetPoint);
-                }
-
+                visual ??= EnsureLineVisualForPoint(data.TargetPoint, data, in ctx);
                 visual.Geometry.Opacity = 1;
 
-                if (hasSvg)
+                if (ctx.HasSvg)
                 {
                     var svgVisual = (IVariableSvgPath)visual.Geometry;
                     if (_geometrySvgChanged || svgVisual.SVGPath is null)
@@ -370,54 +547,36 @@ public abstract class CoreLineSeries<TModel, TVisual, TLabel, TPathGeometry, TEr
 
                 visual.Segment.Id = data.TargetPoint.Context.Entity.MetaData!.EntityIndex;
 
-                if (Fill is not null) fillVector!.AddConsecutiveSegment(visual.Segment, !isFirstDraw);
-                if (Stroke is not null) strokeVector!.AddConsecutiveSegment(visual.Segment, !isFirstDraw);
+                if (Fill is not null) fillVector!.AddConsecutiveSegment(visual.Segment, isVisualNew && !ctx.IsFirstDraw);
+                if (Stroke is not null) strokeVector!.AddConsecutiveSegment(visual.Segment, isVisualNew && !ctx.IsFirstDraw);
 
-                visual.Segment.Xi = secondaryScale.ToPixels(data.X0);
-                visual.Segment.Xm = secondaryScale.ToPixels(data.X1);
-                visual.Segment.Xj = secondaryScale.ToPixels(data.X2);
-                visual.Segment.Yi = primaryScale.ToPixels(data.Y0);
-                visual.Segment.Ym = primaryScale.ToPixels(data.Y1);
-                visual.Segment.Yj = primaryScale.ToPixels(data.Y2);
+                visual.Segment.Xi = ctx.SecondaryScale.ToPixels(data.X0);
+                visual.Segment.Xm = ctx.SecondaryScale.ToPixels(data.X1);
+                visual.Segment.Xj = ctx.SecondaryScale.ToPixels(data.X2);
+                visual.Segment.Yi = ctx.PrimaryScale.ToPixels(data.Y0);
+                visual.Segment.Ym = ctx.PrimaryScale.ToPixels(data.Y1);
+                visual.Segment.Yj = ctx.PrimaryScale.ToPixels(data.Y2);
 
-                var x = secondaryScale.ToPixels(coordinate.SecondaryValue);
-                var y = primaryScale.ToPixels(coordinate.PrimaryValue + s);
+                var x = ctx.SecondaryScale.ToPixels(coordinate.SecondaryValue);
+                var y = ctx.PrimaryScale.ToPixels(coordinate.PrimaryValue + s);
 
                 DrawnGeometry.XProperty.GetMotion(visual.Geometry)!
                     .CopyFrom(Segment.XjProperty.GetMotion(visual.Segment)!);
                 DrawnGeometry.YProperty.GetMotion(visual.Geometry)!
                     .CopyFrom(Segment.YjProperty.GetMotion(visual.Segment)!);
 
-                visual.Geometry.TranslateTransform = new LvcPoint(-hgs, -hgs);
-
-                visual.Geometry.Width = gs;
-                visual.Geometry.Height = gs;
+                visual.Geometry.TranslateTransform = new LvcPoint(-ctx.HalfGeometrySize, -ctx.HalfGeometrySize);
+                visual.Geometry.Width = ctx.GeometrySize;
+                visual.Geometry.Height = ctx.GeometrySize;
                 visual.Geometry.RemoveOnCompleted = false;
 
-                if (!coordinate.PointError.IsEmpty && ShowError && ErrorPaint is not null && ErrorPaint != Paint.Default)
-                {
-                    var e = coordinate.PointError;
-
-                    visual.YError!.X = secondaryScale.ToPixels(data.X2);
-                    visual.YError.X1 = secondaryScale.ToPixels(data.X2);
-                    visual.YError.Y = primaryScale.ToPixels(data.Y2 + e.Yi);
-                    visual.YError.Y1 = primaryScale.ToPixels(data.Y2 - e.Yj);
-                    visual.YError.RemoveOnCompleted = false;
-
-                    visual.XError!.X = secondaryScale.ToPixels(data.X2 - e.Xi);
-                    visual.XError.X1 = secondaryScale.ToPixels(data.X2 + e.Xj);
-                    visual.XError.Y = primaryScale.ToPixels(data.Y2);
-                    visual.XError.Y1 = primaryScale.ToPixels(data.Y2);
-                    visual.XError.RemoveOnCompleted = false;
-                }
-
-                var hags = gs < 8 ? 8 : gs;
+                MeasureLineErrorBars(visual, data, in ctx);
 
                 if (data.TargetPoint.Context.HoverArea is not RectangleHoverArea ha)
                     data.TargetPoint.Context.HoverArea = ha = new RectangleHoverArea();
 
                 _ = ha
-                    .SetDimensions(x - uwx * 0.5f, y - hgs, uwx, gs)
+                    .SetDimensions(x - ctx.UnitWidthX * 0.5f, y - ctx.HalfGeometrySize, ctx.UnitWidthX, ctx.GeometrySize)
                     .CenterXToolTip();
 
                 _ = coordinate.PrimaryValue >= pivot
@@ -426,45 +585,7 @@ public abstract class CoreLineSeries<TModel, TVisual, TLabel, TPathGeometry, TEr
 
                 pointsCleanup.Clean(data.TargetPoint);
 
-                if (ShowDataLabels && DataLabelsPaint is not null && DataLabelsPaint != Paint.Default)
-                {
-                    var label = (TLabel?)data.TargetPoint.Context.Label;
-
-                    if (label is null)
-                    {
-                        var l = new TLabel { X = x - hgs, Y = p - hgs, RotateTransform = (float)DataLabelsRotation, MaxWidth = (float)DataLabelsMaxWidth };
-                        l.Animate(
-                            EasingFunction ?? cartesianChart.ActualEasingFunction,
-                            AnimationsSpeed ?? cartesianChart.ActualAnimationsSpeed,
-                            BaseLabelGeometry.XProperty,
-                            BaseLabelGeometry.YProperty);
-                        label = l;
-                        data.TargetPoint.Context.Label = l;
-                    }
-
-                    DataLabelsPaint.AddGeometryToPaintTask(cartesianChart.Canvas, label);
-                    label.Text = DataLabelsFormatter(new ChartPoint<TModel, TVisual, TLabel>(data.TargetPoint));
-                    label.TextSize = dls;
-                    label.Padding = DataLabelsPadding;
-                    label.Paint = DataLabelsPaint;
-
-                    if (isFirstDraw)
-                        label.CompleteTransition(
-                            BaseLabelGeometry.TextSizeProperty,
-                            BaseLabelGeometry.XProperty,
-                            BaseLabelGeometry.YProperty,
-                            BaseLabelGeometry.RotateTransformProperty);
-
-                    var m = label.Measure();
-                    var labelPosition = GetLabelPosition(
-                        x - hgs, y - hgs, gs, gs, m, DataLabelsPosition,
-                        SeriesProperties, coordinate.PrimaryValue > Pivot, drawLocation, drawMarginSize);
-                    if (DataLabelsTranslate is not null) label.TranslateTransform =
-                        new LvcPoint(m.Width * DataLabelsTranslate.Value.X, m.Height * DataLabelsTranslate.Value.Y);
-
-                    label.X = labelPosition.X;
-                    label.Y = labelPosition.Y;
-                }
+                MeasureDataLabel(data.TargetPoint, x, y, in ctx);
 
                 OnPointMeasured(data.TargetPoint);
             }
@@ -472,53 +593,35 @@ public abstract class CoreLineSeries<TModel, TVisual, TLabel, TPathGeometry, TEr
             if (GeometryFill is not null && GeometryFill != Paint.Default)
             {
                 cartesianChart.Canvas.AddDrawableTask(GeometryFill, zone: CanvasZone.DrawMargin);
-                GeometryFill.ZIndex = actualZIndex + PaintConstants.SeriesGeometryStrokeZIndexOffset;
+                GeometryFill.ZIndex = ctx.ActualZIndex + PaintConstants.SeriesGeometryFillZIndexOffset;
             }
             if (GeometryStroke is not null && GeometryStroke != Paint.Default)
             {
                 cartesianChart.Canvas.AddDrawableTask(GeometryStroke, zone: CanvasZone.DrawMargin);
-                GeometryStroke.ZIndex = actualZIndex + PaintConstants.SeriesDataLabelsZIndexOffset;
+                GeometryStroke.ZIndex = ctx.ActualZIndex + PaintConstants.SeriesGeometryStrokeZIndexOffset;
             }
 
             if (!isSegmentEmpty) segmentI++;
+
+            fillVector?.TrimTail();
+            strokeVector?.TrimTail();
         }
 
-        var maxSegment = fillPathHelperContainer.Count > strokePathHelperContainer.Count
-            ? fillPathHelperContainer.Count
-            : strokePathHelperContainer.Count;
-
-        for (var i = maxSegment - 1; i >= segmentI; i--)
-        {
-            if (i < fillPathHelperContainer.Count)
-            {
-                var segmentFill = fillPathHelperContainer[i];
-                Fill?.RemoveGeometryFromPaintTask(cartesianChart.Canvas, segmentFill);
-                segmentFill.Commands.Clear();
-                fillPathHelperContainer.RemoveAt(i);
-            }
-
-            if (i < strokePathHelperContainer.Count)
-            {
-                var segmentStroke = strokePathHelperContainer[i];
-                Stroke?.RemoveGeometryFromPaintTask(cartesianChart.Canvas, segmentStroke);
-                segmentStroke.Commands.Clear();
-                strokePathHelperContainer.RemoveAt(i);
-            }
-        }
+        CleanupOrphanSegmentPaths(segmentI, fillPathHelperContainer, strokePathHelperContainer, cartesianChart);
 
         if (ShowDataLabels && DataLabelsPaint is not null && DataLabelsPaint != Paint.Default)
         {
             cartesianChart.Canvas.AddDrawableTask(DataLabelsPaint, zone: CanvasZone.DrawMargin);
-            DataLabelsPaint.ZIndex = actualZIndex + PaintConstants.SeriesDataLabelsZIndexOffset;
+            DataLabelsPaint.ZIndex = ctx.ActualZIndex + PaintConstants.SeriesDataLabelsZIndexOffset;
         }
         if (ShowError && ErrorPaint is not null && ErrorPaint != Paint.Default)
         {
             cartesianChart.Canvas.AddDrawableTask(ErrorPaint, zone: CanvasZone.DrawMargin);
-            ErrorPaint.ZIndex = actualZIndex + PaintConstants.SeriesGeometryFillZIndexOffset;
+            ErrorPaint.ZIndex = ctx.ActualZIndex + PaintConstants.SeriesGeometryFillZIndexOffset;
         }
 
         pointsCleanup.CollectPoints(
-            everFetched, cartesianChart.View, primaryScale, secondaryScale, SoftDeleteOrDisposePoint);
+            everFetched, cartesianChart.View, ctx.PrimaryScale, ctx.SecondaryScale, SoftDeleteOrDisposePoint);
 
         _geometrySvgChanged = false;
     }
@@ -527,22 +630,27 @@ public abstract class CoreLineSeries<TModel, TVisual, TLabel, TPathGeometry, TEr
     protected override IEnumerable<ChartPoint> FindPointsInPosition(
         Chart chart, LvcPoint pointerPosition, FindingStrategy strategy, FindPointFor findPointFor)
     {
+        bool VisualContains(ChartPoint point)
+        {
+            var v = (TVisual?)point.Context.Visual;
+            if (v is null) return false;
+
+            var x = v.X + v.TranslateTransform.X;
+            var y = v.Y + v.TranslateTransform.Y;
+
+            return
+                pointerPosition.X > x && pointerPosition.X < x + v.Width &&
+                pointerPosition.Y > y && pointerPosition.Y < y + v.Height;
+        }
+
         return strategy switch
         {
-            FindingStrategy.ExactMatch => Fetch(chart)
-                .Where(point =>
-                {
-                    var v = (TVisual?)point.Context.Visual;
-                    if (v is null) return false;
-
-                    var x = v.X + v.TranslateTransform.X;
-                    var y = v.Y + v.TranslateTransform.Y;
-
-                    return
-                        pointerPosition.X > x && pointerPosition.X < x + v.Width &&
-                        pointerPosition.Y > y && pointerPosition.Y < y + v.Height;
-                }),
+            FindingStrategy.ExactMatch => Fetch(chart).Where(VisualContains),
+            // TakeClosest must still respect ExactMatch's visual-containment
+            // filter — otherwise a probe in empty space returns the marker
+            // nearest to the pointer, which is the wrong contract for "exact".
             FindingStrategy.ExactMatchTakeClosest => Fetch(chart)
+                .Where(VisualContains)
                 .Select(x => new { distance = x.DistanceTo(pointerPosition, strategy), point = x })
                 .OrderBy(x => x.distance)
                 .SelectFirst(x => x.point),
@@ -553,7 +661,6 @@ public abstract class CoreLineSeries<TModel, TVisual, TLabel, TPathGeometry, TEr
             FindingStrategy.CompareAllTakeClosest or
             FindingStrategy.CompareOnlyXTakeClosest or
             FindingStrategy.CompareOnlyYTakeClosest or
-            FindingStrategy.ExactMatchTakeClosest or
                 _ => base.FindPointsInPosition(chart, pointerPosition, strategy, findPointFor)
         };
     }
@@ -648,27 +755,23 @@ public abstract class CoreLineSeries<TModel, TVisual, TLabel, TPathGeometry, TEr
         IEnumerable<ChartPoint> points,
         StackPosition? stacker)
     {
+        // Single BezierData reused across yields — mutating its fields between iterations
+        // is safe because Measure reads X0..Y2 into the segment via local accesses within
+        // the same foreach body; the reference never escapes a single MoveNext step.
+        BezierData? data = null;
+
         foreach (var item in points.AsSplineData())
         {
             if (item.IsFirst)
             {
-                var c = item.Current.Coordinate;
+                var sc = stacker?.GetStack(item.Current).CumulativeStart ?? 0;
 
-                var sc = (c.PrimaryValue >= 0
-                    ? stacker?.GetStack(item.Current).Start
-                    : stacker?.GetStack(item.Current).NegativeStart) ?? 0;
+                data ??= new BezierData(item.Next);
+                data.TargetPoint = item.Next;
+                LineSplineMath.SeedFirstSegment(data, item.Current.Coordinate, sc);
+                data.IsNextEmpty = item.IsNextEmpty;
 
-                yield return new BezierData(item.Next)
-                {
-                    X0 = c.SecondaryValue,
-                    Y0 = c.PrimaryValue + sc,
-                    X1 = c.SecondaryValue,
-                    Y1 = c.PrimaryValue + sc,
-                    X2 = c.SecondaryValue,
-                    Y2 = c.PrimaryValue + sc,
-                    IsNextEmpty = item.IsNextEmpty
-                };
-
+                yield return data;
                 continue;
             }
 
@@ -677,74 +780,26 @@ public abstract class CoreLineSeries<TModel, TVisual, TLabel, TPathGeometry, TEr
             var nys = 0d;
             var nnys = 0d;
 
-            var previous = item.Previous.Coordinate;
-            var current = item.Current.Coordinate;
-            var next = item.Next.Coordinate;
-            var afterNext = item.AfterNext.Coordinate;
-
             if (stacker is not null)
             {
-                var isPositive = current.PrimaryValue >= 0;
-
-                pys = isPositive
-                    ? stacker.GetStack(item.Previous).Start
-                    : stacker.GetStack(item.Previous).NegativeStart;
-                cys = isPositive
-                    ? stacker.GetStack(item.Current).Start
-                    : stacker.GetStack(item.Current).NegativeStart;
-                nys = isPositive
-                    ? stacker.GetStack(item.Next).Start
-                    : stacker.GetStack(item.Next).NegativeStart;
-                nnys = isPositive
-                    ? stacker.GetStack(item.AfterNext).Start
-                    : stacker.GetStack(item.AfterNext).NegativeStart;
+                pys = stacker.GetStack(item.Previous).CumulativeStart;
+                cys = stacker.GetStack(item.Current).CumulativeStart;
+                nys = stacker.GetStack(item.Next).CumulativeStart;
+                nnys = stacker.GetStack(item.AfterNext).CumulativeStart;
             }
 
-            var xc1 = (previous.SecondaryValue + current.SecondaryValue) / 2.0f;
-            var yc1 = (previous.PrimaryValue + pys + current.PrimaryValue + cys) / 2.0f;
-            var xc2 = (current.SecondaryValue + next.SecondaryValue) / 2.0f;
-            var yc2 = (current.PrimaryValue + cys + next.PrimaryValue + nys) / 2.0f;
-            var xc3 = (next.SecondaryValue + afterNext.SecondaryValue) / 2.0f;
-            var yc3 = (next.PrimaryValue + nys + afterNext.PrimaryValue + nnys) / 2.0f;
+            data ??= new BezierData(item.Next);
+            data.TargetPoint = item.Next;
+            LineSplineMath.ComputeSegment(
+                data,
+                item.Previous.Coordinate, pys,
+                item.Current.Coordinate, cys,
+                item.Next.Coordinate, nys,
+                item.AfterNext.Coordinate, nnys,
+                _lineSmoothness);
+            data.IsNextEmpty = false;
 
-            var len1 = (float)Math.Sqrt(
-                (current.SecondaryValue - previous.SecondaryValue) *
-                (current.SecondaryValue - previous.SecondaryValue) +
-                (current.PrimaryValue + cys - previous.PrimaryValue + pys) * (current.PrimaryValue + cys - previous.PrimaryValue + pys));
-            var len2 = (float)Math.Sqrt(
-                (next.SecondaryValue - current.SecondaryValue) *
-                (next.SecondaryValue - current.SecondaryValue) +
-                (next.PrimaryValue + nys - current.PrimaryValue + cys) * (next.PrimaryValue + nys - current.PrimaryValue + cys));
-            var len3 = (float)Math.Sqrt(
-                (afterNext.SecondaryValue - next.SecondaryValue) *
-                (afterNext.SecondaryValue - next.SecondaryValue) +
-                (afterNext.PrimaryValue + nnys - next.PrimaryValue + nys) * (afterNext.PrimaryValue + nnys - next.PrimaryValue + nys));
-
-            var k1 = len1 / (len1 + len2);
-            var k2 = len2 / (len2 + len3);
-
-            if (float.IsNaN(k1)) k1 = 0f;
-            if (float.IsNaN(k2)) k2 = 0f;
-
-            var xm1 = xc1 + (xc2 - xc1) * k1;
-            var ym1 = yc1 + (yc2 - yc1) * k1;
-            var xm2 = xc2 + (xc3 - xc2) * k2;
-            var ym2 = yc2 + (yc3 - yc2) * k2;
-
-            var c1X = xm1 + (xc2 - xm1) * _lineSmoothness + current.SecondaryValue - xm1;
-            var c1Y = ym1 + (yc2 - ym1) * _lineSmoothness + current.PrimaryValue + cys - ym1;
-            var c2X = xm2 + (xc2 - xm2) * _lineSmoothness + next.SecondaryValue - xm2;
-            var c2Y = ym2 + (yc2 - ym2) * _lineSmoothness + next.PrimaryValue + nys - ym2;
-
-            yield return new BezierData(item.Next)
-            {
-                X0 = c1X,
-                Y0 = c1Y,
-                X1 = c2X,
-                Y1 = c2Y,
-                X2 = next.SecondaryValue,
-                Y2 = next.PrimaryValue + nys
-            };
+            yield return data;
         }
     }
 
@@ -756,13 +811,12 @@ public abstract class CoreLineSeries<TModel, TVisual, TLabel, TPathGeometry, TEr
         if (chartPoint.Context.AdditionalVisuals is not CubicSegmentVisualPoint visual)
             throw new Exception("Unable to initialize the point instance.");
 
-        var easing = EasingFunction ?? chart.CoreChart.ActualEasingFunction;
-        var speed = AnimationsSpeed ?? chart.CoreChart.ActualAnimationsSpeed;
+        var animation = GetAnimation(chart.CoreChart);
 
-        visual.Geometry.Animate(easing, speed);
-        visual.Segment.Animate(easing, speed);
-        visual.YError?.Animate(easing, speed);
-        visual.XError?.Animate(easing, speed);
+        visual.Geometry.Animate(animation);
+        visual.Segment.Animate(animation);
+        visual.YError?.Animate(animation);
+        visual.XError?.Animate(animation);
     }
 
     /// <inheritdoc cref="CartesianSeries{TModel, TVisual, TLabel}.SoftDeleteOrDisposePoint(ChartPoint, Scaler, Scaler)"/>
@@ -797,6 +851,14 @@ public abstract class CoreLineSeries<TModel, TVisual, TLabel, TPathGeometry, TEr
             visual.XError.X1 = x;
             visual.XError.RemoveOnCompleted = true;
         }
+
+        foreach (var pathCollection in _strokePathHelperDictionary.Values)
+            foreach (var path in pathCollection)
+                _ = path.Commands.Remove(visual.Segment);
+
+        foreach (var pathCollection in _fillPathHelperDictionary.Values)
+            foreach (var path in pathCollection)
+                _ = path.Commands.Remove(visual.Segment);
 
         DataFactory.DisposePoint(point);
 

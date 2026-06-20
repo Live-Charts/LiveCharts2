@@ -1,0 +1,7 @@
+<Project>
+  <ItemGroup>
+    <Compile Include="..\..\_Shared.Native\**\*.cs">
+      <Link>Native\%(RecursiveDir)%(Filename).cs</Link>
+    </Compile>
+  </ItemGroup>
+</Project>

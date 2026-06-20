@@ -1,0 +1,21 @@
+<UserControl x:Class="WinUISample.Maps.CustomMap.View"
+            xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+            xmlns:lvc="using:LiveChartsCore.SkiaSharpView.WinUI"
+            xmlns:vms="using:ViewModelsSamples.Maps.CustomMap"
+            mc:Ignorable="d">
+    <UserControl.DataContext>
+        <vms:ViewModel/>
+    </UserControl.DataContext>
+    <lvc:GeoMap
+        x:Name="geoMap"
+        Series="{Binding Series}"
+        ActiveMap="{Binding ActiveMap}"
+        MapProjection="Mercator"
+        MinLatitude="13"
+        MaxLatitude="33"
+        MinLongitude="-120"
+        MaxLongitude="-85"/>
+</UserControl>

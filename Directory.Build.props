@@ -1,11 +1,14 @@
 <Project>
   <PropertyGroup>
 
-    <LiveChartsVersion>2.0.0-rc6.1</LiveChartsVersion>
+    <LiveChartsVersionSuffix>-dev-292</LiveChartsVersionSuffix>
+    <LiveChartsVersion>2.1.0$(LiveChartsVersionSuffix)</LiveChartsVersion>
     <LiveChartsCodeGenVersion>1.0.1</LiveChartsCodeGenVersion>
     <LiveChartsAuthors>BetoRodriguez</LiveChartsAuthors>
 
-    <GlobalLangVersion>preview</GlobalLangVersion>
+    <LangVersion>14.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
 
     <!--
     This version is the minimum supported version by LiveCharts,
@@ -19,31 +22,34 @@
     Because GPU has better support on the latest versions of SkiaSharp,
     and now LiveCharts defaults to GPU when possible.
     -->
-    <LatestSkiaSharpVersion>3.119.0</LatestSkiaSharpVersion>
+    <LatestSkiaSharpVersion>3.119.2</LatestSkiaSharpVersion>
 
     <!--
     Must be compatible with the SkiaSharp version, on WASM the
     "LatestSkiaSharpVersion" is used.
     -->
-    <HarfBuzzWASMVersion>8.3.1.1</HarfBuzzWASMVersion>
+    <HarfBuzzWASMVersion>8.3.1.5</HarfBuzzWASMVersion>
 
-    <!--
-    Useful to toggle between using project references or nuget references
-    -->
+    <!-- turn UITesting to true to include UI tests in the sample projects -->
+    <UITesting>false</UITesting>
+    <NoWarnUITests>$(NoWarn);NETSDK1198;NU1701;XC0022;XA0141;XAAADB0000;CS0067;CS0414;CS0108;CS0618;CS4014;CS8600;CS8601;CS8602;CS8603;CS8612;CS8618;CS8622;CS8625;CS8629;CS9264;</NoWarnUITests>
+    <!-- Factos version https://github.com/beto-rodriguez/Factos -->
+    <FactosVersion>0.9.0</FactosVersion>
+
+    <!-- Useful to toggle between using project references or nuget references -->
     <UseNuGetForSamples>false</UseNuGetForSamples>
-    <UseNuGetForGenerator>true</UseNuGetForGenerator>
+    <DebugCodeGeneration>false</DebugCodeGeneration>
 
   </PropertyGroup>
 
   <!--
-  used to test the library on multiple render modes,
+  used to test the library on multiple render modes, this config overrides the the settings defined by the user.
   the IsPacking check ensures that this config is not used in the NuGet packages.
   -->
   <PropertyGroup Condition="'$(IsPacking)' != 'true'">
-    <GPU>false</GPU>
-    <VSYNC>true</VSYNC>
-    <FPS>30</FPS>
-    <Diagnose>false</Diagnose>
+    <GPU>default</GPU>            <!-- false, true, default (ignore ms build symbols) -->
+    <VSYNC>default</VSYNC>        <!-- false, true, default (ignore ms build symbols) -->
+    <Diagnose>false</Diagnose>    <!-- false, true -->
   </PropertyGroup>
 
   <PropertyGroup Condition="
@@ -57,6 +63,21 @@
     )">
     <DefineConstants>$(DefineConstants);HAS_OS_LVC</DefineConstants>
     <HasOS>true</HasOS>
+  </PropertyGroup>
+
+  <!--
+  Defined for any project whose own UnoFeatures includes SkiaRenderer, i.e.
+  this build path uses Uno's Skia rendering pipeline instead of native XAML.
+  Used by shared tests / shared sources to skip code that depends on a native
+  hardware-accelerated XAML element (e.g. SKXamlCanvas with GL backing), which
+  doesn't exist under Uno-Skia.
+  -->
+  <PropertyGroup Condition="'$(UnoFeatures)' != '' and $(UnoFeatures.Contains('SkiaRenderer'))">
+    <DefineConstants>$(DefineConstants);LVC_UNO_SKIA</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$(DebugCodeGeneration)">
+    <DefineConstants>$(DefineConstants);DEBUG_CODE_GENERATION</DefineConstants>
   </PropertyGroup>
 
 </Project>

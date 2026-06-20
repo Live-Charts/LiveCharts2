@@ -1,24 +1,19 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage x:Class="MauiSample.VisualTest.Tabs.View"
-             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:bars="clr-namespace:MauiSample.Bars.AutoUpdate"
-             xmlns:lines="clr-namespace:MauiSample.Lines.AutoUpdate"
-             xmlns:scatter="clr-namespace:MauiSample.Scatter.AutoUpdate"
-             >
-    <ContentPage.Content>
+<ContentPage
+    x:Class="MauiSample.VisualTest.Tabs.View"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:bars="clr-namespace:MauiSample.Bars.AutoUpdate"
+    xmlns:lines="clr-namespace:MauiSample.Lines.AutoUpdate"
+    xmlns:scatter="clr-namespace:MauiSample.Scatter.AutoUpdate">
 
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+    <Label Text="This sample is disabled temporarily." 
+       VerticalOptions="Center" 
+       HorizontalOptions="Center"
+       FontSize="20"/>
 
-            <TabbedPage x:Name="TabbedPage" Grid.Row="1">
-                <bars:View Title="Bars"/>
-                <lines:View Title="Lines"/>
-                <scatter:View Title="Scatter"/>
-            </TabbedPage>
+    <!--<bars:View Title="Bars"/>
+    <lines:View Title="Lines"/>
+    <scatter:View Title="Scatter"/>-->
 
-        </Grid>
-    </ContentPage.Content>
 </ContentPage>

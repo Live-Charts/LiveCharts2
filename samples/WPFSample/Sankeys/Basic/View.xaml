@@ -1,0 +1,26 @@
+<UserControl x:Class="WPFSample.Sankeys.Basic.View"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
+             xmlns:vms="clr-namespace:ViewModelsSamples.Sankeys.Basic;assembly=ViewModelsSamples">
+
+    <UserControl.DataContext>
+        <vms:ViewModel/>
+    </UserControl.DataContext>
+
+    <lvc:SankeyChart>
+        <lvc:SankeyChart.Series>
+            <lvc:SeriesCollection>
+                <lvc:XamlSankeySeries
+                    Values="{Binding Nodes}"
+                    Links="{Binding Links}"
+                    NodeWidth="14"
+                    NodePadding="10"
+                    Fill="{lvc:SolidColorPaint Color='#608ada'}"
+                    DataLabelsPaint="{lvc:SolidColorPaint Color='#45454d'}"
+                    DataLabelsSize="13"/>
+            </lvc:SeriesCollection>
+        </lvc:SankeyChart.Series>
+    </lvc:SankeyChart>
+
+</UserControl>

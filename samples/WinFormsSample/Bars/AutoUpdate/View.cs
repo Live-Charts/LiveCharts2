@@ -113,4 +113,6 @@ public partial class View : UserControl
             new(_random.Next(0, 10))
         ];
     }
+
+    public CartesianChart Chart => _cartesianChart;
 }

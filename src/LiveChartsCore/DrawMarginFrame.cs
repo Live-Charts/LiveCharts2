@@ -105,7 +105,7 @@ public abstract class CoreDrawMarginFrame<TSizedGeometry> : CoreDrawMarginFrame
             _fillSizedGeometry.Height = drawMarginSize.Height;
 
             Fill.AddGeometryToPaintTask(chart.Canvas, _fillSizedGeometry);
-            chart.Canvas.AddDrawableTask(Fill, zone: CanvasZone.NoClip);
+            chart.Canvas.AddDrawableTask(Fill, zone: CanvasZone.DrawMargin);
         }
 
         if (Stroke is not null)

@@ -105,21 +105,48 @@ public abstract class SkiaPaint(float strokeThickness = 1f, float strokeMiter = 
     /// </value>
     public SKStrokeJoin StrokeJoin { get; set; }
 
+    private readonly PathEffectMotionProperty _pathEffectMotion = new();
+
     /// <summary>
-    /// Gets or sets the path effect.
+    /// Gets or sets the path effect. Backed by a motion property so the effect can animate on
+    /// the rail: assigning a new effect can soft-transition, and a self-animating effect (one
+    /// carrying a looping <see cref="PathEffect.Animation"/>) marches indefinitely — the looping
+    /// lives in the effect, the paint just reads the current value each frame.
     /// </summary>
     /// <value>
     /// The path effect.
     /// </value>
-    public PathEffect? PathEffect { get; set; }
+    public PathEffect? PathEffect
+    {
+        get => _pathEffectMotion.GetMovement(this);
+        set
+        {
+            // The effect owns its animation (null = static, no transition). The motion uses it,
+            // so an effect with a looping animation keeps re-evaluating + invalidating forever.
+            _pathEffectMotion.Animation = value?.Animation;
+            _pathEffectMotion.SetMovement(value, this);
+        }
+    }
+
+    private readonly ImageFilterMotionProperty _imageFilterMotion = new();
 
     /// <summary>
-    /// Gets or sets the image filer.
+    /// Gets or sets the image filter. Backed by a motion property (like <see cref="PathEffect"/>)
+    /// so a self-animating filter (one carrying a looping <see cref="ImageFilters.ImageFilter.Animation"/>)
+    /// animates on the rail; the paint just reads the current value each frame.
     /// </summary>
     /// <value>
-    /// The image filer.
+    /// The image filter.
     /// </value>
-    public ImageFilter? ImageFilter { get; set; }
+    public ImageFilter? ImageFilter
+    {
+        get => _imageFilterMotion.GetMovement(this);
+        set
+        {
+            _imageFilterMotion.Animation = value?.Animation;
+            _imageFilterMotion.SetMovement(value, this);
+        }
+    }
 
     /// <summary>
     /// Configures the SkiaSharp font manually.
@@ -186,22 +213,31 @@ public abstract class SkiaPaint(float strokeThickness = 1f, float strokeMiter = 
         paint.StrokeMiter = StrokeMiter;
         paint.StrokeWidth = StrokeThickness;
 
-        if (PathEffect is not null)
+        // Read the effect ONCE: when animating, the motion returns a fresh interpolated effect
+        // per call, so re-reading would build a different instance each access.
+        var pathEffect = PathEffect;
+        if (pathEffect is not null)
         {
-            // path effects are immutable, so we create it only once.
-            if (PathEffect._sKPathEffect is null)
-                PathEffect.CreateEffect();
+            // A fresh animated effect arrives each frame with no native effect yet → build it.
+            // A static effect is built once and cached, exactly as before.
+            if (pathEffect._sKPathEffect is null)
+                pathEffect.CreateEffect();
 
-            paint.PathEffect = PathEffect._sKPathEffect;
+            paint.PathEffect = pathEffect._sKPathEffect;
         }
 
-        if (ImageFilter is not null)
+        // Read once (the motion returns a fresh interpolated filter per call while animating).
+        var imageFilter = ImageFilter;
+        if (imageFilter is not null)
         {
-            // image filters are immutable, so we create it only once.
-            if (ImageFilter._sKImageFilter is null)
-                ImageFilter.CreateFilter();
+            if (imageFilter._sKImageFilter is null)
+                imageFilter.CreateFilter();
 
-            paint.ImageFilter = ImageFilter._sKImageFilter;
+            paint.ImageFilter = imageFilter._sKImageFilter;
+        }
+        else
+        {
+            paint.ImageFilter = null; // filter removed → clear it from the cached/reused SKPaint
         }
 
         if (drawnElement is not null)

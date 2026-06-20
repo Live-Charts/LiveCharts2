@@ -1,0 +1,63 @@
+﻿<UserControl
+    x:Class="WPFSample.Test.NullContext.View"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
+    xmlns:vms="clr-namespace:ViewModelsSamples.Test.NullContext;assembly=ViewModelsSamples"
+    xmlns:draw="clr-namespace:LiveChartsCore.SkiaSharpView.Drawing.Geometries;assembly=LiveChartsCore.SkiaSharpView">
+
+    <UserControl.DataContext>
+        <vms:ViewModel/>
+    </UserControl.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <lvc:CartesianChart
+            Grid.Row="0"
+            x:Name="CartesianChart"
+            LegendTextPaint="{Binding LegendTextPaint}"
+            LegendBackgroundPaint="{Binding LegendBgPaint}"
+            TooltipTextPaint="{Binding TooltipTextPaint}"
+            TooltipBackgroundPaint="{Binding TooltipBgPaint}">
+            <lvc:CartesianChart.Series>
+                <lvc:SeriesCollection>
+                    <lvc:XamlLineSeries Values="{Binding Values}"/>
+                </lvc:SeriesCollection>
+            </lvc:CartesianChart.Series>
+        </lvc:CartesianChart>
+
+        <lvc:PieChart
+             Grid.Row="1"
+             x:Name="PieChart"
+             LegendTextPaint="{Binding LegendTextPaint}"
+             LegendBackgroundPaint="{Binding LegendBgPaint}"
+             TooltipTextPaint="{Binding TooltipTextPaint}"
+             TooltipBackgroundPaint="{Binding TooltipBgPaint}">
+            <lvc:PieChart.Series>
+                <lvc:SeriesCollection>
+                    <lvc:XamlPieSeries Values="{Binding Values}"/>
+                </lvc:SeriesCollection>
+            </lvc:PieChart.Series>
+        </lvc:PieChart>
+
+        <lvc:PolarChart
+             Grid.Row="2"
+             x:Name="PolarChart"
+             LegendTextPaint="{Binding LegendTextPaint}"
+             LegendBackgroundPaint="{Binding LegendBgPaint}"
+             TooltipTextPaint="{Binding TooltipTextPaint}"
+             TooltipBackgroundPaint="{Binding TooltipBgPaint}">
+            <lvc:PolarChart.Series>
+                <lvc:SeriesCollection>
+                    <lvc:XamlPolarLineSeries Values="{Binding Values}"/>
+                </lvc:SeriesCollection>
+            </lvc:PolarChart.Series>
+        </lvc:PolarChart>
+    </Grid>
+
+</UserControl>

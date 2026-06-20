@@ -1,11 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0</TargetFrameworks>
-
+    <!-- https://github.com/CommunityToolkit/dotnet/issues/1139 -->
+    <LangVersion>preview</LangVersion>
+    <TargetFrameworks>net462;net8.0</TargetFrameworks>
     <IsPackable>false</IsPackable>
-    <LangVersion>$(GlobalLangVersion)</LangVersion>
-    <Nullable>Enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,6 +20,30 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>analyzers</IncludeAssets>
     </PackageReference>
+  </ItemGroup>
+
+  <!-- Map asset for the CustomMap sample. Embedded so every platform
+       sample picks it up automatically without per-platform asset wiring. -->
+  <ItemGroup>
+    <EmbeddedResource Include="Maps\CustomMap\mexico-states.geojson" />
+  </ItemGroup>
+
+  <!--
+  The next examples are not included in net462 because they use features not available in .Nfet framework
+  -->
+  <ItemGroup Condition="$(TargetFramework) == 'net462'">
+    <Compile Remove="General\Scrollable\ViewModel.cs" />
+    <Compile Remove="General\VisualElements\ViewModel.cs" />
+    <Compile Remove="General\VisualElements\AbsoluteVisual.cs" />
+    <Compile Remove="General\VisualElements\ContainerVisual.cs" />
+    <Compile Remove="General\VisualElements\CustomVisual.cs" />
+    <Compile Remove="General\VisualElements\PointerDownAwareVisual.cs" />
+    <Compile Remove="General\VisualElements\RectangleVisual.cs" />
+    <Compile Remove="General\VisualElements\ScaledRectangleVisual.cs" />
+    <Compile Remove="General\VisualElements\StackedVisual.cs" />
+    <Compile Remove="General\VisualElements\SvgVisual.cs" />
+    <Compile Remove="General\VisualElements\TableVisual.cs" />
+    <Compile Remove="General\VisualElements\ThemedVisual.cs" />
   </ItemGroup>
 
 </Project>

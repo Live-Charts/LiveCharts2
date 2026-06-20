@@ -1,3 +1,8 @@
+<!--
+To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/master/docs/readme.md
+content is normally pulled from the examples in the repository.
+-->
+
 ## AnimationsSpeed property
 
 {{~ if name != "Cartesian chart control" ~}}
@@ -77,11 +82,11 @@ and  returns `float` value as the result (the progress of the animation from 0 t
 
 Now the chart will animate following the **BounceOut** curve.
 
-![image]({{ assets_url }}/docs/_assets/bounceout-anim.gif)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/bounceout-anim.gif)
 
 Now try the `LiveChartsCore.EasingFunctions.Lineal` function, it will animate things lineally as the time elapses.
 
-![image]({{ assets_url }}/docs/_assets/lineal-anim.gif)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/lineal-anim.gif)
 
 Finally you can also build your own function:
 
@@ -112,8 +117,7 @@ Finally you can also build your own function:
 <pre><code>cartesianChart1.EasingFunction = time => time * time;</code></pre>
 {{~ end ~}}
 
-The library also provides some builders based on [d3-ease](https://github.com/d3/d3-ease) easing curves, 
-the builders.
+The library also provides some builders based on [d3-ease](https://github.com/d3/d3-ease) easing curves.
 
 <pre><code>Func<float, float> easingCurve = LiveChartsCore.EasingFunctions.BuildCustomBackOut(0.8f);
 Func<float, float> easingCurve = LiveChartsCore.EasingFunctions.BuildCustomElasticOut(0.8f, 1.1f);
@@ -127,7 +131,7 @@ This section uses the `CartesianChart` control, but it works the same in the `{{
 :::
 {{~ end ~}}
 
-Settings the `EasingFunction` to `null` disables animations.
+Setting the `EasingFunction` to `null` disables animations.
 
 {{~ if xaml ~}}
 <pre><code>&lt;lvc:CartesianChart
@@ -193,4 +197,4 @@ private LiveChartsCore.Measure.Margin margin = new LiveChartsCore.Measure.Margin
 cartesianChart1.DrawMargin = new LiveChartsCore.Measure.Margin(100);</code></pre>
 {{~ end ~}}
 
-![image]({{ assets_url }}/docs/_assets/drawmargin.png)
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/drawmargin.png)

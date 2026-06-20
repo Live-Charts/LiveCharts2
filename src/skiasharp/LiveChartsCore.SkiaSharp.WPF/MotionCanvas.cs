@@ -39,9 +39,10 @@ public class MotionCanvas : Canvas
         _ = LiveChartsSkiaSharp
             .EnsureInitialized()
             .HasRenderingFactory(
-                (settings, forceGPU) =>
+                (settings) =>
                 {
-                    IRenderMode renderMode = forceGPU || settings.UseGPU
+#if NET6_0_OR_GREATER
+                    IRenderMode renderMode = settings.UseGPU
                         ? new GPURenderMode()
                         : new CPURenderMode();
 
@@ -50,15 +51,31 @@ public class MotionCanvas : Canvas
                         : new AsyncLoopTicker();
 
                     return new MotionCanvasComposer(renderMode, ticker);
+#else
+                    if (settings.UseGPU)
+                    {
+                        System.Diagnostics.Trace.WriteLine(
+                            "LiveCharts does not support hardware acceleration in WPF .Net Framework. " +
+                            "Falling back to CPU rendering. To use GPU rendering, please migrate your project to .Net 6 or later.");
+                    }
+
+                    IRenderMode renderMode = new CPURenderMode();
+
+                    IFrameTicker ticker = settings.TryUseVSync
+                        ? new CompositionTargetTicker()
+                        : new AsyncLoopTicker();
+
+                    return new MotionCanvasComposer(renderMode, ticker);
+#endif
                 });
     }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MotionCanvas"/> class.
     /// </summary>
-    public MotionCanvas(bool forceGPU)
+    public MotionCanvas()
     {
-        _composer = LiveChartsSkiaSharp.MotionCanvasRenderingFactory(LiveCharts.RenderingSettings, forceGPU);
+        _composer = LiveChartsSkiaSharp.MotionCanvasRenderingFactory(LiveCharts.RenderingSettings);
 
         _ = Children.Add((UIElement)_composer.RenderMode);
 

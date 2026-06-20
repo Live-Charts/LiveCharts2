@@ -4,20 +4,15 @@
              xmlns:bars="clr-namespace:WPFSample.Bars.AutoUpdate"
              xmlns:lines="clr-namespace:WPFSample.Lines.AutoUpdate"
              xmlns:scatter="clr-namespace:WPFSample.Scatter.AutoUpdate">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-        <TabControl>
-            <TabItem Header="tab 1">
-                <bars:View></bars:View>
-            </TabItem>
-            <TabItem Header="tab 2">
-                <lines:View></lines:View>
-            </TabItem>
-            <TabItem Header="tab 3">
-                <scatter:View></scatter:View>
-            </TabItem>
-        </TabControl>
-    </Grid>
+    <TabControl x:Name="tabs" x:FieldModifier="public">
+        <TabItem Header="tab 1">
+            <bars:View/>
+        </TabItem>
+        <TabItem Header="tab 2">
+            <lines:View/>
+        </TabItem>
+        <TabItem Header="tab 3">
+            <scatter:View/>
+        </TabItem>
+    </TabControl>
 </UserControl>

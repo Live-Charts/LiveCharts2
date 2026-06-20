@@ -11,14 +11,34 @@
     <UserControl.DataContext>
         <vms:ViewModel/>
     </UserControl.DataContext>
-    <Grid>
-        <ItemsControl ItemsSource="{Binding Models}">
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <lvc:CartesianChart Height="200" Series="{Binding}" />
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
-    </Grid>
-    
+
+    <ItemsControl ItemsSource="{Binding Departments}">
+        <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vms:DepartmentInfo">
+                <Grid RowDefinitions="Auto,300">
+
+                    <TextBlock
+                        Grid.Row="0"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"
+                        Text="{Binding DepartmentName}"/>
+
+                    <lvc:CartesianChart
+                        Grid.Row="1"
+                        SeriesSource="{Binding Data}">
+
+                        <lvc:CartesianChart.SeriesTemplate>
+                            <DataTemplate x:DataType="vms:ChartData">
+                                <lvc:XamlLineSeries
+                                SeriesName="{Binding SeriesName}"
+                                Values="{Binding Values}"/>
+                            </DataTemplate>
+                        </lvc:CartesianChart.SeriesTemplate>
+
+                    </lvc:CartesianChart>
+                </Grid>
+            </DataTemplate>
+        </ItemsControl.ItemTemplate>
+    </ItemsControl>
+
 </UserControl>

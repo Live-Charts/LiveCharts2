@@ -1,4 +1,4 @@
-﻿// The MIT License(MIT)
+// The MIT License(MIT)
 //
 // Copyright(c) 2021 Alberto Rodriguez Orozco & LiveCharts Contributors
 //
@@ -22,80 +22,123 @@
 
 using System;
 using System.Collections.Generic;
-using LiveChartsCore.Motion;
+using LiveChartsCore.Kernel.Sketches;
+using LiveChartsCore.Measure;
 using LiveChartsCore.Painting;
 
 namespace LiveChartsCore.Geo;
 
 /// <summary>
-/// Defines a geographic map.
+/// Defines a geographic map view.
 /// </summary>
-public interface IGeoMapView
+/// <remarks>
+/// Inherits from <see cref="IChartView"/> so the map shares the same view
+/// contract as cartesian / pie / polar views and is driven through the unified
+/// <see cref="Chart"/> base. <see cref="CoreChart"/>, <see cref="Series"/> and
+/// <see cref="Tooltip"/> shadow base members with map-specific types; everything
+/// else (DesignerMode, IsDarkMode, AutoUpdateEnabled, SyncContext, theme,
+/// tooltip-text/background/size, etc.) is inherited unchanged.
+/// </remarks>
+public interface IGeoMapView : IChartView
 {
     /// <summary>
-    /// Gets or sets the active map.
+    /// Gets the core chart. Shadows <see cref="IChartView.CoreChart"/> with the
+    /// more-derived <see cref="GeoMapChart"/> type.
     /// </summary>
+    new GeoMapChart CoreChart { get; }
+
+    /// <summary>
+    /// Gets or sets the series. Shadows <see cref="IChartView.Series"/> because
+    /// geo series do not implement the chart-series interface.
+    /// </summary>
+    new IEnumerable<IGeoSeries> Series { get; set; }
+
+    /// <summary>
+    /// Gets or sets the tooltip. Shadows <see cref="IChartView.Tooltip"/> because
+    /// the map uses a land-based tooltip contract instead of <see cref="IChartTooltip"/>.
+    /// </summary>
+    new IGeoMapTooltip? Tooltip { get; set; }
+
+    /// <summary>Gets or sets the active map.</summary>
     DrawnMap ActiveMap { get; set; }
 
-    /// <summary>
-    /// Gets the motion canvas.
-    /// </summary>
-    CoreMotionCanvas Canvas { get; }
-
-    /// <summary>
-    /// Gets the control width.
-    /// </summary>
-    float Width { get; }
-
-    /// <summary>
-    /// Gets the control height.
-    /// </summary>
-    float Height { get; }
-
-    /// <summary>
-    /// Gets or sets the stroke.
-    /// </summary>
+    /// <summary>Gets or sets the stroke painted around each land.</summary>
     Paint? Stroke { get; set; }
 
-    /// <summary>
-    /// Gets or sets the fill.
-    /// </summary>
+    /// <summary>Gets or sets the fill painted on lands with no series value.</summary>
     Paint? Fill { get; set; }
 
-    /// <summary>
-    /// Gets or sets whether the chart auto-updates are enabled.
-    /// </summary>
-    bool AutoUpdateEnabled { get; set; }
-
-    /// <summary>
-    /// Gets or sets the projection.
-    /// </summary>
+    /// <summary>Gets or sets the projection.</summary>
     MapProjection MapProjection { get; set; }
 
     /// <summary>
-    /// Gets whether the control is in designer mode.
+    /// Gets or sets the minimum latitude (in degrees) clipped to the bottom
+    /// edge of the rendered map. <see cref="double.NaN"/> (the default) means
+    /// the projection picks its own default — Mercator uses
+    /// <see cref="MercatorProjector.DefaultMinLatitudeDegrees"/> (-65°),
+    /// cropping the sub-Antarctic empty band; Default uses
+    /// <see cref="ControlCoordinatesProjector.DefaultMinLatitudeDegrees"/>
+    /// (-90°). Honored by Mercator and Default; <see cref="MapProjection.Orthographic"/>
+    /// ignores it (use <see cref="GeoMapChart.CenterLatitude"/> instead).
     /// </summary>
-    bool DesignerMode { get; }
+    double MinLatitude { get; set; }
 
     /// <summary>
-    /// Gets or sets the Synchronization Context, use this property to
-    /// use an external object to handle multi threading synchronization.
+    /// Gets or sets the maximum latitude (in degrees) clipped to the top edge
+    /// of the rendered map. <see cref="double.NaN"/> (the default) means the
+    /// projection picks its own default — Mercator uses
+    /// <see cref="MercatorProjector.DefaultMaxLatitudeDegrees"/> (85°), which
+    /// already covers Greenland; Default uses
+    /// <see cref="ControlCoordinatesProjector.DefaultMaxLatitudeDegrees"/>
+    /// (90°). To render the classic full-earth Mercator including Antarctica,
+    /// extend the bottom edge: set <see cref="MinLatitude"/> = -85.
+    /// Honored by Mercator and Default; <see cref="MapProjection.Orthographic"/>
+    /// ignores it.
     /// </summary>
-    object SyncContext { get; set; }
+    double MaxLatitude { get; set; }
 
     /// <summary>
-    /// Gets or sets the view command.
+    /// Gets or sets the minimum longitude (in degrees) clipped to the left
+    /// edge of the rendered map. <see cref="double.NaN"/> (the default) means
+    /// the projection picks its own default (-180° for both Mercator and
+    /// Default). Honored by Mercator and Default;
+    /// <see cref="MapProjection.Orthographic"/> ignores it
+    /// (use <see cref="GeoMapChart.CenterLongitude"/> instead).
     /// </summary>
-    object? ViewCommand { get; set; }
+    double MinLongitude { get; set; }
 
     /// <summary>
-    /// Invokes an action in the UI thread.
+    /// Gets or sets the maximum longitude (in degrees) clipped to the right
+    /// edge of the rendered map. <see cref="double.NaN"/> (the default) means
+    /// the projection picks its own default (180° for both Mercator and
+    /// Default). Honored by Mercator and Default;
+    /// <see cref="MapProjection.Orthographic"/> ignores it.
     /// </summary>
-    /// <param name="action"></param>
-    void InvokeOnUIThread(Action action);
+    double MaxLongitude { get; set; }
 
     /// <summary>
-    /// Gets or sets the series.
+    /// Gets or sets which interactions are enabled (pan / zoom / both / none).
+    /// Defaults to <see cref="MapInteractionMode.None"/> — geo maps are most
+    /// often embedded as static dashboard tiles, so the default is no
+    /// interaction. Set <see cref="MapInteractionMode.Zoom"/> for wheel-zoom,
+    /// or <see cref="MapInteractionMode.Both"/> for wheel-zoom + click-drag pan.
     /// </summary>
-    IEnumerable<IGeoSeries> Series { get; set; }
+    MapInteractionMode InteractionMode { get; set; }
+
+    /// <summary>Gets or sets the zooming speed; a value in [0.1, 0.95].</summary>
+    double ZoomingSpeed { get; set; }
+
+    /// <summary>Gets or sets the minimum zoom level. Defaults to 1.</summary>
+    double MinZoomLevel { get; set; }
+
+    /// <summary>Gets or sets the maximum zoom level. Defaults to 100.</summary>
+    double MaxZoomLevel { get; set; }
+
+    /// <summary>
+    /// Gets or sets a formatter for the per-series value lines in the default
+    /// tooltip. When null, each <see cref="GeoTooltipValue"/> renders as
+    /// "{Series.Name}: {Value:N2}" (or just "{Value:N2}" if the series has no
+    /// name). Has no effect when a custom <see cref="IGeoMapTooltip"/> is set.
+    /// </summary>
+    Func<GeoTooltipValue, string>? TooltipFormatter { get; set; }
 }

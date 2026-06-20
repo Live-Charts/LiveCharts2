@@ -11,6 +11,8 @@ namespace WinFormsSample.Polar.Basic;
 
 public partial class View : UserControl
 {
+    public PolarChart Chart;
+
     public View()
     {
         InitializeComponent();
@@ -68,6 +70,8 @@ public partial class View : UserControl
             Size = new System.Drawing.Size(50, 50),
             Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom
         };
+
+        Chart = polarChart;
 
         Controls.Add(polarChart);
     }
