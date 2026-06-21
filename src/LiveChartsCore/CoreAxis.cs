@@ -1726,7 +1726,7 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
             float xs = 0f, ys = 0f;
             if (_orientation == AxisOrientation.X)
             {
-                xs = scale.MeasureInPixels(s * kl);
+                xs = scale.MeasureInPixels(s + s * kl);
             }
             else
             {
