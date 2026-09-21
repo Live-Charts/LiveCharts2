@@ -184,11 +184,14 @@ public class SemicircleHoverArea : HoverArea
 
     private float GetActualEndAngle()
     {
-        // -0.01 is a work around to avoid the case where the last slice (360) would be converted to 0 also
-        // UPDATE: this should not be necessary anymore? based on: https://github.com/beto-rodriguez/LiveCharts2/issues/623
-        var endAngle = EndAngle - 0.01f;
+        var endAngle = EndAngle;
+        if (endAngle == 0) return endAngle;
+
         endAngle %= 360;
         if (endAngle < 0) endAngle += 360;
+
+        // work around to avoid the case where the last slice (360) would be converted to 0
+        if (endAngle == 0) endAngle = 360;
         return endAngle;
     }
 }
