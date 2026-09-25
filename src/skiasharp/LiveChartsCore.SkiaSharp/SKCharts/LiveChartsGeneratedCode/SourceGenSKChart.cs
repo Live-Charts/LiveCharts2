@@ -55,13 +55,21 @@ public abstract partial class SourceGenSKChart : InMemorySkiaSharpChart
         InitializeObservedProperties();
 
         StartObserving();
+
+        // At design time GetTheme in Chart.Load() would JIT-load SkiaSharp paint types via
+        // ThemesExtensions.AddDefaultTheme initializers, which crashes the .NET
+        // Framework WinForms designer host on strong-name binding (#2182).
+        // SkiaSharp's SKElement/SKControl already short-circuit paint at design
+        // time, so there's nothing to set up.
+        if (((IChartView)this).DesignerMode) return;
+
         CoreChart?.Load();
     }
 
     /// <summary>
     /// Whether this in-memory chart reports itself as running in a designer
     /// host. Always <c>false</c> in production; test fixtures override to
-    /// exercise the design-time short-circuit in <see cref="Chart.Load"/>.
+    /// exercise the design-time short-circuit.
     /// </summary>
     protected virtual bool IsDesignerMode => false;
 
