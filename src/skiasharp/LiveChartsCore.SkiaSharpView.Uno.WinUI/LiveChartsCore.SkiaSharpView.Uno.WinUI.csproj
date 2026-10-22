@@ -49,6 +49,11 @@
 
   <ItemGroup>
     <ProjectReference Include="../LiveChartsCore.SkiaSharp/LiveChartsCore.SkiaSharpView.csproj" />
+    <!--
+    Uno Platform 7 ships SkiaSharp 4, where SKPaint.GetFont() is internal; SkiaSharp.HarfBuzz 3.x calls it
+    from SKShaper.Shape(string, SKPaint), so text shaping throws when an app resolves 3.x. Require 4.x.
+    -->
+    <PackageReference Include="SkiaSharp.HarfBuzz" Version="4.151.1" />
   </ItemGroup>
 
   <!--
