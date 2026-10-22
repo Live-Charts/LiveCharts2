@@ -47,31 +47,14 @@ public partial class MotionCanvas : Canvas
                     IFrameTicker ticker;
 
 #if !HAS_OS_LVC
-                    // SKCanvasElement only works when the app runs Uno's Skia renderer;
-                    // under the native renderer (e.g. WASM native) its constructor throws
-                    // PlatformNotSupportedException, so fall back to the SkiaSharp.Views
-                    // elements in that case (#2020, #2333). CompositionTarget.Rendering
-                    // does not tick continuously under the native renderer either, so the
-                    // fallback also needs the async-loop ticker or animations freeze at
-                    // the first frame.
-                    IRenderMode renderMode;
-
-                    if (Uno.WinUI.Graphics2DSK.SKCanvasElement.IsSupportedOnCurrentPlatform())
-                    {
-                        // At this point, Uno has full control of the frame pacing.
-                        // SkiaRenderMode inherits from SKCanvasElement, it integrates with Uno's skia renderer and will draw when and how Uno needs.
-                        // NativeFrameTicker is a dummy ticker at this point, instead the frames are paced by Uno's skia renderer.
-                        renderMode = new SkiaRenderMode();
-                        ticker = new NativeFrameTicker();
-                    }
-                    else
-                    {
-                        renderMode = settings.UseGPU
-                            ? new GPURenderMode()
-                            : new CPURenderMode();
-
-                        ticker = new AsyncLoopTicker();
-                    }
+                    // Uno Platform 7 renders every head with Skia, so SKCanvasElement is always
+                    // available; the SkiaSharp.Views fallback for Uno's native renderer (#2020,
+                    // #2333) went away with that renderer.
+                    // At this point, Uno has full control of the frame pacing.
+                    // SkiaRenderMode inherits from SKCanvasElement, it integrates with Uno's skia renderer and will draw when and how Uno needs.
+                    // NativeFrameTicker is a dummy ticker at this point, instead the frames are paced by Uno's skia renderer.
+                    IRenderMode renderMode = new SkiaRenderMode();
+                    ticker = new NativeFrameTicker();
 #else
                     IRenderMode renderMode = settings.UseGPU
                         ? new GPURenderMode()
