@@ -1,0 +1,47 @@
+<UserControl
+    x:Class="NoesisSample.General.Sections.View"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lvc="clr-namespace:LiveChartsCore.Noesis;assembly=LiveChartsCore.Noesis"
+    xmlns:vms="clr-namespace:ViewModelsSamples.General.Sections;assembly=NoesisSample">
+
+    <UserControl.DataContext>
+        <vms:ViewModel/>
+    </UserControl.DataContext>
+
+    <lvc:CartesianChart>
+
+        <lvc:CartesianChart.Series>
+            <lvc:SeriesCollection>
+                <lvc:XamlScatterSeries Values="{Binding Values}"/>
+            </lvc:SeriesCollection>
+        </lvc:CartesianChart.Series>
+
+        <lvc:CartesianChart.Sections>
+            <lvc:SectionsCollection>
+
+                <lvc:XamlRectangularSection
+                    Xi="{Binding Xi1}"
+                    Xj="{Binding Xj1}"
+                    Fill="{lvc:SolidColorPaint Color='#FFCDD2'}"/>
+
+
+                <lvc:XamlRectangularSection
+                    Xi="{Binding Xi2}" Xj="{Binding Xj2}"
+                    Yi="{Binding Yi2}" Yj="{Binding Yj2}"
+                    Fill="{lvc:SolidColorPaint Color='#BBDEFB'}"/>
+
+
+                <lvc:XamlRectangularSection
+                    Xi="{Binding Xi3}"
+                    Xj="{Binding Xj3}"
+                    Label="A section here!"
+                    LabelSize="14"
+                    LabelPaint="{lvc:SolidColorPaint Color='#FF6F00'}"
+                    Fill="{lvc:SolidColorPaint Color='#F9FBE7'}"/>
+            </lvc:SectionsCollection>
+        </lvc:CartesianChart.Sections>
+
+    </lvc:CartesianChart>
+
+</UserControl>

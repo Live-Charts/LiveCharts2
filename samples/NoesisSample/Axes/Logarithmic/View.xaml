@@ -1,0 +1,33 @@
+<UserControl
+    x:Class="NoesisSample.Axes.Logarithmic.View"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lvc="clr-namespace:LiveChartsCore.Noesis;assembly=LiveChartsCore.Noesis"
+    xmlns:vms="clr-namespace:ViewModelsSamples.Axes.Logarithmic;assembly=NoesisSample"
+    xmlns:local="clr-namespace:NoesisSample.Axes.Logarithmic">
+
+    <UserControl.DataContext>
+        <vms:ViewModel/>
+    </UserControl.DataContext>
+
+    <lvc:CartesianChart>
+
+        <lvc:CartesianChart.Series>
+            <lvc:SeriesCollection>
+                <local:LogarithmicSeries Values="{Binding Values}"/>
+            </lvc:SeriesCollection>
+        </lvc:CartesianChart.Series>
+
+        <lvc:CartesianChart.YAxes>
+            <lvc:AxesCollection>
+                <lvc:XamlLogarithmicAxis
+                    LogBase="{Binding LogBase}"
+                    SeparatorsPaint="{lvc:SolidColorPaint Color=#64b4b4b4}"
+                    SubseparatorsPaint="{lvc:SolidColorPaint Color=#64b4b4b4}"
+                    SubseparatorsCount="9"/>
+            </lvc:AxesCollection>
+        </lvc:CartesianChart.YAxes>
+
+    </lvc:CartesianChart>
+
+</UserControl>

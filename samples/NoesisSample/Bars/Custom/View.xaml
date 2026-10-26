@@ -1,0 +1,29 @@
+<UserControl
+    x:Class="NoesisSample.Bars.Custom.View"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lvc="clr-namespace:LiveChartsCore.Noesis;assembly=LiveChartsCore.Noesis"
+    xmlns:vms="clr-namespace:ViewModelsSamples.Bars.Custom;assembly=NoesisSample"
+    xmlns:local="clr-namespace:NoesisSample.Bars.Custom">
+
+    <UserControl.DataContext>
+        <vms:ViewModel/>
+    </UserControl.DataContext>
+
+    <lvc:CartesianChart>
+        <lvc:CartesianChart.Series>
+            <lvc:SeriesCollection>
+                <lvc:XamlColumnSeries Values="{Binding Values1}"/>
+
+                <local:DiamondColumnSeries Values="{Binding Values2}" />
+
+                <local:VariableSVGPathColumnSeries
+                    GeometrySvg="{Binding StarPath}"
+                    Values="{Binding Values3}"/>
+
+                <local:MyGeometryColumnSeries Values="{Binding Values4}"/>
+            </lvc:SeriesCollection>
+        </lvc:CartesianChart.Series>
+    </lvc:CartesianChart>
+
+</UserControl>

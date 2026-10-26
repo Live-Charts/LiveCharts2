@@ -1,0 +1,38 @@
+<UserControl
+    x:Class="NoesisSample.Pies.Gauge2.View"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lvc="clr-namespace:LiveChartsCore.Noesis;assembly=LiveChartsCore.Noesis"
+    xmlns:vms="clr-namespace:ViewModelsSamples.Pies.Gauge2;assembly=NoesisSample"
+    MaxWidth="300"
+    MaxHeight="300">
+
+    <UserControl.DataContext>
+        <vms:ViewModel/>
+    </UserControl.DataContext>
+
+    <lvc:PieChart
+        InitialRotation="-225"
+        MaxAngle="270"
+        MinValue="0"
+        MaxValue="100">
+        <lvc:PieChart.Series>
+            <lvc:SeriesCollection>
+
+                <lvc:XamlGaugeSeries
+                    GaugeValue="{Binding Value}"
+                    Fill="{lvc:SolidColorPaint Color=#9ACD32}"
+                    ShowDataLabels="True"
+                    DataLabelsSize="50"
+                    DataLabelsPosition="ChartCenter"
+                    InnerRadius="75"/>
+
+
+                <lvc:XamlGaugeBackgroundSeries
+                    InnerRadius="75"
+                    Fill="{lvc:SolidColorPaint Color=#5A64B5F6}"/>
+
+            </lvc:SeriesCollection>
+        </lvc:PieChart.Series>
+    </lvc:PieChart>
+</UserControl>

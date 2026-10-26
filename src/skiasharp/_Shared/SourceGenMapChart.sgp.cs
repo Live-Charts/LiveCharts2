@@ -1,4 +1,4 @@
-﻿// The MIT License(MIT)
+// The MIT License(MIT)
 //
 // Copyright(c) 2021 Alberto Rodriguez Orozco & LiveCharts Contributors
 //
@@ -25,6 +25,7 @@
 
 using LiveChartsCore;
 using LiveChartsCore.Geo;
+using LiveChartsCore.Kernel.Sketches;
 using LiveChartsCore.Generators;
 using LiveChartsCore.Measure;
 using System.Windows.Input;
@@ -61,8 +62,10 @@ public partial class SourceGenSKMapChart
 public partial class SourceGenMapChart
 #endif
 {
-    /// <inheritdoc cref="IGeoMapView.SyncContext"/>
+#if !NOESIS_LVC
+    /// <inheritdoc cref="IChartView.SyncContext"/>
     static UIProperty<object>                   syncContext         = new(onChanged: OnSyncContextChanged);
+#endif
 
     /// <inheritdoc cref="IGeoMapView.ActiveMap"/>
     static UIProperty<DrawnMap>                 activeMap;
@@ -97,16 +100,16 @@ public partial class SourceGenMapChart
     /// <inheritdoc cref="IGeoMapView.Tooltip"/>
     static UIProperty<IGeoMapTooltip>           tooltip;
 
-    /// <inheritdoc cref="IGeoMapView.TooltipPosition"/>
+    /// <inheritdoc cref="IChartView.TooltipPosition"/>
     static UIProperty<TooltipPosition>          tooltipPosition     = new(defaultValue: TooltipPosition.Auto);
 
-    /// <inheritdoc cref="IGeoMapView.TooltipTextPaint"/>
+    /// <inheritdoc cref="IChartView.TooltipTextPaint"/>
     static UIProperty<Paint>                    tooltipTextPaint;
 
-    /// <inheritdoc cref="IGeoMapView.TooltipBackgroundPaint"/>
+    /// <inheritdoc cref="IChartView.TooltipBackgroundPaint"/>
     static UIProperty<Paint>                    tooltipBackgroundPaint;
 
-    /// <inheritdoc cref="IGeoMapView.TooltipTextSize"/>
+    /// <inheritdoc cref="IChartView.TooltipTextSize"/>
     static UIProperty<double>                   tooltipTextSize     = new(defaultValue: 14d);
 
     /// <inheritdoc cref="IGeoMapView.ZoomingSpeed"/>

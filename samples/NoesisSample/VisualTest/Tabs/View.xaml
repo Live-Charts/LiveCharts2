@@ -1,0 +1,18 @@
+<UserControl x:Class="NoesisSample.VisualTest.Tabs.View"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:bars="clr-namespace:NoesisSample.Bars.AutoUpdate"
+             xmlns:lines="clr-namespace:NoesisSample.Lines.AutoUpdate"
+             xmlns:scatter="clr-namespace:NoesisSample.Scatter.AutoUpdate">
+    <TabControl x:Name="tabs">
+        <TabItem Header="tab 1">
+            <bars:View/>
+        </TabItem>
+        <TabItem Header="tab 2">
+            <lines:View/>
+        </TabItem>
+        <TabItem Header="tab 3">
+            <scatter:View/>
+        </TabItem>
+    </TabControl>
+</UserControl>

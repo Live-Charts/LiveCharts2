@@ -1,0 +1,12 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    <sys:String x:Key="Gallery.Axes.Multiple.blue">#1976D2</sys:String>
+    <sys:String x:Key="Gallery.Axes.Multiple.red">#E53935</sys:String>
+    <sys:String x:Key="Gallery.Axes.Multiple.yellow">#C6A700</sys:String>
+    <sys:String x:Key="Gallery.Axes.Style.gray">#c3c3c3</sys:String>
+    <sys:String x:Key="Gallery.Axes.Style.gray1">#a0a0a0</sys:String>
+    <sys:String x:Key="Gallery.Axes.Style.gray2">#5a5a5a</sys:String>
+    <sys:String x:Key="Gallery.Axes.Style.gray3">#3c3c3c</sys:String>
+</ResourceDictionary>

@@ -1,0 +1,6 @@
+﻿<Grid
+    x:Class="LiveChartsCore.Noesis.MotionCanvas"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:noesis="clr-namespace:NoesisGUIExtensions;assembly=Noesis.GUI.Extensions"
+    noesis:Element.PPAAIn="0" />

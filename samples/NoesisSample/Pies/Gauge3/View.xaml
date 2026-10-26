@@ -1,0 +1,55 @@
+<UserControl
+    x:Class="NoesisSample.Pies.Gauge3.View"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lvc="clr-namespace:LiveChartsCore.Noesis;assembly=LiveChartsCore.Noesis"
+    xmlns:vms="clr-namespace:ViewModelsSamples.Pies.Gauge3;assembly=NoesisSample"
+    MaxHeight="400"
+    MaxWidth="400">
+
+    <UserControl.DataContext>
+        <vms:ViewModel/>
+    </UserControl.DataContext>
+
+    <lvc:PieChart
+        InitialRotation="45"
+        MaxAngle="270"
+        MinValue="0"
+        MaxValue="100">
+        <lvc:PieChart.Series>
+            <lvc:SeriesCollection>
+
+                <lvc:XamlGaugeSeries
+                    GaugeValue="{Binding Vanesa}"
+                    SeriesName="Vanesa"
+                    DataLabelsFormatter="{Binding LabelFormatter}"
+                    DataLabelsPosition="Start"
+                    InnerRadius="20"
+                    RelativeOuterRadius="8"
+                    RelativeInnerRadius="8"/>
+
+                <lvc:XamlGaugeSeries
+                    GaugeValue="{Binding Charles}"
+                    SeriesName="Charles"
+                    DataLabelsFormatter="{Binding LabelFormatter}"
+                    DataLabelsPosition="Start"
+                    InnerRadius="20"
+                    RelativeOuterRadius="8"
+                    RelativeInnerRadius="8"/>
+
+                <lvc:XamlGaugeSeries
+                    GaugeValue="{Binding Ana}"
+                    SeriesName="Ana"
+                    DataLabelsFormatter="{Binding LabelFormatter}"
+                    DataLabelsPosition="Start"
+                    InnerRadius="20"
+                    RelativeOuterRadius="8"
+                    RelativeInnerRadius="8"/>
+
+
+                <lvc:XamlGaugeBackgroundSeries InnerRadius="20"/>
+
+            </lvc:SeriesCollection>
+        </lvc:PieChart.Series>
+    </lvc:PieChart>
+</UserControl>

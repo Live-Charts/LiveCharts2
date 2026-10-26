@@ -1,0 +1,101 @@
+<UserControl
+    x:Class="NoesisSample.Axes.Multiple.View"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib"
+    xmlns:lvc="clr-namespace:LiveChartsCore.Noesis;assembly=LiveChartsCore.Noesis"
+    xmlns:vms="clr-namespace:ViewModelsSamples.Axes.Multiple;assembly=NoesisSample">
+
+    <UserControl.DataContext>
+        <vms:ViewModel/>
+    </UserControl.DataContext>
+
+    <UserControl.Resources>
+
+
+
+    </UserControl.Resources>
+
+    <lvc:CartesianChart
+        LegendBackgroundPaint="{lvc:SolidColorPaint Color='#eee', FontFamily='Courier New'}"
+        LegendTextPaint="{lvc:SolidColorPaint Color='#323232'}"
+        LegendTextSize="16"
+        LegendPosition="Left">
+
+        <lvc:CartesianChart.Resources>
+            <Style x:Key="{x:Type lvc:XamlLineSeries}" TargetType="lvc:XamlLineSeries">
+                <Setter Property="GeometrySize" Value="10"/>
+                <Setter Property="Fill" Value="{x:Null}"/>
+                <Setter Property="LineSmoothness" Value="1"/>
+            </Style>
+            <Style x:Key="{x:Type lvc:XamlAxis}" TargetType="lvc:XamlAxis">
+                <Setter Property="NameTextSize" Value="14"/>
+                <Setter Property="NamePadding" Value="{lvc:Padding Value='0,20'}"/>
+                <Setter Property="TextSize" Value="12"/>
+                <Setter Property="DrawTicksPath" Value="True"/>
+            </Style>
+        </lvc:CartesianChart.Resources>
+
+
+
+        <lvc:CartesianChart.Series>
+            <lvc:SeriesCollection>
+                <lvc:XamlLineSeries
+                    SeriesName="Tens"
+                    Values="{Binding Values1}"
+                    Stroke="{lvc:SolidColorPaint Color={StaticResource Gallery.Axes.Multiple.blue}, StrokeWidth=2}"
+                    GeometryStroke="{lvc:SolidColorPaint Color={StaticResource Gallery.Axes.Multiple.blue}, StrokeWidth=2}"
+                    ScalesYAt="0"/>
+                <lvc:XamlLineSeries
+                    SeriesName="Tens 2"
+                    Values="{Binding Values2}"
+                    Stroke="{lvc:SolidColorPaint Color={StaticResource Gallery.Axes.Multiple.blue}, StrokeWidth=2}"
+                    GeometryStroke="{lvc:SolidColorPaint Color={StaticResource Gallery.Axes.Multiple.blue}, StrokeWidth=2}"
+                    ScalesYAt="0"/>
+                <lvc:XamlLineSeries
+                    SeriesName="Hundreds"
+                    Values="{Binding Values3}"
+                    Stroke="{lvc:SolidColorPaint Color={StaticResource Gallery.Axes.Multiple.red}, StrokeWidth=2}"
+                    GeometryStroke="{lvc:SolidColorPaint Color={StaticResource Gallery.Axes.Multiple.red}, StrokeWidth=2}"
+                    ScalesYAt="1"/>
+                <lvc:XamlLineSeries
+                    SeriesName="Thousands"
+                    Values="{Binding Values4}"
+                    Stroke="{lvc:SolidColorPaint Color={StaticResource Gallery.Axes.Multiple.yellow}, StrokeWidth=2}"
+                    GeometryStroke="{lvc:SolidColorPaint Color={StaticResource Gallery.Axes.Multiple.yellow}, StrokeWidth=2}"
+                    ScalesYAt="2"/>
+            </lvc:SeriesCollection>
+        </lvc:CartesianChart.Series>
+
+        <lvc:CartesianChart.YAxes>
+            <lvc:AxesCollection>
+                <lvc:XamlAxis
+                    AxisName="Tens"
+                    Padding="{lvc:Padding Value='0, 0, 20, 0'}"
+                    NamePaint="{lvc:SolidColorPaint Color={StaticResource Gallery.Axes.Multiple.blue}}"
+                    LabelsPaint="{lvc:SolidColorPaint Color={StaticResource Gallery.Axes.Multiple.blue}}"
+                    TicksPaint="{lvc:SolidColorPaint Color={StaticResource Gallery.Axes.Multiple.blue}}"
+                    SubticksPaint="{lvc:SolidColorPaint Color={StaticResource Gallery.Axes.Multiple.blue}}"/>
+                <lvc:XamlAxis
+                    AxisName="Hundreds"
+                    Padding="{lvc:Padding Value='20, 0, 0, 0'}"
+                    Position="End"
+                    ShowSeparatorLines="False"
+                    NamePaint="{lvc:SolidColorPaint Color={StaticResource Gallery.Axes.Multiple.red}}"
+                    LabelsPaint="{lvc:SolidColorPaint Color={StaticResource Gallery.Axes.Multiple.red}}"
+                    TicksPaint="{lvc:SolidColorPaint Color={StaticResource Gallery.Axes.Multiple.red}}"
+                    SubticksPaint="{lvc:SolidColorPaint Color={StaticResource Gallery.Axes.Multiple.red}}"/>
+                <lvc:XamlAxis
+                    AxisName="Thousands"
+                    Padding="{lvc:Padding Value='20, 0, 0, 0'}"
+                    Position="End"
+                    ShowSeparatorLines="False"
+                    NamePaint="{lvc:SolidColorPaint Color={StaticResource Gallery.Axes.Multiple.yellow}}"
+                    LabelsPaint="{lvc:SolidColorPaint Color={StaticResource Gallery.Axes.Multiple.yellow}}"
+                    TicksPaint="{lvc:SolidColorPaint Color={StaticResource Gallery.Axes.Multiple.yellow}}"
+                    SubticksPaint="{lvc:SolidColorPaint Color={StaticResource Gallery.Axes.Multiple.yellow}}"/>
+            </lvc:AxesCollection>
+        </lvc:CartesianChart.YAxes>
+
+    </lvc:CartesianChart>
+</UserControl>

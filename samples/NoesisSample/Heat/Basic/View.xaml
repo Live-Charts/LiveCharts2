@@ -1,0 +1,42 @@
+﻿<UserControl
+    x:Class="NoesisSample.Heat.Basic.View"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lvc="clr-namespace:LiveChartsCore.Noesis;assembly=LiveChartsCore.Noesis"
+    xmlns:vms="clr-namespace:ViewModelsSamples.Heat.Basic;assembly=NoesisSample"
+    xmlns:draw="clr-namespace:LiveChartsCore.Noesis;assembly=LiveChartsCore.Noesis">
+
+    <UserControl.DataContext>
+        <vms:ViewModel/>
+    </UserControl.DataContext>
+
+    <lvc:CartesianChart
+        LegendPosition="Right">
+
+        <lvc:CartesianChart.Series>
+            <lvc:SeriesCollection>
+                <lvc:XamlHeatSeries
+                    Values="{Binding Values}"
+                    HeatMap="{lvc:ColorArray Values='#FFF176, #2F4F4F, #0000FF'}"/>
+            </lvc:SeriesCollection>
+        </lvc:CartesianChart.Series>
+
+        <lvc:CartesianChart.XAxes>
+            <lvc:AxesCollection>
+                <lvc:XamlAxis Labels="{Binding XLabels}"/>
+            </lvc:AxesCollection>
+        </lvc:CartesianChart.XAxes>
+
+        <lvc:CartesianChart.YAxes>
+            <lvc:AxesCollection>
+                <lvc:XamlAxis Labels="{Binding YLabels}"/>
+            </lvc:AxesCollection>
+        </lvc:CartesianChart.YAxes>
+
+        <lvc:CartesianChart.Legend>
+            <draw:HeatLegend BadgePadding="{lvc:Padding Value='30, 20, 8, 20'}"/>
+        </lvc:CartesianChart.Legend>
+
+    </lvc:CartesianChart>
+
+</UserControl>

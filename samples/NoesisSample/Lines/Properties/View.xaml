@@ -1,0 +1,59 @@
+<UserControl
+    x:Class="NoesisSample.Lines.Properties.View"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lvc="clr-namespace:LiveChartsCore.Noesis;assembly=LiveChartsCore.Noesis"
+    xmlns:vms="clr-namespace:ViewModelsSamples.Lines.Properties;assembly=NoesisSample"
+    xmlns:local="clr-namespace:NoesisSample.Lines.Properties">
+
+    <UserControl.DataContext>
+        <vms:ViewModel/>
+    </UserControl.DataContext>
+
+    <UserControl.Resources>
+        <local:StringToPaintConverter x:Key="StringToPaintConverter"/>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal">
+            <Button Command="{Binding ChangeValuesInstanceCommand}" Content="new values"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal">
+            <Button Command="{Binding NewFillCommand}" Content="fill"/>
+            <Button Command="{Binding NewStrokeCommand}" Content="stroke"/>
+            <Button Command="{Binding NewGeometryFillCommand}" Content="geo fill"/>
+            <Button Command="{Binding NewGeometryStrokeCommand}" Content="geom stroke"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal">
+            <Button Command="{Binding IncreaseLineSmoothnessCommand}" Content="+ smooth"/>
+            <Button Command="{Binding DecreaseLineSmoothnessCommand}" Content="- smooth"/>
+            <Button Command="{Binding IncreaseGeometrySizeCommand}" Content="+ size"/>
+            <Button Command="{Binding DecreaseGeometrySizeCommand}" Content="- size"/>
+        </StackPanel>
+
+        <lvc:CartesianChart Grid.Row="3">
+            <lvc:CartesianChart.Series>
+                <lvc:SeriesCollection>
+                    <lvc:XamlLineSeries
+                        Values="{Binding Values}"
+                        Stroke="{Binding Stroke, Converter={local:PaintConverter}}"
+                        Fill="{Binding Fill, Converter={local:PaintConverter}}"
+                        GeometryStroke="{Binding GeometryStroke, Converter={local:PaintConverter}}"
+                        GeometryFill="{Binding GeometryFill, Converter={local:PaintConverter}}"
+                        LineSmoothness="{Binding Smoothness}"
+                        GeometrySize="{Binding GeometrySize}"/>
+                </lvc:SeriesCollection>
+            </lvc:CartesianChart.Series>
+        </lvc:CartesianChart>
+    </Grid>
+
+</UserControl>

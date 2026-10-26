@@ -1,4 +1,4 @@
-﻿// The MIT License(MIT)
+// The MIT License(MIT)
 //
 // Copyright(c) 2021 Alberto Rodriguez Orozco & LiveCharts Contributors
 //
@@ -58,7 +58,7 @@ public static class UIPropertyTempaltes
             ? propertyType.Substring(0, propertyType.Length - 1)
             : propertyType;
 
-        var isXaml = template.Key is "Avalonia" or "WinUI" or "Maui" or "WPF";
+        var isXaml = template.Key is "Avalonia" or "WinUI" or "Maui" or "WPF" or "Noesis";
 
         // Type converters are a XAML-only concept (System.ComponentModel.TypeConverter is
         // consumed by XAML deserialization). The previous condition was just != "Avalonia",
@@ -79,7 +79,7 @@ public static class UIPropertyTempaltes
 // </auto-generated>
 
 #pragma warning disable CS0109 // Member does not hide an inherited member; new keyword is not required
-{(converter.Length > 0 ? "using LiveChartsCore.SkiaSharpView.TypeConverters;" : string.Empty)}
+{(converter.Length > 0 ? $"using {template.TypeConvertersNamespace};" : string.Empty)}
 {target.Headers}
 
 namespace {type.ContainingNamespace};

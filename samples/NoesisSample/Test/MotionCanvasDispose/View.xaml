@@ -1,0 +1,23 @@
+<UserControl x:Class="NoesisSample.Test.MotionCanvasDispose.View"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vms="clr-namespace:ViewModelsSamples.Test.Dispose;assembly=NoesisSample"
+             xmlns:sample="clr-namespace:NoesisSample.Test.MotionCanvasDispose">
+    <UserControl.DataContext>
+        <vms:ViewModel/>
+    </UserControl.DataContext>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+        </Grid.RowDefinitions>
+
+        <Button Grid.Row="0" Click="Button_Click">Change content</Button>
+
+        <ContentControl x:Name="content" Grid.Row="1">
+            <ContentControl.Content>
+                <sample:UserControl1></sample:UserControl1>
+            </ContentControl.Content>
+        </ContentControl>
+    </Grid>
+</UserControl>

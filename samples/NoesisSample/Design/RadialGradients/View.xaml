@@ -1,0 +1,31 @@
+<UserControl
+    x:Class="NoesisSample.Design.RadialGradients.View"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lvc="clr-namespace:LiveChartsCore.Noesis;assembly=LiveChartsCore.Noesis"
+    xmlns:vms="clr-namespace:ViewModelsSamples.Design.RadialGradients;assembly=NoesisSample">
+
+    <UserControl.DataContext>
+        <vms:ViewModel/>
+    </UserControl.DataContext>
+
+
+
+    <lvc:PieChart LegendPosition="Right">
+        <lvc:PieChart.Series>
+            <lvc:SeriesCollection>
+                <lvc:XamlPieSeries
+                    SeriesName="Maria"
+                    Values="{Binding MariaValues}"
+                    Pushout="10"
+                    OuterRadiusOffset="20"
+                    Fill="{lvc:RadialGradientPaint Colors='#B3E5FC, #01579B'}"/>
+                <lvc:XamlPieSeries
+                    SeriesName="Charles"
+                    Values="{Binding CharlesValues}"
+                    Fill="{lvc:RadialGradientPaint Colors='#FFCDD2, #B71C1C'}"/>
+            </lvc:SeriesCollection>
+        </lvc:PieChart.Series>
+    </lvc:PieChart>
+
+</UserControl>

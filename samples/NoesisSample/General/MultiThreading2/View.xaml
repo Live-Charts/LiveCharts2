@@ -1,0 +1,17 @@
+<UserControl
+    x:Class="NoesisSample.General.MultiThreading2.View"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lvc="clr-namespace:LiveChartsCore.Noesis;assembly=LiveChartsCore.Noesis">
+    <lvc:CartesianChart>
+        <lvc:CartesianChart.Series>
+            <lvc:SeriesCollection>
+                <lvc:XamlLineSeries
+                    Values="{Binding Values}"
+                    GeometryFill="{x:Null}"
+                    GeometryStroke="{x:Null}"
+                    LineSmoothness="0"/>
+            </lvc:SeriesCollection>
+        </lvc:CartesianChart.Series>
+    </lvc:CartesianChart>
+</UserControl>

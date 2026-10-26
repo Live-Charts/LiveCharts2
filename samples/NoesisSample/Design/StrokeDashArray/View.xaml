@@ -1,0 +1,29 @@
+<UserControl
+    x:Class="NoesisSample.Design.StrokeDashArray.View"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lvc="clr-namespace:LiveChartsCore.Noesis;assembly=LiveChartsCore.Noesis"
+    xmlns:vms="clr-namespace:ViewModelsSamples.Design.StrokeDashArray;assembly=NoesisSample">
+
+    <UserControl.DataContext>
+        <vms:ViewModel/>
+    </UserControl.DataContext>
+
+    <lvc:CartesianChart>
+        <lvc:CartesianChart.Series>
+            <lvc:SeriesCollection>
+                <lvc:XamlLineSeries
+                    Values="{Binding Values}"
+                    LineSmoothness="1"
+                    GeometrySize="22"
+                    Stroke="{lvc:SolidColorPaint
+                        Color='#6495ED',
+                        StrokeCap=Round,
+                        StrokeWidth=10,
+                        PathEffect={lvc:Dashed Array='30, 20'}}"
+                    Fill="{x:Null}"/>
+            </lvc:SeriesCollection>
+        </lvc:CartesianChart.Series>
+    </lvc:CartesianChart>
+
+</UserControl>

@@ -1,0 +1,16 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Color x:Key="Sample.Color.Background">#EFF3F8</Color>
+    <Color x:Key="Sample.Color.Surface">#FFFFFF</Color>
+    <Color x:Key="Sample.Color.Foreground">#182638</Color>
+    <Color x:Key="Sample.Color.Muted">#53657B</Color>
+    <Color x:Key="Sample.Color.Border">#D5DEE9</Color>
+    <Color x:Key="Sample.Color.Grid">#E3EAF2</Color>
+
+    <SolidColorBrush x:Key="Sample.Background" Color="{DynamicResource Sample.Color.Background}" />
+    <SolidColorBrush x:Key="Sample.Surface" Color="{DynamicResource Sample.Color.Surface}" />
+    <SolidColorBrush x:Key="Sample.Foreground" Color="{DynamicResource Sample.Color.Foreground}" />
+    <SolidColorBrush x:Key="Sample.Muted" Color="{DynamicResource Sample.Color.Muted}" />
+    <SolidColorBrush x:Key="Sample.Border" Color="{DynamicResource Sample.Color.Border}" />
+</ResourceDictionary>

@@ -1,4 +1,4 @@
-﻿// The MIT License(MIT)
+// The MIT License(MIT)
 //
 // Copyright(c) 2021 Alberto Rodriguez Orozco & LiveCharts Contributors
 //
@@ -31,6 +31,9 @@ public abstract class FrameworkTemplate(FrameworkTemplate.Context context)
 {
     public Context ActiveContext => context;
     public abstract string Key { get; }
+
+    /// <summary>Gets the namespace for generated type converters.</summary>
+    public virtual string TypeConvertersNamespace => "LiveChartsCore.SkiaSharpView.TypeConverters";
 
     public string GetBindablePropertySyntax(XamlObject target, string key, IPropertySymbol property, BindablePropertyInitializer? initializer = null) =>
         GetBindablePropertySyntax(target, key, property.Name, property.Type.ToDisplayString(), property.Type.IsValueType, initializer);

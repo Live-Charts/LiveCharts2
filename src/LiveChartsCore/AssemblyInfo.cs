@@ -1,4 +1,4 @@
-﻿// The MIT License(MIT)
+// The MIT License(MIT)
 //
 // Copyright(c) 2021 Alberto Rodriguez Orozco & LiveCharts Contributors
 //
@@ -34,6 +34,8 @@ using System.Reflection;
 
 #else
 
+[assembly: InternalsVisibleTo("LiveChartsCore.Noesis")]
+[assembly: InternalsVisibleTo("NoesisNativeTests")]
 [assembly: InternalsVisibleTo("CoreTests")]
 [assembly: InternalsVisibleTo("SnapshotTests")]
 [assembly: InternalsVisibleTo("Benchmarks")]
@@ -42,6 +44,7 @@ using System.Reflection;
 [assembly: InternalsVisibleTo("LiveChartsCore.BackersPackage")]
 [assembly: InternalsVisibleTo("LiveChartsCore.SkiaSharpView.WinForms")]
 [assembly: InternalsVisibleTo("LiveChartsCore.SkiaSharpView.WPF")]
+[assembly: InternalsVisibleTo("LiveChartsCore.SkiaSharpView.Noesis")]
 [assembly: InternalsVisibleTo("LiveChartsCore.SkiaSharpView.Avalonia")]
 [assembly: InternalsVisibleTo("LiveChartsCore.SkiaSharpView.WinUI")]
 [assembly: InternalsVisibleTo("LiveChartsCore.SkiaSharpView.Uno")]

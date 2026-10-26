@@ -1,0 +1,63 @@
+<UserControl
+    x:Class="NoesisSample.General.ConditionalDraw.View"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lvc="clr-namespace:LiveChartsCore.Noesis;assembly=LiveChartsCore.Noesis"
+    xmlns:vms="clr-namespace:ViewModelsSamples.General.ConditionalDraw;assembly=NoesisSample">
+
+    <UserControl.DataContext>
+        <vms:ViewModel/>
+    </UserControl.DataContext>
+
+    <lvc:CartesianChart TooltipPosition="Bottom">
+
+        <lvc:CartesianChart.Series>
+            <lvc:SeriesCollection>
+                <lvc:XamlColumnSeries
+                    ShowDataLabels="True"
+                    DataLabelsSize="15"
+                    Values="{Binding Values}"
+                    PointMeasuredCommand="{Binding PointMeasuredCommand}">
+
+
+
+                    <lvc:XamlColumnSeries.AdditionalVisualStates>
+
+
+                        <lvc:ChartPointState Name="Danger">
+                            <lvc:ChartPointState.Setters>
+                                <lvc:Set
+                                    PropertyName="Fill"
+                                    Value="{lvc:SolidColorPaint Color='#f00'}"/>
+                            </lvc:ChartPointState.Setters>
+                        </lvc:ChartPointState>
+
+                        <lvc:ChartPointState Name="LabelDanger">
+                            <lvc:ChartPointState.Setters>
+                                <lvc:Set
+                                    PropertyName="Paint"
+                                    Value="{lvc:SolidColorPaint Color='#f00'}"/>
+                                <lvc:Set
+                                    PropertyName="TextSize"
+                                    Value="30"/>
+                            </lvc:ChartPointState.Setters>
+                        </lvc:ChartPointState>
+
+
+                        <lvc:ChartPointState Name="Hover">
+                            <lvc:ChartPointState.Setters>
+                                <lvc:Set
+                                    PropertyName="DropShadow"
+                                    Value="{lvc:Shadow Value='4, 16, #00f'}"/>
+                            </lvc:ChartPointState.Setters>
+                        </lvc:ChartPointState>
+
+                    </lvc:XamlColumnSeries.AdditionalVisualStates>
+
+                </lvc:XamlColumnSeries>
+            </lvc:SeriesCollection>
+        </lvc:CartesianChart.Series>
+
+    </lvc:CartesianChart>
+
+</UserControl>

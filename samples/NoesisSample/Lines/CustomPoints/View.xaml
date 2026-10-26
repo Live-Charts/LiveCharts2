@@ -1,0 +1,27 @@
+<UserControl
+    x:Class="NoesisSample.Lines.CustomPoints.View"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lvc="clr-namespace:LiveChartsCore.Noesis;assembly=LiveChartsCore.Noesis"
+    xmlns:vms="clr-namespace:ViewModelsSamples.Lines.CustomPoints;assembly=NoesisSample"
+    xmlns:local="clr-namespace:NoesisSample.Lines.CustomPoints">
+
+    <UserControl.DataContext>
+        <vms:ViewModel/>
+    </UserControl.DataContext>
+
+    <lvc:CartesianChart>
+        <lvc:CartesianChart.Series>
+            <lvc:SeriesCollection>
+                <local:CustomArrowLineSeries
+                    GeometrySize="50"
+                    GeometryStroke="{x:Null}"
+                    GeometryFill="{lvc:SolidColorPaint Color='#C71585'}"
+                    Fill="{x:Null}"
+                    Values="{Binding Values}"
+                    PointMeasuredCommand="{Binding PointMeasuredCommand}"/>
+            </lvc:SeriesCollection>
+        </lvc:CartesianChart.Series>
+    </lvc:CartesianChart>
+
+</UserControl>

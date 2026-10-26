@@ -1,4 +1,4 @@
-﻿// The MIT License(MIT)
+// The MIT License(MIT)
 //
 // Copyright(c) 2021 Alberto Rodriguez Orozco & LiveCharts Contributors
 //
@@ -48,6 +48,8 @@ using Microsoft.UI.Xaml;
 
 #if WPF_LVC
 using System.Windows;
+#elif NOESIS_LVC
+using Noesis;
 #endif
 
 #if SKIA_IMAGE_LVC
@@ -144,8 +146,10 @@ public partial class SourceGenChart
     /// <inheritdoc cref="IChartView.TooltipTextSize"/>
     static UIProperty<double>                     tooltipTextSize         = new(d.TooltipTextSize,        OnChartPropertyChanged);
 
+#if !NOESIS_LVC
     /// <inheritdoc cref="IChartView.SyncContext"/>
     static UIProperty<object>                     syncContext             = new(onChanged: OnSyncContextChanged);
+#endif
 
     /// <inheritdoc cref="IChartView.Title"/>
     static UIProperty<IChartElement?>             title                   = new(onChanged: OnObservedPropertyChanged(nameof(Title)));
@@ -168,6 +172,13 @@ public partial class SourceGenChart
 
     static void OnSeriesSourceChanged(SGChart chart)
     {
+#if NOESIS_LVC
+        if (!chart._isObserving)
+        {
+            return;
+        }
+#endif
+
         if (chart._observer is null)
             throw new InvalidOperationException("The chart observer is not initialized.");
 
@@ -225,6 +236,13 @@ public partial class SourceGenChart
         string propertyName, object? oldValue = null, object? newValue = null) =>
             (chart, o, n) =>
             {
+#if NOESIS_LVC
+                if (!chart._isObserving)
+                {
+                    return;
+                }
+#endif
+
                 if (chart._observer is null)
                     throw new InvalidOperationException("The chart observer is not initialized.");
 
