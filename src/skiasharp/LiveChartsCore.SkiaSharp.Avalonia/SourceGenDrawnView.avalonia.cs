@@ -21,12 +21,14 @@
 // SOFTWARE.
 
 using System;
+using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Rendering;
 using Avalonia.Styling;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using LiveChartsCore.Drawing;
 using LiveChartsCore.Motion;
 using LiveChartsCore.SkiaSharpView.Avalonia;
@@ -37,6 +39,8 @@ namespace LiveChartsGeneratedCode;
 public abstract partial class SourceGenDrawnView : UserControl, ICustomHitTest
 {
     private bool _wasInViewport;
+    private bool _wasEffectivelyVisible;
+    private readonly List<Visual> _visibilitySources = [];
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SourceGenDrawnView"/> class.
@@ -46,9 +50,14 @@ public abstract partial class SourceGenDrawnView : UserControl, ICustomHitTest
         Content = new MotionCanvas();
 
         SizeChanged += (_, _) => OnDrawnViewSizeChanged();
-        AttachedToVisualTree += (_, _) => OnDrawnViewLoaded();
+        AttachedToVisualTree += (_, _) =>
+        {
+            OnDrawnViewLoaded();
+            WatchVisibility();
+        };
         DetachedFromVisualTree += (_, _) =>
         {
+            UnwatchVisibility();
             OnDrawnViewUnloaded();
             _wasInViewport = false;
         };
@@ -103,6 +112,42 @@ public abstract partial class SourceGenDrawnView : UserControl, ICustomHitTest
             OnDrawnViewReturnedToViewport();
         }
         _wasInViewport = nowInViewport;
+    }
+
+    // Fix for https://github.com/Live-Charts/LiveCharts2/issues/2405
+    // While the chart or an ancestor has IsVisible=false, MotionCanvas stops asking for frames and no frame is drawn,
+    // so Chart.IsRendering() blocks the measure as in #1986. Showing a hidden ancestor does not raise
+    // EffectiveViewportChanged, and Visual.IsEffectivelyVisibleChanged is internal, so watch IsVisible on this control
+    // and its ancestors (they only change through a detach/attach) and catch up as when returning to the viewport.
+    private void WatchVisibility()
+    {
+        PropertyChanged += OnVisibilitySourceChanged;
+        for (var v = this.GetVisualParent(); v is not null; v = v.GetVisualParent())
+        {
+            v.PropertyChanged += OnVisibilitySourceChanged;
+            _visibilitySources.Add(v);
+        }
+        _wasEffectivelyVisible = IsEffectivelyVisible;
+    }
+
+    private void UnwatchVisibility()
+    {
+        PropertyChanged -= OnVisibilitySourceChanged;
+        foreach (var v in _visibilitySources) v.PropertyChanged -= OnVisibilitySourceChanged;
+        _visibilitySources.Clear();
+    }
+
+    private void OnVisibilitySourceChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Property != IsVisibleProperty) return;
+        var isEffectivelyVisible = IsEffectivelyVisible;
+        if (isEffectivelyVisible && !_wasEffectivelyVisible)
+        {
+            CoreCanvas.NotifyPlatformVisible();
+            CanvasView.InvalidateVisual();
+            OnDrawnViewReturnedToViewport();
+        }
+        _wasEffectivelyVisible = isEffectivelyVisible;
     }
 
     /// <summary>

@@ -132,6 +132,38 @@ public class CartesianChartTests
         await Task.Delay(1000);
         Assert.ChartIsLoaded(sut.Chart1);
     }
+
+    // based on:
+    // https://github.com/Live-Charts/LiveCharts2/issues/2405
+    // a chart updated while hidden must not make the window redraw every frame,
+    // and must draw all its points once it is shown again.
+
+    [AppTestMethod]
+    public async Task HiddenChartUpdatesDoNotRedrawEveryFrame()
+    {
+        var sut = await App.NavigateTo<Samples.VisualTest.Issue2405Repro.View>();
+        await Task.Delay(1000);
+
+        sut.HideBackChart();
+        await Task.Delay(300);
+        sut.AddBackValue();
+        await Task.Delay(400);
+        sut.AddBackValue();
+        await Task.Delay(400);
+
+        // the front chart has no change of its own; before the fix it drew ~60 frames a second here.
+        var frontFrames = 0;
+        void OnFrontValidated(LiveChartsCore.Motion.CoreMotionCanvas _) => frontFrames++;
+        sut.FrontChart.CoreCanvas.Validated += OnFrontValidated;
+        await Task.Delay(1000);
+        sut.FrontChart.CoreCanvas.Validated -= OnFrontValidated;
+        Assert.True(frontFrames < 10, $"the front chart drew {frontFrames} frames in 1 s");
+
+        // before the fix the second value added while hidden was never measured.
+        sut.ShowBackChart();
+        await Task.Delay(1000);
+        Assert.ChartIsLoaded(sut.BackChart);
+    }
 #endif
 
 #if BLAZOR_UI_TESTING
