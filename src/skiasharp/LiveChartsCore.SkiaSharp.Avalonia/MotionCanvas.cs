@@ -77,7 +77,10 @@ public class MotionCanvas : UserControl
 
         context.Custom(new ChartFrameOperation(CanvasCore, Bounds, GetBackground()));
 
-        if (CanvasCore.IsValid) return;
+        // Avalonia still calls Render on a hidden control (own or ancestor IsVisible=false) but never draws it, so the
+        // canvas would never become valid and this would re-invalidate every frame. SourceGenDrawnView invalidates
+        // again when the chart is shown. https://github.com/Live-Charts/LiveCharts2/issues/2405
+        if (CanvasCore.IsValid || !IsEffectivelyVisible) return;
         _ = Dispatcher.UIThread.InvokeAsync(InvalidateVisual, DispatcherPriority.Background);
     }
 
