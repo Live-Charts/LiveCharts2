@@ -1,4 +1,4 @@
-﻿<Project Sdk="Uno.Sdk/7.0.0-dev.87">
+﻿<Project Sdk="Uno.Sdk/7.0.5">
   
   <PropertyGroup>
     <UnoSingleProject>true</UnoSingleProject>
@@ -62,6 +62,8 @@
   -->
   <PropertyGroup>
     <UnoFeatures>$(UnoFeatures);Skia</UnoFeatures>
+    <!-- Uno 7 only adds SkiaSharp.Views.WinUI to the Windows build with this opt-in. -->
+    <UnoEnableSkiaOnWinAppSdk>true</UnoEnableSkiaOnWinAppSdk>
   </PropertyGroup>
 
   <ItemGroup>
