@@ -38,11 +38,15 @@ public class SvgLabel : LabelGeometry
         {
             Color = SKColors.WhiteSmoke,
             Style = SKPaintStyle.Fill,
-            TextSize = 16,
-            FakeBoldText = true,
             IsAntialias = true
         };
 
-        context.Canvas.DrawText(Name, X, Y - 10, textPaint);
+        using var textFont = new SKFont
+        {
+            Size = 16,
+            Embolden = true
+        };
+
+        context.Canvas.DrawText(Name, X, Y - 10, textFont, textPaint);
     }
 }

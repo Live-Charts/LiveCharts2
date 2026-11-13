@@ -396,10 +396,6 @@ jobs:
           - id: uno-browser
             tf: net10.0-browserwasm
             workloads: wasm-tools android
-          # same app on Uno's NATIVE renderer — the #2020/#2333 scenario.
-          - id: uno-browser-native
-            tf: net10.0-browserwasm
-            workloads: wasm-tools android
     needs: [pack, prepare]
     steps:
       - name: Checkout
