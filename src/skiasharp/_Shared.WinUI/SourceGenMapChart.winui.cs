@@ -40,6 +40,7 @@ namespace LiveChartsGeneratedCode;
 public abstract partial class SourceGenMapChart : UserControl, IGeoMapView
 {
     private static readonly bool s_isWebAssembly = RuntimeInformation.IsOSPlatform(OSPlatform.Create("BROWSER"));
+    private bool _wasInViewport;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SourceGenMapChart"/> class.
@@ -55,6 +56,7 @@ public abstract partial class SourceGenMapChart : UserControl, IGeoMapView
 
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
+        EffectiveViewportChanged += OnEffectiveViewportChanged;
     }
 
     private MotionCanvas MotionCanvas => (MotionCanvas)Content;
@@ -68,8 +70,29 @@ public abstract partial class SourceGenMapChart : UserControl, IGeoMapView
     private void OnLoaded(object sender, RoutedEventArgs e) =>
         CoreChart?.Load();
 
-    private void OnUnloaded(object sender, RoutedEventArgs e) =>
+    private void OnUnloaded(object sender, RoutedEventArgs e)
+    {
         CoreChart?.Unload();
+        _wasInViewport = false;
+    }
+
+    // Same as SourceGenChart.OnEffectiveViewportChanged, see
+    // https://github.com/Live-Charts/LiveCharts2/issues/1986
+    private void OnEffectiveViewportChanged(FrameworkElement sender, EffectiveViewportChangedEventArgs e)
+    {
+        var vp = e.EffectiveViewport;
+        var nowInViewport =
+            vp.Width > 0 && vp.Height > 0 &&
+            vp.X < ActualWidth && vp.X + vp.Width > 0 &&
+            vp.Y < ActualHeight && vp.Y + vp.Height > 0;
+
+        if (nowInViewport && !_wasInViewport)
+        {
+            CoreCanvas.NotifyPlatformVisible();
+            CoreChart?.Update();
+        }
+        _wasInViewport = nowInViewport;
+    }
 
     void IGeoMapView.InvokeOnUIThread(Action action)
     {
