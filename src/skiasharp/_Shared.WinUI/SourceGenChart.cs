@@ -92,6 +92,9 @@ public abstract partial class SourceGenChart : SourceGenDrawnView, IChartView
         CoreChart.Unload();
     }
 
+    /// <inheritdoc />
+    protected override void OnDrawnViewReturnedToViewport() => CoreChart?.Update();
+
     private void OnActualThemeChanged(FrameworkElement sender, object args) =>
         CoreChart.ApplyTheme();
 

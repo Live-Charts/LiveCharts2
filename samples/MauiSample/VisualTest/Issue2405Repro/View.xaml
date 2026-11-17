@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="MauiSample.VisualTest.Issue2405Repro.View"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Maui;assembly=LiveChartsCore.SkiaSharpView.Maui">
+
+    <!--
+    Reproducer for https://github.com/Live-Charts/LiveCharts2/issues/2405: two charts in the
+    same cell. Hide the back chart's host, add values to the back chart: the front chart should
+    not redraw, and once the host is visible again the back chart should draw all its points.
+    -->
+
+    <Grid>
+        <ContentView x:Name="backHost">
+            <lvc:CartesianChart x:Name="backChart" />
+        </ContentView>
+        <lvc:CartesianChart x:Name="frontChart" />
+    </Grid>
+</ContentPage>

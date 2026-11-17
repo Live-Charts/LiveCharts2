@@ -105,10 +105,12 @@ public class CartesianChartTests
     }
 #endif
 
-#if AVALONIA_UI_TESTING
+#if AVALONIA_UI_TESTING || WINUI_UI_TESTING || UNO_UI_TESTING
     // based on:
     // https://github.com/Live-Charts/LiveCharts2/issues/1986
-    // ensure charts load when avalonia virtualization is on.
+    // ensure charts whose data arrives while they are off-screen load once scrolled into view.
+    // avalonia: virtualization. uno 7: elements outside the viewport are not painted, so the
+    // chart renders no frame and skips its measure until the view tells it it is visible.
 
     [AppTestMethod]
     public async Task TabControlScrollViewerRendersAfterTabSwitch()
@@ -117,6 +119,12 @@ public class CartesianChartTests
 
         // wait for the async data load (~1s, simulates a server fetch).
         await Task.Delay(1500);
+
+        // the data arrived while chart1 was below the fold; scroll to it without
+        // switching tabs (a tab switch reloads the content, which hides the bug).
+        sut.ScrollToChart();
+        await Task.Delay(1000);
+        Assert.ChartIsLoaded(sut.Chart1);
 
         // open the second tab, scroll to end and ensure the chart is loaded.
         sut.OpenTab2();
@@ -131,6 +139,40 @@ public class CartesianChartTests
         sut.ScrollToChart();
         await Task.Delay(1000);
         Assert.ChartIsLoaded(sut.Chart1);
+    }
+#endif
+
+#if AVALONIA_UI_TESTING || WINUI_UI_TESTING || UNO_UI_TESTING || MAUI_UI_TESTING || WPF_UI_TESTING || WINFORMS_UI_TESTING || ETO_UI_TESTING || BLAZOR_UI_TESTING
+    // based on:
+    // https://github.com/Live-Charts/LiveCharts2/issues/2405
+    // a chart updated while hidden must not make the window redraw every frame,
+    // and must draw all its points once it is shown again.
+
+    [AppTestMethod]
+    public async Task HiddenChartUpdatesDoNotRedrawEveryFrame()
+    {
+        var sut = await App.NavigateTo<Samples.VisualTest.Issue2405Repro.View>();
+        await Task.Delay(1000);
+
+        sut.HideBackChart();
+        await Task.Delay(300);
+        sut.AddBackValue();
+        await Task.Delay(400);
+        sut.AddBackValue();
+        await Task.Delay(400);
+
+        // the front chart has no change of its own; before the fix it drew ~60 frames a second here.
+        var frontFrames = 0;
+        void OnFrontValidated(LiveChartsCore.Motion.CoreMotionCanvas _) => frontFrames++;
+        sut.FrontChart.CoreCanvas.Validated += OnFrontValidated;
+        await Task.Delay(1000);
+        sut.FrontChart.CoreCanvas.Validated -= OnFrontValidated;
+        Assert.True(frontFrames < 10, $"the front chart drew {frontFrames} frames in 1 s");
+
+        // before the fix the second value added while hidden was never measured.
+        sut.ShowBackChart();
+        await Task.Delay(1000);
+        Assert.ChartIsLoaded(sut.BackChart);
     }
 #endif
 
@@ -159,13 +201,13 @@ public class CartesianChartTests
 #if (WPF_UI_TESTING && TEST_HA_VIEWS) || MAUI_UI_TESTING || WINUI_UI_TESTING || (UNO_UI_TESTING && HAS_OS_LVC && !LVC_UNO_SKIA)
     // native platforms where gpu is supported.
     //
-    // The Uno arm of this gate excludes builds with the Uno SkiaRenderer
-    // feature enabled: under Uno-Skia the chart renders through
-    // Uno.WinUI.Graphics2DSK's SKCanvasElement (no native XAML
-    // hardware-accelerated element), so RendererName never contains "GPU"
-    // and this test can't satisfy the assertion. HAS_OS_LVC alone is the
-    // wrong signal for "GPU is available" now that Uno-Skia is the common
-    // setup on mobile.
+    // The Uno arm of this gate excludes the heads that render through Uno's
+    // Skia pipeline (LVC_UNO_SKIA, defined by the Uno sample for every head
+    // but Windows App SDK; Uno Platform 7 has no native renderer anymore):
+    // there the chart draws through SKCanvasElement (no hardware-accelerated
+    // view), so RendererName never contains "GPU" and this test can't satisfy
+    // the assertion. HAS_OS_LVC alone is the wrong signal for "GPU is
+    // available": it is set for -android/-ios target frameworks too.
 
     [AppTestMethod]
     public async Task ShouldLoadHardwareAcceleratedView()

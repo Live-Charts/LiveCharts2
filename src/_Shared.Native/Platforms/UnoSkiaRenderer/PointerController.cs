@@ -45,6 +45,11 @@ internal partial class PointerController : INativePointerController
     private LiveChartsCore.Drawing.LvcPoint _lastPointerPosition;
     private DateTime _pressedTime;
 
+    // Only the desktop heads capture the pointer. This used to be the net*-desktop build
+    // (DESKTOP); a single net10.0 build now serves every head, so it is checked at run time.
+    private static readonly bool s_capturesPointer =
+        OperatingSystem.IsWindows() || OperatingSystem.IsLinux() || OperatingSystem.IsMacOS();
+
     public void InitializeController(object view)
     {
         var winUIView = (UIElement)view;
@@ -85,9 +90,8 @@ internal partial class PointerController : INativePointerController
         var p = e.GetCurrentPoint(element);
         if (p is null) return;
 
-#if UnoSkia || DESKTOP
-        _ = element.CapturePointer(e.Pointer);
-#endif
+        if (s_capturesPointer)
+            _ = element.CapturePointer(e.Pointer);
 
         _isPointerDown = true;
         _wasSecondaryPress = p.Properties.IsRightButtonPressed;
@@ -122,9 +126,8 @@ internal partial class PointerController : INativePointerController
         var p = e.GetCurrentPoint(element);
         if (p is null) return;
 
-#if UnoSkia || DESKTOP
-        element.ReleasePointerCapture(element.PointerCaptures[0]);
-#endif
+        if (s_capturesPointer)
+            element.ReleasePointerCapture(element.PointerCaptures[0]);
 
         _isPointerDown = false;
         _lastPointerPosition = new(p.Position.X, p.Position.Y);

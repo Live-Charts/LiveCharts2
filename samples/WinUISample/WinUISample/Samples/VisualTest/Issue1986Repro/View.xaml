@@ -1,0 +1,71 @@
+<UserControl
+    x:Class="WinUISample.VisualTest.Issue1986Repro.View"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lvc="using:LiveChartsCore.SkiaSharpView.WinUI">
+
+    <!--
+    Reproducer for https://github.com/Live-Charts/LiveCharts2/issues/1986, same layout as the
+    Avalonia one: charts inside a TabView + ScrollViewer whose data arrives asynchronously
+    (after a delay, like a server fetch) while they are still below the fold.
+
+    Uno Platform 7 does not paint elements outside the viewport, so a chart that gets its data
+    off-screen renders no frame and its measure is skipped; without the fix it stayed empty
+    after being scrolled into view.
+    -->
+
+    <TabView x:Name="tabs" IsAddTabButtonVisible="False">
+        <TabViewItem Header="Tab 1" IsClosable="False">
+            <ScrollViewer>
+                <StackPanel Spacing="12" Margin="8">
+                    <TextBlock Text="Cartesian A (visible at top of tab)" FontWeight="Bold" />
+                    <lvc:CartesianChart Height="260" Series="{Binding CartesianA}" />
+
+                    <Border Height="500" Background="#1E88E5" CornerRadius="4">
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            Foreground="White"
+                            Text="Spacer, scroll down to see more charts" />
+                    </Border>
+
+                    <TextBlock Text="Cartesian B (off-screen until you scroll)" FontWeight="Bold" />
+                    <lvc:CartesianChart Height="260" Series="{Binding CartesianB}" />
+
+                    <TextBlock Text="Pie A (off-screen until you scroll)" FontWeight="Bold" />
+                    <lvc:PieChart Height="260" Series="{Binding PieA}" />
+
+                    <TextBlock Text="Cartesian C (off-screen until you scroll)" FontWeight="Bold" />
+                    <lvc:CartesianChart x:Name="chart1" Height="260" Series="{Binding CartesianC}" />
+                </StackPanel>
+            </ScrollViewer>
+        </TabViewItem>
+
+        <TabViewItem Header="Tab 2" IsClosable="False">
+            <ScrollViewer>
+                <StackPanel Spacing="12" Margin="8">
+                    <TextBlock Text="Cartesian A copy (visible at top of tab)" FontWeight="Bold" />
+                    <lvc:CartesianChart Height="260" Series="{Binding CartesianA}" />
+
+                    <Border Height="500" Background="#43A047" CornerRadius="4">
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            Foreground="White"
+                            Text="Spacer, scroll down to see more charts" />
+                    </Border>
+
+                    <TextBlock Text="Cartesian B copy (off-screen until you scroll)" FontWeight="Bold" />
+                    <lvc:CartesianChart Height="260" Series="{Binding CartesianB}" />
+
+                    <TextBlock Text="Pie B (off-screen until you scroll)" FontWeight="Bold" />
+                    <lvc:PieChart Height="260" Series="{Binding PieB}" />
+
+                    <TextBlock Text="Cartesian C copy (off-screen until you scroll)" FontWeight="Bold" />
+                    <lvc:CartesianChart x:Name="chart2" Height="260" Series="{Binding CartesianC}" />
+                </StackPanel>
+            </ScrollViewer>
+        </TabViewItem>
+    </TabView>
+
+</UserControl>

@@ -34,7 +34,12 @@
     <UITesting>false</UITesting>
     <NoWarnUITests>$(NoWarn);NETSDK1198;NU1701;XC0022;XA0141;XAAADB0000;CS0067;CS0414;CS0108;CS0618;CS4014;CS8600;CS8601;CS8602;CS8603;CS8612;CS8618;CS8622;CS8625;CS8629;CS9264;</NoWarnUITests>
     <!-- Factos version https://github.com/beto-rodriguez/Factos -->
-    <FactosVersion>0.9.0</FactosVersion>
+    <FactosVersion>0.10.0</FactosVersion>
+    <!--
+    Factos.Uno 0.10.0 is built for Uno Platform 7 only (0.9.0 is the last Uno 6 build);
+    kept separate from FactosVersion so the Uno sample can follow its Uno major version.
+    -->
+    <FactosUnoVersion>0.10.0</FactosUnoVersion>
 
     <!-- Useful to toggle between using project references or nuget references -->
     <UseNuGetForSamples>false</UseNuGetForSamples>
@@ -63,17 +68,6 @@
     )">
     <DefineConstants>$(DefineConstants);HAS_OS_LVC</DefineConstants>
     <HasOS>true</HasOS>
-  </PropertyGroup>
-
-  <!--
-  Defined for any project whose own UnoFeatures includes SkiaRenderer, i.e.
-  this build path uses Uno's Skia rendering pipeline instead of native XAML.
-  Used by shared tests / shared sources to skip code that depends on a native
-  hardware-accelerated XAML element (e.g. SKXamlCanvas with GL backing), which
-  doesn't exist under Uno-Skia.
-  -->
-  <PropertyGroup Condition="'$(UnoFeatures)' != '' and $(UnoFeatures.Contains('SkiaRenderer'))">
-    <DefineConstants>$(DefineConstants);LVC_UNO_SKIA</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="$(DebugCodeGeneration)">
