@@ -112,6 +112,8 @@ TestRecord[] toTest = [
     // was disabled. A separate uid because the `uno` record is shared by the
     // desktop/windows/android target frameworks, which need the Auto host.
     new($"{root}/{unoDir}",                     "uno-browser",          [..msBuildArgs, tf_var],                AppHost.HeadlessChrome),
+    // iOS needs the simulator build args (device, interpreter, --quiet-simulator) like the other iOS apps.
+    new($"{root}/{unoDir}",                     "uno-ios",              [..iphoneBuild, tf_var, new("RuntimeIdentifier", "iossimulator-arm64")]),
 
     new($"{root}/WinUISample/WinUISample",      "winui",                winUIArgs),
     new($"{root}/EtoFormsSample",               "eto",                  msBuildArgs),

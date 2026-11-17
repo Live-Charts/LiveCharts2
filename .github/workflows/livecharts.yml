@@ -451,10 +451,12 @@ jobs:
           - id: maui-ios
             tf: net10.0-ios
             workloads: maui
-          # disabled for now, in this uno version, it takes 3 times longer than the others (about 40 mins)
-          # - id: uno
-          #   tf: net10.0-ios
-          #   workloads: ios android
+          # uno-ios, not uno: it needs the simulator build args the other iOS apps get
+          # (interpreter, device, --quiet-simulator). Without them this job took ~40 min
+          # and was disabled; locally it now builds cold in under a minute.
+          - id: uno-ios
+            tf: net10.0-ios
+            workloads: ios android
     needs: [pack, prepare]
     steps:
       - name: Checkout
