@@ -319,7 +319,7 @@ public class CoreMotionCanvas : IDisposable
         if (style != PaintStyle.Undefined)
             task.PaintStyle = style;
 
-        Zones[zone].AddTask(task);
+        lock (Sync) Zones[zone].AddTask(task);
     }
 
     /// <summary>
@@ -343,10 +343,15 @@ public class CoreMotionCanvas : IDisposable
     {
         var task = new DrawnTask(this, geometries);
 
-        if (!TryGetValue(zone, out var canvasZone))
-            throw new ArgumentOutOfRangeException(nameof(zone), zone, "The canvas zone does not exist.");
+        // the zone lookup is inside the lock too: Clear/Dispose replace Zones, and a task added to
+        // the old array would never be drawn.
+        lock (Sync)
+        {
+            if (!TryGetValue(zone, out var canvasZone))
+                throw new ArgumentOutOfRangeException(nameof(zone), zone, "The canvas zone does not exist.");
 
-        canvasZone.AddTask(task);
+            canvasZone.AddTask(task);
+        }
 
         return task;
     }
@@ -369,17 +374,23 @@ public class CoreMotionCanvas : IDisposable
     /// <param name="task">The task.</param>
     public void RemovePaintTask(Paint task)
     {
-        // DisposePaints fires the OnDisposed hook — needed for geometries that hold cached
-        // native resources (e.g. VectorGeometry's SKPath) even if they don't own their own
-        // paints. DisposePaints null-checks the paints internally.
-        foreach (var geometry in task.GetGeometries(this))
-            geometry.DisposePaints();
+        // Under Sync, like DrawFrame: on platforms that draw on another thread (Avalonia's
+        // render thread) this runs on the UI thread, e.g. from Unload or a paint setter, and
+        // disposing the native paints while a frame draws them crashed in SkiaSharp.
+        lock (Sync)
+        {
+            // DisposePaints fires the OnDisposed hook — needed for geometries that hold cached
+            // native resources (e.g. VectorGeometry's SKPath) even if they don't own their own
+            // paints. DisposePaints null-checks the paints internally.
+            foreach (var geometry in task.GetGeometries(this))
+                geometry.DisposePaints();
 
-        task.ReleaseCanvas(this);
+            task.ReleaseCanvas(this);
 
-        foreach (var zone in Zones)
-            if (zone.RemoveTask(task))
-                break;
+            foreach (var zone in Zones)
+                if (zone.RemoveTask(task))
+                    break;
+        }
     }
 
     /// <summary>
@@ -387,7 +398,7 @@ public class CoreMotionCanvas : IDisposable
     /// </summary>
     public void Clear()
     {
-        Clean();
+        lock (Sync) Clean(); // see RemovePaintTask
         Invalidate();
     }
 
