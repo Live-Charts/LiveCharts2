@@ -76,7 +76,11 @@ MSBuildArg[] iphoneBuild = [
     new("MTouchUseLlvm", "false"),
     new("MtouchLink", "SdkOnly"),
     new("RunAOTCompilation", "false"),
-    new("UseInterpreter", "true")
+    new("UseInterpreter", "true"),
+    // `dotnet run` launches the app with mlaunch, which opens Simulator.app first by default.
+    // That shuts down the simulator the workflow booted headless, so the first install always
+    // failed with HE0046 "Unable to lookup in current state: Shutdown" and only the retry passed.
+    new("MlaunchAdditionalArgumentsProperty", "--quiet-simulator")
 ];
 MSBuildArg[] winUIArgs = [
     .. msBuildArgs,
@@ -143,7 +147,11 @@ foreach (var testRecord in toTest)
 testsBuilder
     .AddFactos(new FactosSettings()
     {
-        ConnectionTimeout = 300,
+        // Per app, counted after the build until the app reports all its results; enforced
+        // since Factos 0.10 (it never fired before). Every non-iOS app finishes in about a
+        // minute; iOS needs more for the simulator's first app launch. It must stay below the
+        // CI step timeout (15 min) minus the build, so a hang ends as a failed test run.
+        ConnectionTimeout = 600,
         TestedApps = testedApps
     })
     .AddTrxReportProvider();
