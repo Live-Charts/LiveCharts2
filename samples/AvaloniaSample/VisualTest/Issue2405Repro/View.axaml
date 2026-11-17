@@ -1,0 +1,21 @@
+<UserControl
+    x:Class="AvaloniaSample.VisualTest.Issue2405Repro.View"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia">
+
+    <!--
+        Reproducer for https://github.com/Live-Charts/LiveCharts2/issues/2405
+
+        Two charts in the same cell. Hide the back chart's Border, add values to the back chart:
+        the front chart should not redraw (it has no change of its own), and once the Border is
+        shown again the back chart should draw all its points.
+    -->
+
+    <Grid>
+        <Border x:Name="backHost">
+            <lvc:CartesianChart x:Name="backChart" />
+        </Border>
+        <lvc:CartesianChart x:Name="frontChart" />
+    </Grid>
+</UserControl>
