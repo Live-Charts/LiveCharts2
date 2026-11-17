@@ -29,6 +29,22 @@ public partial class View : UserControl
         content.Content = page;
     }
 
+    private UserControl1? _removed;
+
+    // https://github.com/Live-Charts/LiveCharts2/issues/2404: take the content out of the tree
+    // for a while and put the same instance back (unlike ReattachSameInstance, which does both
+    // at once, so the platform sees the charts leave the window before they come back).
+    public void RemoveContent()
+    {
+        var content = this.Find<ContentControl>("content")!;
+        _removed = (UserControl1)content.Content!;
+        content.Content = null;
+    }
+
+    public void RestoreContent() => this.Find<ContentControl>("content")!.Content = _removed;
+
+    public object[] GetCurrentCharts() => GetCharts((UserControl1)this.Find<ContentControl>("content")!.Content!);
+
     private static object[] GetCharts(UserControl1 uc)
     {
         if (uc.Content is not Grid grid) return [];

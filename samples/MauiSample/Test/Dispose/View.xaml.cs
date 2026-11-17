@@ -32,6 +32,19 @@ public partial class View : ContentPage
         container.Add(_currentView);
     }
 
+    // https://github.com/Live-Charts/LiveCharts2/issues/2404: take the content out of the tree
+    // for a while and put the same instance back (unlike ReattachSameInstance, which does both
+    // at once, so the platform sees the charts leave the window before they come back).
+    public void RemoveContent() => _ = container.Remove(_currentView);
+
+    public void RestoreContent()
+    {
+        Grid.SetRow(_currentView, 1);
+        container.Add(_currentView);
+    }
+
+    public object[] GetCurrentCharts() => GetCharts(_currentView);
+
     private static object[] GetCharts(NewPage1 page)
     {
         if (page.Content is not Grid grid) return [];
