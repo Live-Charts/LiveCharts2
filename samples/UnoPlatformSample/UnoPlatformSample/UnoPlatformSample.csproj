@@ -93,4 +93,13 @@
         <DefineConstants>$(DefineConstants);UI_TESTING;XAML_UI_TESTING;UNO_UI_TESTING</DefineConstants>
     </PropertyGroup>
 
+    <!--
+    Uno Platform 7 renders every head except Windows App SDK with Skia: charts draw through
+    SkiaRenderMode (SKCanvasElement), so no GPU view exists there. LVC_UNO_SKIA lets the
+    shared tests skip what needs one (ShouldLoadHardwareAcceleratedView).
+    -->
+    <PropertyGroup Condition="$(UITesting) == 'true' and !$(TargetFramework.Contains('-windows'))">
+        <DefineConstants>$(DefineConstants);LVC_UNO_SKIA</DefineConstants>
+    </PropertyGroup>
+
 </Project>
