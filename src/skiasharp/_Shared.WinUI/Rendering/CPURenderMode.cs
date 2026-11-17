@@ -20,6 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#if HAS_OS_LVC
+
 using LiveChartsCore.Kernel.Sketches;
 using LiveChartsCore.Motion;
 using LiveChartsCore.SkiaSharpView.Drawing;
@@ -82,3 +84,5 @@ internal partial class CPURenderMode : SKXamlCanvas, IRenderMode
     private SKColor GetBackground() =>
         ((Parent as FrameworkElement)?.Parent as IChartView)?.BackColor.AsSKColor() ?? SKColor.Empty;
 }
+
+#endif
