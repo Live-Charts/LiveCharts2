@@ -1,0 +1,19 @@
+<UserControl
+    x:Class="WPFSample.VisualTest.Issue2405Repro.View"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF">
+
+    <!--
+    Reproducer for https://github.com/Live-Charts/LiveCharts2/issues/2405: two charts in the
+    same cell. Collapse the back chart's Border, add values to the back chart: the front chart
+    should not redraw, and once the Border is visible again the back chart should draw all its points.
+    -->
+
+    <Grid>
+        <Border x:Name="backHost">
+            <lvc:CartesianChart x:Name="backChart" />
+        </Border>
+        <lvc:CartesianChart x:Name="frontChart" />
+    </Grid>
+</UserControl>
