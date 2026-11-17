@@ -127,16 +127,22 @@ public abstract partial class Paint : Animatable
     {
         if (this == Default) return;
 
-        var g = GetGeometriesByCanvas(canvas);
-
-        if (g is null)
+        // The geometry sets are what CoreMotionCanvas.DrawFrame enumerates, under canvas.Sync, on the
+        // render thread on some platforms (Avalonia), so change them under that lock too. Measure
+        // already holds it; this covers callers outside a measure (unloads, the map factory).
+        lock (canvas.Sync)
         {
-            g = [];
-            _geometriesByCanvas[canvas] = g;
-        }
+            var g = GetGeometriesByCanvas(canvas);
 
-        _ = g.Add(geometry);
-        IsValid = false;
+            if (g is null)
+            {
+                g = [];
+                _geometriesByCanvas[canvas] = g;
+            }
+
+            _ = g.Add(geometry);
+            IsValid = false;
+        }
     }
 
     /// <summary>
@@ -146,11 +152,14 @@ public abstract partial class Paint : Animatable
     /// <param name="geometry">The geometry.</param>
     public void RemoveGeometryFromPaintTask(CoreMotionCanvas canvas, IDrawnElement geometry)
     {
-        geometry.DisposePaints();
-        _ = GetGeometriesByCanvas(canvas)?.Remove(geometry);
-        ((Animatable)geometry)._statesTracker = null;
+        lock (canvas.Sync) // see AddGeometryToPaintTask; this also frees the geometry's native resources
+        {
+            geometry.DisposePaints();
+            _ = GetGeometriesByCanvas(canvas)?.Remove(geometry);
+            ((Animatable)geometry)._statesTracker = null;
 
-        IsValid = false;
+            IsValid = false;
+        }
     }
 
     /// <summary>
@@ -159,18 +168,21 @@ public abstract partial class Paint : Animatable
     /// <param name="canvas">The canvas.</param>
     public void ClearGeometriesFromPaintTask(CoreMotionCanvas canvas)
     {
-        var geometries = GetGeometriesByCanvas(canvas);
-        if (geometries is null || geometries.Count == 0) return;
+        lock (canvas.Sync) // see AddGeometryToPaintTask
+        {
+            var geometries = GetGeometriesByCanvas(canvas);
+            if (geometries is null || geometries.Count == 0) return;
 
-        // DisposePaints fires the OnDisposed hook on the geometry — needed for geometries
-        // that hold cached native resources (e.g. VectorGeometry's SKPath) even if they
-        // don't own their own paints. DisposePaints null-checks the paints internally.
-        foreach (var geometry in geometries)
-            geometry.DisposePaints();
+            // DisposePaints fires the OnDisposed hook on the geometry — needed for geometries
+            // that hold cached native resources (e.g. VectorGeometry's SKPath) even if they
+            // don't own their own paints. DisposePaints null-checks the paints internally.
+            foreach (var geometry in geometries)
+                geometry.DisposePaints();
 
-        GetGeometriesByCanvas(canvas)?.Clear();
+            geometries.Clear();
 
-        IsValid = false;
+            IsValid = false;
+        }
     }
 
     /// <summary>

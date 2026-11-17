@@ -343,10 +343,15 @@ public class CoreMotionCanvas : IDisposable
     {
         var task = new DrawnTask(this, geometries);
 
-        if (!TryGetValue(zone, out var canvasZone))
-            throw new ArgumentOutOfRangeException(nameof(zone), zone, "The canvas zone does not exist.");
+        // the zone lookup is inside the lock too: Clear/Dispose replace Zones, and a task added to
+        // the old array would never be drawn.
+        lock (Sync)
+        {
+            if (!TryGetValue(zone, out var canvasZone))
+                throw new ArgumentOutOfRangeException(nameof(zone), zone, "The canvas zone does not exist.");
 
-        lock (Sync) canvasZone.AddTask(task);
+            canvasZone.AddTask(task);
+        }
 
         return task;
     }

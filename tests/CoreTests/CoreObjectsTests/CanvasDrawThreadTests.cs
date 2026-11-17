@@ -1,6 +1,5 @@
 using System;
 using System.Threading;
-using System.Threading.Tasks;
 using LiveChartsCore.SkiaSharpView.Drawing;
 using LiveChartsCore.SkiaSharpView.Drawing.Geometries;
 using LiveChartsCore.SkiaSharpView.Painting;
@@ -39,28 +38,13 @@ public class CanvasDrawThreadTests
 
         Exception? drawError = null;
         using var stop = new CancellationTokenSource(TimeSpan.FromSeconds(3));
-
-        var drawThread = new Thread(() =>
-        {
-            try
-            {
-                using var surface = SKSurface.Create(new SKImageInfo(400, 300));
-                while (!stop.IsCancellationRequested)
-                    canvas.DrawFrame(new SkiaSharpDrawingContext(canvas, surface.Canvas, SKColor.Empty));
-            }
-            catch (Exception ex)
-            {
-                drawError = ex;
-            }
-        })
-        { IsBackground = true, Name = "render thread (test)" };
-
-        drawThread.Start();
+        var drawThread = StartDrawing(canvas, stop.Token, ex => drawError = ex);
 
         while (!stop.IsCancellationRequested && drawError is null)
         {
             var paint = new SolidColorPaint(SKColors.Red) { StrokeThickness = 3 };
             canvas.AddDrawableTask(paint);
+            // geometries added after the paint is on the canvas: AddGeometryToPaintTask is locked too
             for (var i = 0; i < 20; i++)
                 paint.AddGeometryToPaintTask(canvas, new RectangleGeometry { X = i, Y = i, Width = 50, Height = 50 });
 
@@ -72,6 +56,72 @@ public class CanvasDrawThreadTests
         drawThread.Join();
 
         Assert.IsNull(drawError, $"drawing a frame failed while paint tasks were added and removed: {drawError}");
+    }
+
+    // The same race through a paint's geometries, the way MapFactory.Dispose tears a GeoMap down on
+    // unload: it removes every land from the layer paints (RemoveGeometryFromPaintTask, which frees
+    // the land's cached SKPath) and clears them while those paints are still on the canvas, and the
+    // Paint geometry methods changed the set DrawFrame enumerates without the canvas lock.
+    [TestMethod]
+    public void RemovingGeometriesFromAPaintOnTheCanvasWhileAFrameDraws()
+    {
+        var chart = new SKCartesianChart { Width = 400, Height = 300, Series = [new LineSeries<int>([.. Enumerable(50)])] };
+        var coreChart = chart.CoreChart;
+        coreChart.IsLoaded = true;
+        coreChart.Measure();
+
+        var canvas = chart.CoreCanvas;
+        canvas.DisableAnimations = true;
+
+        var paint = new SolidColorPaint(SKColors.Red) { StrokeThickness = 3 };
+        canvas.AddDrawableTask(paint);
+
+        Exception? drawError = null;
+        using var stop = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+        var drawThread = StartDrawing(canvas, stop.Token, ex => drawError = ex);
+
+        while (!stop.IsCancellationRequested && drawError is null)
+        {
+            var geometries = new RectangleGeometry[40];
+            for (var i = 0; i < geometries.Length; i++)
+            {
+                geometries[i] = new RectangleGeometry { X = i, Y = i, Width = 50, Height = 50 };
+                paint.AddGeometryToPaintTask(canvas, geometries[i]);
+            }
+
+            Thread.SpinWait(500);
+
+            // the paint stays on the canvas, as the layer paints do in MapFactory.Dispose
+            for (var i = 0; i < geometries.Length / 2; i++)
+                paint.RemoveGeometryFromPaintTask(canvas, geometries[i]);
+            paint.ClearGeometriesFromPaintTask(canvas);
+        }
+
+        drawThread.Join();
+
+        Assert.IsNull(drawError, $"drawing a frame failed while a paint's geometries were removed: {drawError}");
+    }
+
+    private static Thread StartDrawing(LiveChartsCore.Motion.CoreMotionCanvas canvas, CancellationToken stop, Action<Exception> onError)
+    {
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                using var surface = SKSurface.Create(new SKImageInfo(400, 300));
+                while (!stop.IsCancellationRequested)
+                    canvas.DrawFrame(new SkiaSharpDrawingContext(canvas, surface.Canvas, SKColor.Empty));
+            }
+            catch (Exception ex)
+            {
+                // any exception on the drawing thread is a failure, report it to the test
+                onError(ex);
+            }
+        })
+        { IsBackground = true, Name = "render thread (test)" };
+
+        thread.Start();
+        return thread;
     }
 
     private static int[] Enumerable(int count)
