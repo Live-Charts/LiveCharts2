@@ -1,6 +1,10 @@
 <linker>
   <assembly fullname="UnoPlatformSample" />
 
+  <!-- Sample ViewModels are bound via reflection ({Binding Values1} etc.), so their properties
+       would be trimmed away (empty charts). Preserve the whole assembly. -->
+  <assembly fullname="ViewModelsSamples" />
+
   <!--
   Uncomment this section when using JSON.NET
   <assembly fullname="System.Core">
