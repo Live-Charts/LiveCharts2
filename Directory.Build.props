@@ -22,13 +22,13 @@
     Because GPU has better support on the latest versions of SkiaSharp,
     and now LiveCharts defaults to GPU when possible.
     -->
-    <LatestSkiaSharpVersion>3.119.0</LatestSkiaSharpVersion>
+    <LatestSkiaSharpVersion>3.119.2</LatestSkiaSharpVersion>
 
     <!--
     Must be compatible with the SkiaSharp version, on WASM the
     "LatestSkiaSharpVersion" is used.
     -->
-    <HarfBuzzWASMVersion>8.3.1.1</HarfBuzzWASMVersion>
+    <HarfBuzzWASMVersion>8.3.1.5</HarfBuzzWASMVersion>
 
     <!-- turn UITesting to true to include UI tests in the sample projects -->
     <UITesting>false</UITesting>
