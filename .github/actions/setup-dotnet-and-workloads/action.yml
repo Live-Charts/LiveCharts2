@@ -8,6 +8,9 @@ inputs:
 runs:
   using: "composite"
   steps:
+    # global.json pins the SDK to 10.0.x (rollForward: latestFeature). Without it the
+    # dotnet muxer picks the newest SDK on the runner image (e.g. .NET 11), and the
+    # 10.0.100-band rollback file below conflicts with that SDK's workload manifests.
     - name: Setup .NET
       uses: actions/setup-dotnet@v5.0.1
       with:
