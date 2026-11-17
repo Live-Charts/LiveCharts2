@@ -22,6 +22,7 @@
 
 using System;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using LiveChartsCore;
 using LiveChartsCore.Drawing;
 using LiveChartsCore.Kernel.Sketches;
@@ -36,6 +37,18 @@ namespace LiveChartsGeneratedCode;
 /// <inheritdoc cref="ICartesianChartView" />
 public partial class SourceGenCartesianChart : SourceGenChart, ICartesianChartView
 {
+    // Avalonia 12 moved the pinch routed event from Gestures.PinchEvent to InputElement.PinchEvent.
+    // This assembly is compiled against Avalonia 11 but must also run on Avalonia 12, so the
+    // field is resolved at runtime instead of being referenced directly (a direct reference
+    // throws MissingFieldException on Avalonia 12).
+    // See https://github.com/Live-Charts/LiveCharts2/issues/2117.
+    private static readonly RoutedEvent<PinchEventArgs> s_pinchEvent =
+        (RoutedEvent<PinchEventArgs>)(
+            typeof(InputElement).GetField("PinchEvent") ??
+            typeof(Gestures).GetField("PinchEvent") ??
+            throw new MissingFieldException("Avalonia.Input", "PinchEvent"))
+        .GetValue(null)!;
+
     private float _previousPinchScale = 1;
 
     /// <summary>
@@ -46,7 +59,7 @@ public partial class SourceGenCartesianChart : SourceGenChart, ICartesianChartVi
     {
         var pinchGesture = new PinchGestureRecognizer();
         GestureRecognizers.Add(pinchGesture);
-        AddHandler(Gestures.PinchEvent, OnPinched);
+        AddHandler(s_pinchEvent, OnPinched);
 
         PointerWheelChanged += OnPointerWheelChanged;
     }
