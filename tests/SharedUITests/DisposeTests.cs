@@ -97,20 +97,13 @@ public class DisposeTests
             refs.Add(new WeakReference(o));
     }
 
-    // Smoke test: a chart removed and immediately re-added (same instance) must
-    // survive the round-trip. Specifically guards the Apple-side fix in
-    // SourceGenChart.OnUnloaded — `Handler?.DisconnectHandler()` plus the
-    // platform's auto-disconnect default must leave the element ready for a
-    // fresh handler on the next attach. If we ever reuse a handler with a
-    // disposed PointerController (recognizers nulled by DisposeController on
-    // Mac/iOS), this test crashes in InitializeController.
     // https://github.com/Live-Charts/LiveCharts2/issues/2404
     // Charts whose view leaves the visual tree for a while and is then added back (the same
     // instance, e.g. views reused as tabs by swapping a ContentView's content) must load and draw
     // again. On MAUI iOS / Mac Catalyst the #1725 leak fix disconnected the chart's handler on
     // that Unloaded (Window was null), MAUI never gave it a new one on the re-add, so Loaded
-    // never fired again and the chart stayed blank. ReattachSameInstance below can't catch it:
-    // it removes and re-adds in the same call, before Unloaded runs.
+    // never fired again and the chart stayed blank. The test below can't catch it: it removes and
+    // re-adds in the same call, before Unloaded runs.
     [AppTestMethod]
     public async Task ChartShouldDrawAfterLeavingTheTreeForAWhile_Issue2404()
     {
@@ -125,20 +118,15 @@ public class DisposeTests
             sut.RestoreContent();
             await Task.Delay(1500);
 
-            foreach (var chart in sut.GetCurrentCharts())
-            {
-#if MAUI_UI_TESTING
-                Assert.NotNull(((Microsoft.Maui.Controls.VisualElement)chart).Handler);
-#endif
-                // IGeoMapView derives from IChartView, so check the map first.
-                if (chart is LiveChartsCore.Geo.IGeoMapView mapView)
-                    Assert.ChartIsLoaded(mapView);
-                else if (chart is LiveChartsCore.Kernel.Sketches.IChartView chartView)
-                    Assert.ChartIsLoaded(chartView);
-            }
+            AssertChartsAreLoaded(sut.GetCurrentCharts());
         }
     }
 
+    // A chart removed and immediately re-added (same instance, in the same call) must survive the
+    // round-trip and draw again. Guards the Apple-side #1725 fix in SourceGenDrawnView: releasing
+    // and restoring PointerController's gesture recognizers must leave the chart working, and
+    // reusing a controller whose recognizers were disposed must not crash in InitializeController.
+    // It used to assert nothing, so a chart left blank by a re-add passed (#2404).
     [AppTestMethod]
     public async Task ChartShouldSurviveReattachOfSameInstance_Issue1725()
     {
@@ -149,6 +137,27 @@ public class DisposeTests
         {
             sut.ReattachSameInstance();
             await Task.Delay(500);
+        }
+
+        await Task.Delay(1000);
+        AssertChartsAreLoaded(sut.GetCurrentCharts());
+    }
+
+    // every chart is loaded and has drawn its points (and, on MAUI, still has a handler).
+    private static void AssertChartsAreLoaded(object[] charts)
+    {
+        Assert.NotEmpty(charts);
+
+        foreach (var chart in charts)
+        {
+#if MAUI_UI_TESTING
+            Assert.NotNull(((Microsoft.Maui.Controls.VisualElement)chart).Handler);
+#endif
+            // IGeoMapView derives from IChartView, so check the map first.
+            if (chart is LiveChartsCore.Geo.IGeoMapView mapView)
+                Assert.ChartIsLoaded(mapView);
+            else if (chart is LiveChartsCore.Kernel.Sketches.IChartView chartView)
+                Assert.ChartIsLoaded(chartView);
         }
     }
 
