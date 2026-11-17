@@ -1,0 +1,39 @@
+@page "/VisualTest/Issue2405Repro"
+
+@using System.Collections.ObjectModel
+@using LiveChartsCore
+@using LiveChartsCore.SkiaSharpView
+@using LiveChartsCore.SkiaSharpView.Blazor
+
+@*
+Reproducer for https://github.com/Live-Charts/LiveCharts2/issues/2405: hide the back chart's
+host (display: none), add values to the back chart: the front chart should not redraw, and
+once the host is visible again the back chart should draw all its points.
+*@
+
+<div style="height: 200px; display: @(_isBackHidden ? "none" : "block");">
+    <CartesianChart @ref="BackChart" Series="@_backSeries" />
+</div>
+<div style="height: 200px;">
+    <CartesianChart @ref="FrontChart" Series="@_frontSeries" />
+</div>
+
+@code {
+    private readonly ObservableCollection<double> _backValues = [1, 3, 2];
+    private ISeries[] _backSeries = [];
+    private ISeries[] _frontSeries = [];
+    private bool _isBackHidden;
+
+    public CartesianChart BackChart = null!;
+    public CartesianChart FrontChart = null!;
+
+    protected override void OnInitialized()
+    {
+        _backSeries = [new LineSeries<double> { Values = _backValues }];
+        _frontSeries = [new LineSeries<double> { Values = new ObservableCollection<double> { 2, 1, 3 } }];
+    }
+
+    public void HideBackChart() { _isBackHidden = true; StateHasChanged(); }
+    public void ShowBackChart() { _isBackHidden = false; StateHasChanged(); }
+    public void AddBackValue() => _backValues.Add(_backValues.Count + 1);
+}

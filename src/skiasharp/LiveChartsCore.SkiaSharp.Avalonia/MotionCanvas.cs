@@ -78,8 +78,9 @@ public class MotionCanvas : UserControl
         context.Custom(new ChartFrameOperation(CanvasCore, Bounds, GetBackground()));
 
         // Avalonia still calls Render on a hidden control (own or ancestor IsVisible=false) but never draws it, so the
-        // canvas would never become valid and this would re-invalidate every frame. SourceGenChart invalidates
-        // again when the chart is shown. https://github.com/Live-Charts/LiveCharts2/issues/2405
+        // canvas would never become valid and this would re-invalidate every frame. Showing the control makes Avalonia
+        // render it again, which restarts this loop, and the core runs any measure blocked meanwhile on that first
+        // frame (Chart.IsRendering). https://github.com/Live-Charts/LiveCharts2/issues/2405
         if (CanvasCore.IsValid || !IsEffectivelyVisible) return;
         _ = Dispatcher.UIThread.InvokeAsync(InvalidateVisual, DispatcherPriority.Background);
     }
@@ -115,10 +116,7 @@ public class MotionCanvas : UserControl
 
         public void Render(ImmediateDrawingContext context)
         {
-            // use the instance TryGetFeature(Type) overload, it exists on Avalonia 11 and 12,
-            // the generic extension (OptionalFeatureProviderExtensions) was removed on Avalonia 12.
-            // See https://github.com/Live-Charts/LiveCharts2/issues/2117.
-            if (context.TryGetFeature(typeof(ISkiaSharpApiLeaseFeature)) is not ISkiaSharpApiLeaseFeature leaseFeature)
+            if (!context.TryGetFeature<ISkiaSharpApiLeaseFeature>(out var leaseFeature))
                 throw new Exception("SkiaSharp is not supported.");
 
             using var lease = leaseFeature.Lease();

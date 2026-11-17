@@ -112,6 +112,10 @@ public class CoreMotionCanvas : IDisposable
     /// </summary>
     public event Action<CoreMotionCanvas>? Validated;
 
+    // Raised after every drawn frame, valid or not. The chart uses it to run a measure that
+    // Chart.IsRendering() blocked while no frame was being drawn (#2405).
+    internal event Action<CoreMotionCanvas>? FrameDrawn;
+
     /// <summary>
     /// Returns true if the visual is valid.
     /// </summary>
@@ -246,6 +250,8 @@ public class CoreMotionCanvas : IDisposable
 
             context.OnEndDraw();
         }
+
+        FrameDrawn?.Invoke(this);
 
         if (IsValid)
         {
