@@ -1,29 +1,29 @@
 {
   "summary": {
-    "generatedon": "2026-11-17T17:09:41Z",
+    "generatedon": "2026-11-17T19:56:32Z",
     "parser": "DynamicCodeCoverage",
     "assemblies": 2,
     "classes": 362,
     "files": 583,
-    "coveredlines": 21946,
-    "uncoveredlines": 4070,
-    "coverablelines": 26016,
-    "totallines": 75827,
+    "coveredlines": 21952,
+    "uncoveredlines": 4074,
+    "coverablelines": 26026,
+    "totallines": 75856,
     "linecoverage": 84.3,
     "coveredbranches": 0,
     "totalbranches": 0,
-    "coveredmethods": 2718,
+    "coveredmethods": 2719,
     "fullcoveredmethods": 2312,
-    "totalmethods": 3327,
-    "methodcoverage": 81.6,
+    "totalmethods": 3328,
+    "methodcoverage": 81.7,
     "fullmethodcoverage": 69.4
  },
   "metrics": [
-    { "name": "Blocks covered", "value": 38031 },
-    { "name": "Blocks not covered", "value": 6507 } ],
+    { "name": "Blocks covered", "value": 38082 },
+    { "name": "Blocks not covered", "value": 6511 } ],
   "coverage": {
     "assemblies": [
-      { "name": "LiveChartsCore.dll", "classes": 238, "coverage": 85.3, "coveredlines": 17408, "coverablelines": 20385, "totallines": 54753, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 85, "fullmethodcoverage": 73.5, "coveredmethods": 2087, "fullcoveredmethods": 1805, "totalmethods": 2454, "classesinassembly": [
+      { "name": "LiveChartsCore.dll", "classes": 238, "coverage": 85.3, "coveredlines": 17414, "coverablelines": 20395, "totallines": 54782, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 85, "fullmethodcoverage": 73.5, "coveredmethods": 2088, "fullcoveredmethods": 1805, "totalmethods": 2455, "classesinassembly": [
         { "name": "LiveChartsCore.AxisMeasureContext", "coverage": 100, "coveredlines": 20, "coverablelines": 20, "totallines": 130, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 100, "fullmethodcoverage": 100, "coveredmethods": 1, "fullcoveredmethods": 1, "totalmethods": 1 },
         { "name": "LiveChartsCore.BarLayout", "coverage": 100, "coveredlines": 10, "coverablelines": 10, "totallines": 76, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 100, "fullmethodcoverage": 100, "coveredmethods": 1, "fullcoveredmethods": 1, "totalmethods": 1 },
         { "name": "LiveChartsCore.BarMeasureContext", "coverage": 100, "coveredlines": 19, "coverablelines": 19, "totallines": 112, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 100, "fullmethodcoverage": 100, "coveredmethods": 1, "fullcoveredmethods": 1, "totalmethods": 1 },
@@ -34,7 +34,7 @@
         { "name": "LiveChartsCore.BoxMeasureHelper", "coverage": 88.5, "coveredlines": 31, "coverablelines": 35, "totallines": 95, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 100, "fullmethodcoverage": 0, "coveredmethods": 1, "fullcoveredmethods": 0, "totalmethods": 1 },
         { "name": "LiveChartsCore.CartesianChartEngine", "coverage": 86.1, "coveredlines": 689, "coverablelines": 800, "totallines": 1371, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 94.7, "fullmethodcoverage": 57.8, "coveredmethods": 36, "fullcoveredmethods": 22, "totalmethods": 38 },
         { "name": "LiveChartsCore.CartesianSeries", "coverage": 98, "coveredlines": 152, "coverablelines": 155, "totallines": 343, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 91.3, "fullmethodcoverage": 82.6, "coveredmethods": 21, "fullcoveredmethods": 19, "totalmethods": 23 },
-        { "name": "LiveChartsCore.Chart", "coverage": 94, "coveredlines": 413, "coverablelines": 439, "totallines": 1076, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 90.6, "fullmethodcoverage": 74.4, "coveredmethods": 39, "fullcoveredmethods": 32, "totalmethods": 43 },
+        { "name": "LiveChartsCore.Chart", "coverage": 93.3, "coveredlines": 418, "coverablelines": 448, "totallines": 1099, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 90.9, "fullmethodcoverage": 72.7, "coveredmethods": 40, "fullcoveredmethods": 32, "totalmethods": 44 },
         { "name": "LiveChartsCore.ConditionalDraw.ConditionalDrawExtensions", "coverage": 0, "coveredlines": 0, "coverablelines": 4, "totallines": 56, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 0, "fullmethodcoverage": 0, "coveredmethods": 0, "fullcoveredmethods": 0, "totalmethods": 1 },
         { "name": "LiveChartsCore.CoreAxis", "coverage": 81.6, "coveredlines": 842, "coverablelines": 1031, "totallines": 1744, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 97.1, "fullmethodcoverage": 72.1, "coveredmethods": 101, "fullcoveredmethods": 75, "totalmethods": 104 },
         { "name": "LiveChartsCore.CoreBoxSeries", "coverage": 96.2, "coveredlines": 335, "coverablelines": 348, "totallines": 546, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 94.7, "fullmethodcoverage": 73.6, "coveredmethods": 18, "fullcoveredmethods": 14, "totalmethods": 19 },
@@ -209,7 +209,7 @@
         { "name": "LiveChartsCore.Motion.CanvasRenderSettings", "coverage": 0, "coveredlines": 0, "coverablelines": 34, "totallines": 79, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 0, "fullmethodcoverage": 0, "coveredmethods": 0, "fullcoveredmethods": 0, "totalmethods": 4 },
         { "name": "LiveChartsCore.Motion.CanvasZone", "coverage": 97.8, "coveredlines": 46, "coverablelines": 47, "totallines": 114, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 100, "fullmethodcoverage": 88.8, "coveredmethods": 9, "fullcoveredmethods": 8, "totalmethods": 9 },
         { "name": "LiveChartsCore.Motion.ColorMotionProperty", "coverage": 100, "coveredlines": 9, "coverablelines": 9, "totallines": 49, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 100, "fullmethodcoverage": 100, "coveredmethods": 3, "fullcoveredmethods": 3, "totalmethods": 3 },
-        { "name": "LiveChartsCore.Motion.CoreMotionCanvas", "coverage": 67.9, "coveredlines": 157, "coverablelines": 231, "totallines": 495, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 81.8, "fullmethodcoverage": 63.6, "coveredmethods": 18, "fullcoveredmethods": 14, "totalmethods": 22 },
+        { "name": "LiveChartsCore.Motion.CoreMotionCanvas", "coverage": 68.1, "coveredlines": 158, "coverablelines": 232, "totallines": 501, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 81.8, "fullmethodcoverage": 63.6, "coveredmethods": 18, "fullcoveredmethods": 14, "totalmethods": 22 },
         { "name": "LiveChartsCore.Motion.DoubleMotionProperty", "coverage": 100, "coveredlines": 3, "coverablelines": 3, "totallines": 40, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 100, "fullmethodcoverage": 100, "coveredmethods": 3, "fullcoveredmethods": 3, "totalmethods": 3 },
         { "name": "LiveChartsCore.Motion.DropShadowMotionProperty", "coverage": 11.1, "coveredlines": 2, "coverablelines": 18, "totallines": 57, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 66.6, "fullmethodcoverage": 66.6, "coveredmethods": 2, "fullcoveredmethods": 2, "totalmethods": 3 },
         { "name": "LiveChartsCore.Motion.FloatArrayMotionProperty", "coverage": 100, "coveredlines": 10, "coverablelines": 10, "totallines": 55, "branchcoverage": null, "coveredbranches": 0, "totalbranches": 0, "methodcoverage": 100, "fullmethodcoverage": 100, "coveredmethods": 3, "fullcoveredmethods": 3, "totalmethods": 3 },
