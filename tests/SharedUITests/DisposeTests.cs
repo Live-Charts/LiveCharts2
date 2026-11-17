@@ -143,11 +143,14 @@ public class DisposeTests
         AssertChartsAreLoaded(sut.GetCurrentCharts());
     }
 
-    // every chart is loaded and has drawn its points (and, on MAUI, still has a handler).
+    // every chart of the Dispose test page (Cartesian, Pie, Polar and GeoMap) is loaded and has
+    // drawn its points, and on MAUI still has a handler. Fails if a chart is missing or the page
+    // holds something else, so no chart goes unchecked.
     private static void AssertChartsAreLoaded(object[] charts)
     {
-        Assert.NotEmpty(charts);
+        Assert.Equal(4, charts.Length);
 
+        var maps = 0;
         foreach (var chart in charts)
         {
 #if MAUI_UI_TESTING
@@ -155,10 +158,21 @@ public class DisposeTests
 #endif
             // IGeoMapView derives from IChartView, so check the map first.
             if (chart is LiveChartsCore.Geo.IGeoMapView mapView)
+            {
                 Assert.ChartIsLoaded(mapView);
+                maps++;
+            }
             else if (chart is LiveChartsCore.Kernel.Sketches.IChartView chartView)
+            {
                 Assert.ChartIsLoaded(chartView);
+            }
+            else
+            {
+                Assert.Fail($"unexpected element in the Dispose test page: {chart.GetType().Name}");
+            }
         }
+
+        Assert.Equal(1, maps);
     }
 
 #if MAUI_UI_TESTING

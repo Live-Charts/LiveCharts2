@@ -75,6 +75,10 @@ internal partial class PointerController : INativePointerController
         if (_longPressGestureRecognizer is null) return; // already disposed
         _isAttached = false;
 
+        // the controller outlives the detach now (#2404): forget the last press, so the first
+        // press after the chart is attached again is not taken as the second tap of a double tap.
+        _previousPress = DateTime.MinValue;
+
         macView.RemoveGestureRecognizer(_longPressGestureRecognizer);
         macView.RemoveGestureRecognizer(_pinchGestureRecognizer!);
         macView.RemoveGestureRecognizer(_panGestureRecognizer!);
