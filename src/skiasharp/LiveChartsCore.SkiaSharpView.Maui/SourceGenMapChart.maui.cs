@@ -61,16 +61,22 @@ public abstract partial class SourceGenMapChart : ChartView, IGeoMapView
     bool IGeoMapView.DesignerMode => false;
     LvcSize IDrawnView.ControlSize => new() { Width = (float)Width, Height = (float)Height };
 
-    private void OnLoaded(object? sender, EventArgs e) =>
+    private void OnLoaded(object? sender, EventArgs e)
+    {
+#if IOS || MACCATALYST
+        // put back the gesture recognizers released when the chart left the window (see OnUnloaded).
+        (Handler as LiveChartsCore.SkiaSharpView.Maui.Handlers.ChartViewHandler)?.RestorePointerController();
+#endif
         CoreChart?.Load();
+    }
 
     private void OnUnloaded(object? sender, EventArgs e)
     {
         CoreChart?.Unload();
 #if IOS || MACCATALYST
-        // See SourceGenChart.OnUnloaded for the rationale (#1725 and #2297).
+        // See SourceGenChart.OnUnloaded for the rationale (#1725, #2297 and #2404).
         if (Window is null)
-            Handler?.DisconnectHandler();
+            (Handler as LiveChartsCore.SkiaSharpView.Maui.Handlers.ChartViewHandler)?.ReleasePointerController();
 #endif
     }
 

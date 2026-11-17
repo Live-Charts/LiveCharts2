@@ -84,6 +84,10 @@ public abstract partial class SourceGenChart : ChartView, IChartView
 
     private void OnLoaded(object? sender, EventArgs e)
     {
+#if IOS || MACCATALYST
+        // put back the gesture recognizers released when the chart left the window (see OnUnloaded).
+        (Handler as LiveChartsCore.SkiaSharpView.Maui.Handlers.ChartViewHandler)?.RestorePointerController();
+#endif
         StartObserving();
         CoreChart?.Load();
     }
@@ -93,25 +97,23 @@ public abstract partial class SourceGenChart : ChartView, IChartView
         StopObserving();
         CoreChart?.Unload();
 #if IOS || MACCATALYST
-        // Maui doesn't auto-DisconnectHandler when an Element leaves the visual tree.
-        // On Apple, ChartViewHandler.ConnectHandler attaches PointerController's
-        // UIKit gesture recognizers (UILongPress/UIPinch/UIPan/UIHover) to the
-        // platform UIView; UIKit holds the recognizers' selector target (the
-        // controller) strongly, the handler subscribes to the controller via
-        // instance methods, and Handler.VirtualView pins the chart — leaking
-        // every chart removed from the visual tree (#1725). Other platforms
-        // exhibit the same +=/-= pattern but don't leak in practice (no
-        // equivalent native-peer pinning), so scope this to Apple.
+        // Maui doesn't release anything when an Element leaves the visual tree. On Apple,
+        // ChartViewHandler attaches PointerController's UIKit gesture recognizers to the platform
+        // UIView; UIKit holds the recognizers' target (the controller) strongly, the handler
+        // subscribes to the controller, and Handler.VirtualView pins the chart, so every chart
+        // removed from the visual tree leaked (#1725). Releasing the recognizers breaks that chain.
         //
-        // Gate on Window == null: on a TabbedPage (iOS only) MAUI fires Unloaded
-        // for the inactive tab's chart even though the element is still mounted
-        // in the window — UITabBarController just hides the platform UIView.
-        // DisconnectHandler in that case nulls the handler and MAUI never raises
-        // Loaded again when the tab is reselected, so the chart goes permanently
-        // blank (#2297). Window is null only when the chart has truly detached
-        // from the window, which is the case we need to release the chain in.
+        // Release them only, don't disconnect the handler: MAUI doesn't create a new handler when
+        // the same view is added back (it reuses the parent's), so a disconnected chart never raised
+        // Loaded again and stayed blank, e.g. views reused as tabs by swapping a ContentView's
+        // content (#2404). OnLoaded restores them.
+        //
+        // Gate on Window == null: on a TabbedPage (iOS only) MAUI fires Unloaded for the inactive
+        // tab's chart even though it is still mounted in the window (UITabBarController just hides
+        // the UIView) and doesn't raise Loaded when the tab is reselected (#2297), so the
+        // recognizers must stay there. Window is null only when the chart left the window.
         if (Window is null)
-            Handler?.DisconnectHandler();
+            (Handler as LiveChartsCore.SkiaSharpView.Maui.Handlers.ChartViewHandler)?.ReleasePointerController();
 #endif
     }
 
