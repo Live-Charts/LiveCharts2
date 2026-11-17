@@ -142,7 +142,7 @@ public class CartesianChartTests
     }
 #endif
 
-#if AVALONIA_UI_TESTING
+#if AVALONIA_UI_TESTING || WINUI_UI_TESTING || UNO_UI_TESTING || MAUI_UI_TESTING || WPF_UI_TESTING || WINFORMS_UI_TESTING || ETO_UI_TESTING || BLAZOR_UI_TESTING
     // based on:
     // https://github.com/Live-Charts/LiveCharts2/issues/2405
     // a chart updated while hidden must not make the window redraw every frame,
