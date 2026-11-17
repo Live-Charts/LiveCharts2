@@ -37,24 +37,34 @@ internal partial class PointerController : INativePointerController
     private DateTime _previousPress = DateTime.MinValue;
     private LvcPoint _previousPressPosition;
     private float _previousScale = 1;
-    private UILongPressGestureRecognizer _longPressGestureRecognizer;
-    private UIPinchGestureRecognizer _pinchGestureRecognizer;
-    private UIPanGestureRecognizer _panGestureRecognizer;
+    private UILongPressGestureRecognizer? _longPressGestureRecognizer;
+    private UIPinchGestureRecognizer? _pinchGestureRecognizer;
+    private UIPanGestureRecognizer? _panGestureRecognizer;
 #if MACCATALYST
-    private UIHoverGestureRecognizer _hoverGestureRecognizer;
+    private UIHoverGestureRecognizer? _hoverGestureRecognizer;
 #endif
+    private bool _isAttached;
 
+    public PointerController() => CreateRecognizers();
+
+    // Initialize -> Dispose -> Initialize is supported: DisposeController disposes the
+    // recognizers, and they are created again here, so the controller can be attached again
+    // after a chart left the window and came back (#2404).
     public void InitializeController(object view)
     {
         var macView = (UIView)view;
 
+        if (_isAttached) return;
+        if (_longPressGestureRecognizer is null) CreateRecognizers();
+        _isAttached = true;
+
         macView.UserInteractionEnabled = true;
 
-        macView.AddGestureRecognizer(_longPressGestureRecognizer);
-        macView.AddGestureRecognizer(_pinchGestureRecognizer);
-        macView.AddGestureRecognizer(_panGestureRecognizer);
+        macView.AddGestureRecognizer(_longPressGestureRecognizer!);
+        macView.AddGestureRecognizer(_pinchGestureRecognizer!);
+        macView.AddGestureRecognizer(_panGestureRecognizer!);
 #if MACCATALYST
-        macView.AddGestureRecognizer(_hoverGestureRecognizer);
+        macView.AddGestureRecognizer(_hoverGestureRecognizer!);
 #endif
     }
 
@@ -62,26 +72,29 @@ internal partial class PointerController : INativePointerController
     {
         var macView = (UIView)view;
 
+        if (_longPressGestureRecognizer is null) return; // already disposed
+        _isAttached = false;
+
         macView.RemoveGestureRecognizer(_longPressGestureRecognizer);
-        macView.RemoveGestureRecognizer(_pinchGestureRecognizer);
-        macView.RemoveGestureRecognizer(_panGestureRecognizer);
+        macView.RemoveGestureRecognizer(_pinchGestureRecognizer!);
+        macView.RemoveGestureRecognizer(_panGestureRecognizer!);
 
         _longPressGestureRecognizer.Dispose();
-        _pinchGestureRecognizer.Dispose();
-        _panGestureRecognizer.Dispose();
+        _pinchGestureRecognizer!.Dispose();
+        _panGestureRecognizer!.Dispose();
 
-        _longPressGestureRecognizer = null!;
-        _pinchGestureRecognizer = null!;
-        _panGestureRecognizer = null!;
+        _longPressGestureRecognizer = null;
+        _pinchGestureRecognizer = null;
+        _panGestureRecognizer = null;
 
 #if MACCATALYST
-        macView.RemoveGestureRecognizer(_hoverGestureRecognizer);
-        _hoverGestureRecognizer.Dispose();
-        _hoverGestureRecognizer = null!;
+        macView.RemoveGestureRecognizer(_hoverGestureRecognizer!);
+        _hoverGestureRecognizer!.Dispose();
+        _hoverGestureRecognizer = null;
 #endif
     }
 
-    public PointerController()
+    private void CreateRecognizers()
     {
 #if MACCATALYST
         _hoverGestureRecognizer = new UIHoverGestureRecognizer(OnHover)
