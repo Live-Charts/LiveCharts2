@@ -51,6 +51,7 @@ public abstract partial class SourceGenChart : UserControl, IChartView
     private LvcPoint _lastTouchPosition;
     private readonly PointerController _pointerController;
     private static readonly bool s_isWebAssembly = RuntimeInformation.IsOSPlatform(OSPlatform.Create("BROWSER"));
+    private bool _wasInViewport;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SourceGenChart"/> class.
@@ -67,6 +68,7 @@ public abstract partial class SourceGenChart : UserControl, IChartView
 
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
+        EffectiveViewportChanged += OnEffectiveViewportChanged;
 
         _pointerController = new PointerController();
 
@@ -110,6 +112,31 @@ public abstract partial class SourceGenChart : UserControl, IChartView
         _pointerController.DisposeController(this);
         StopObserving();
         CoreChart.Unload();
+        _wasInViewport = false;
+    }
+
+    // Same fix as the Avalonia view for https://github.com/Live-Charts/LiveCharts2/issues/1986
+    // EffectiveViewport reports the ancestor scroll viewport in this control's local
+    // coordinates, NOT whether the chart is in view, so we check whether it intersects
+    // the chart's local bounds. SourceGenMapChart has the same handler.
+    private void OnEffectiveViewportChanged(FrameworkElement sender, EffectiveViewportChangedEventArgs e)
+    {
+        var vp = e.EffectiveViewport;
+        var nowInViewport =
+            vp.Width > 0 && vp.Height > 0 &&
+            vp.X < ActualWidth && vp.X + vp.Width > 0 &&
+            vp.Y < ActualHeight && vp.Y + vp.Height > 0;
+
+        if (nowInViewport && !_wasInViewport)
+        {
+            // Uno Platform 7 skips painting elements outside the viewport, so a chart that
+            // loads or resizes off-screen renders no frame and Chart.IsRendering() blocks its
+            // measure. On transition into the viewport, mark the canvas visible so
+            // IsRendering() allows the next measure, and request an Update.
+            CoreCanvas.NotifyPlatformVisible();
+            CoreChart?.Update();
+        }
+        _wasInViewport = nowInViewport;
     }
 
     private void OnActualThemeChanged(FrameworkElement sender, object args) =>

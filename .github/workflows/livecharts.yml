@@ -267,10 +267,13 @@ jobs:
             workloads: wasm-tools
           - id: avalonia-browser
             workloads: wasm-tools
-          # ToDo: find why not running.
-          # - id: uno
-          #   tf: net10.0-browserwasm
-          #   workloads: wasm-tools android
+          # uno-browser (not the plain `uno` uid): browserwasm needs the
+          # HeadlessChrome app host — the Auto host only starts the dev server
+          # and nothing ever loads the page, so the run idles to the connection
+          # timeout. See tests/UITests/Program.cs.
+          - id: uno-browser
+            tf: net10.0-browserwasm
+            workloads: wasm-tools android
     needs: [pack, report-progress-starting, collect-packages, prepare]
     steps:
       - name: Checkout 
@@ -329,10 +332,12 @@ jobs:
           - id: maui-ios
             tf: net10.0-ios
             workloads: maui
-          # disabled for now, in this uno version, it takes 3 times longer than the others (about 40 mins)
-          # - id: uno
-          #   tf: net10.0-ios
-          #   workloads: ios android
+          # uno-ios, not uno: it needs the simulator build args the other iOS apps get
+          # (interpreter, device, --quiet-simulator). Without them this job took ~40 min
+          # and was disabled; locally it now builds cold in under a minute.
+          - id: uno-ios
+            tf: net10.0-ios
+            workloads: ios android
     needs: [pack, report-progress-starting, collect-packages, prepare]
     steps:
       - name: Checkout 
