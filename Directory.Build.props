@@ -34,7 +34,12 @@
     <UITesting>false</UITesting>
     <NoWarnUITests>$(NoWarn);NETSDK1198;NU1701;XC0022;XA0141;XAAADB0000;CS0067;CS0414;CS0108;CS0618;CS4014;CS8600;CS8601;CS8602;CS8603;CS8612;CS8618;CS8622;CS8625;CS8629;CS9264;</NoWarnUITests>
     <!-- Factos version https://github.com/beto-rodriguez/Factos -->
-    <FactosVersion>0.8.0</FactosVersion>
+    <FactosVersion>0.10.0</FactosVersion>
+    <!--
+    Factos.Uno 0.10.0 is built for Uno Platform 7 only; this branch's Uno sample is still on
+    Uno 6, so it stays on the last Uno 6 build until the sample moves to Uno 7 (#2401).
+    -->
+    <FactosUnoVersion>0.9.0</FactosUnoVersion>
 
     <!-- Useful to toggle between using project references or nuget references -->
     <UseNuGetForSamples>false</UseNuGetForSamples>

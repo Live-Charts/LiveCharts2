@@ -41,6 +41,16 @@ runs:
       if : ${{ inputs.test-type == 'factos-ios' }}
       run: xcrun simctl list devicetypes
 
+    # Boot the simulator as early as possible and don't wait for it: a fresh simulator
+    # spends minutes on first-boot work, let that overlap the .NET/workload setup below.
+    - name: Launch iOS Simulator
+      id: launch_ios_simulator
+      if : ${{ inputs.test-type == 'factos-ios' }}
+      uses: futureware-tech/simulator-action@v5
+      with:
+        model: 'iPhone 16e'
+        wait_for_boot: false
+
     - name: Setup .NET and Workloads
       uses: ./.github/actions/setup-dotnet-and-workloads
       with:
@@ -104,26 +114,16 @@ runs:
         script: ./run_tests.sh
 
     # run tests using the factos selection with ios target
-    - name: Launch iOS Simulator
-      id: launch_ios_simulator
-      if : ${{ inputs.test-type == 'factos-ios' }}
-      uses: futureware-tech/simulator-action@v5
-      with:
-        model: 'iPhone 16e'
-        wait_for_boot: true
-    - name: Verify Simulator Readiness
+    # Wait for the boot started at the top of this action, then launch Safari in the
+    # background: the first app launch on a fresh simulator can take minutes (first-boot
+    # indexing and setup), so pay that while the app builds instead of at install time.
+    - name: Warm up the iOS Simulator
       shell: bash
       if: ${{ inputs.test-type == 'factos-ios' }}
       run: |
-        # Force wait until the simulator status is exactly "Booted"
-        # This prevents the "Shutdown" error you encountered
         ID="${{ steps.launch_ios_simulator.outputs.udid }}"
-        echo "Waiting for simulator $ID to fully boot..."
-        until xcrun simctl list devices | grep "$ID" | grep -q "Booted"; do
-          sleep 5
-        done
-        # Extra 5s buffer for the 'installd' daemon to wake up
-        sleep 5
+        xcrun simctl bootstatus "$ID" -b
+        nohup xcrun simctl launch "$ID" com.apple.mobilesafari > /dev/null 2>&1 &
     - name: Run UI tests
       uses: nick-fields/retry@v3.0.2
       if : ${{ inputs.test-type == 'factos-ios' }}
