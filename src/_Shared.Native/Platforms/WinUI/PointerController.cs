@@ -25,6 +25,8 @@
 // reachable on winui, maui winui, uno winui
 
 using System;
+using System.Collections.Generic;
+using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Input;
 
@@ -32,7 +34,10 @@ namespace LiveChartsCore.Native;
 
 internal partial class PointerController : INativePointerController
 {
-    private bool _isPinching;
+    // ids of the touch contacts that are down: two or more is a pinch. Counting contacts,
+    // not ManipulationStarted, matters because a mouse drag starts a manipulation too, so on
+    // a touch-capable machine every mouse drag lost its moves (#2389).
+    private readonly HashSet<uint> _touchContacts = [];
     private bool _isPointerDown;
     // Remember the original press's button so the synthetic release we raise on
     // PointerCaptureLost reports the same button (right-click drags interrupted by
@@ -49,13 +54,12 @@ internal partial class PointerController : INativePointerController
         winUIView.PointerMoved += OnWindowsPointerMoved;
         winUIView.PointerReleased += OnWindowsPointerReleased;
         winUIView.PointerCaptureLost += OnWindowsPointerCaptureLost;
+        winUIView.PointerCanceled += OnWindowsPointerCanceled;
         winUIView.PointerWheelChanged += OnWindowsPointerWheelChanged;
         winUIView.PointerExited += OnWindowsPointerExited;
 
         winUIView.ManipulationMode = ManipulationModes.Scale;
-        winUIView.ManipulationStarted += OnPinchSarted;
         winUIView.ManipulationDelta += OnPinching;
-        winUIView.ManipulationCompleted += OnPinchCompleted;
     }
 
     public void DisposeController(object view)
@@ -66,12 +70,11 @@ internal partial class PointerController : INativePointerController
         winUIView.PointerMoved -= OnWindowsPointerMoved;
         winUIView.PointerReleased -= OnWindowsPointerReleased;
         winUIView.PointerCaptureLost -= OnWindowsPointerCaptureLost;
+        winUIView.PointerCanceled -= OnWindowsPointerCanceled;
         winUIView.PointerWheelChanged -= OnWindowsPointerWheelChanged;
         winUIView.PointerExited -= OnWindowsPointerExited;
 
-        winUIView.ManipulationStarted -= OnPinchSarted;
         winUIView.ManipulationDelta -= OnPinching;
-        winUIView.ManipulationCompleted -= OnPinchCompleted;
     }
 
     private void OnWindowsPointerPressed(object sender, PointerRoutedEventArgs e)
@@ -80,6 +83,9 @@ internal partial class PointerController : INativePointerController
 
         var p = e.GetCurrentPoint(element);
         if (p is null) return;
+
+        if (e.Pointer.PointerDeviceType == PointerDeviceType.Touch)
+            _ = _touchContacts.Add(e.Pointer.PointerId);
 
 #if WINDOWS || DESKTOP
         _ = element.CapturePointer(e.Pointer);
@@ -98,8 +104,9 @@ internal partial class PointerController : INativePointerController
 
     private void OnWindowsPointerMoved(object sender, PointerRoutedEventArgs e)
     {
-        // wait 100ms to ensure it is not a pinch gesture.
-        if (_isPinching || ((DateTime.Now - _pressedTime).TotalMilliseconds < 100)) return;
+        // ignore moves while two or more fingers are down (a pinch, handled by OnPinching), and
+        // the first 100ms after a press, in case it becomes a pinch.
+        if (_touchContacts.Count > 1 || ((DateTime.Now - _pressedTime).TotalMilliseconds < 100)) return;
 
         var p = e.GetCurrentPoint(sender as UIElement);
         if (p is null) return;
@@ -113,6 +120,8 @@ internal partial class PointerController : INativePointerController
 
     private void OnWindowsPointerReleased(object sender, PointerRoutedEventArgs e)
     {
+        _ = _touchContacts.Remove(e.Pointer.PointerId);
+
         var element = (UIElement)sender;
 
         var p = e.GetCurrentPoint(element);
@@ -136,6 +145,10 @@ internal partial class PointerController : INativePointerController
     // pan/drag state stays armed. Treat capture loss as a synthetic release.
     private void OnWindowsPointerCaptureLost(object sender, PointerRoutedEventArgs e)
     {
+        // e is null when this handler is invoked directly, as the capture-lost UI tests do
+        // (WinUI pointer event args can't be constructed).
+        if (e?.Pointer is { } pointer) _ = _touchContacts.Remove(pointer.PointerId);
+
         if (!_isPointerDown) return;
         _isPointerDown = false;
 
@@ -147,6 +160,9 @@ internal partial class PointerController : INativePointerController
             new(_lastPointerPosition, _wasSecondaryPress, isSyntheticRelease: true, e));
     }
 
+    private void OnWindowsPointerCanceled(object sender, PointerRoutedEventArgs e) =>
+        _touchContacts.Remove(e.Pointer.PointerId);
+
     private void OnWindowsPointerWheelChanged(object sender, PointerRoutedEventArgs e)
     {
         var p = e.GetCurrentPoint(sender as UIElement);
@@ -156,22 +172,12 @@ internal partial class PointerController : INativePointerController
     private void OnWindowsPointerExited(object sender, PointerRoutedEventArgs e) =>
         Exited?.Invoke(sender, new(e));
 
-    private void OnPinchSarted(object sender, ManipulationStartedRoutedEventArgs e)
-    {
-        if (!NativeHelpers.IsTouchDevice()) return;
-
-        _isPinching = true;
-    }
-
     private void OnPinching(object sender, ManipulationDeltaRoutedEventArgs e)
     {
         var element = (UIElement)sender;
 
         Pinched?.Invoke(sender, new(e.Delta.Scale, new(e.Position.X, e.Position.Y), e));
     }
-
-    private void OnPinchCompleted(object sender, ManipulationCompletedRoutedEventArgs e) =>
-        _isPinching = false;
 
 }
 
