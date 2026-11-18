@@ -96,9 +96,11 @@ public class WeightedPoint : IChartEntity, INotifyPropertyChanged
     /// <param name="propertyName">Name of the property.</param>
     protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
+        // a NaN X or Y makes the coordinate empty like null; a NaN weight counts as no weight, like
+        // null (#2340).
         Coordinate = X is null || Y is null
             ? Coordinate.Empty
-            : new(X ?? 0, Y ?? 0, Weight ?? 0);
+            : new(X ?? 0, Y ?? 0, Weight is { } weight && !double.IsNaN(weight) ? weight : 0);
 
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }

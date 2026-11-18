@@ -41,6 +41,11 @@ public readonly struct Coordinate
         QuinaryValue = quinary;
         SenaryValue = senary;
         PointError = error;
+
+        // A NaN value can't be placed, so the point is empty, like a null value: a line breaks there
+        // and the bounds and the other series skip it. Drawn as is, a single NaN made the whole line
+        // path invalid and nothing of the line was drawn (#2340).
+        IsEmpty = double.IsNaN(primary) || double.IsNaN(secondary);
     }
 
     /// <summary>
@@ -98,7 +103,8 @@ public readonly struct Coordinate
     public static Coordinate Empty => new(true);
 
     /// <summary>
-    /// Evaluates whether the instance is empty.
+    /// Evaluates whether the instance is empty: <see cref="Empty"/>, or a coordinate whose primary or
+    /// secondary value is <see cref="double.NaN"/>. An empty point is not drawn, and breaks a line.
     /// </summary>
     public readonly bool IsEmpty { get; }
 
