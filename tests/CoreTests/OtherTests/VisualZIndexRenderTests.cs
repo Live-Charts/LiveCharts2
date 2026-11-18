@@ -1,4 +1,5 @@
 using LiveChartsCore;
+using LiveChartsCore.Drawing;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Drawing.Geometries;
 using LiveChartsCore.SkiaSharpView.Painting;
@@ -83,17 +84,20 @@ public class VisualZIndexRenderTests
         return bitmap.GetPixel(bitmap.Width / 2 + 10, bitmap.Height * 3 / 4);
     }
 
+    // DrawnElement returns IDrawnElement rather than RectangleGeometry: net462 doesn't support
+    // covariant return types.
     private class FullChartRectangle : Visual
     {
-        protected internal override RectangleGeometry DrawnElement { get; } =
-            new() { Fill = new SolidColorPaint(SKColors.Red) };
+        private readonly RectangleGeometry _rectangle = new() { Fill = new SolidColorPaint(SKColors.Red) };
+
+        protected internal override IDrawnElement DrawnElement => _rectangle;
 
         protected override void Measure(Chart chart)
         {
-            DrawnElement.X = 0;
-            DrawnElement.Y = 0;
-            DrawnElement.Width = chart.ControlSize.Width;
-            DrawnElement.Height = chart.ControlSize.Height;
+            _rectangle.X = 0;
+            _rectangle.Y = 0;
+            _rectangle.Width = chart.ControlSize.Width;
+            _rectangle.Height = chart.ControlSize.Height;
         }
     }
 }
