@@ -168,8 +168,9 @@ public partial class SourceGenChart
 
     static void OnSeriesSourceChanged(SGChart chart)
     {
-        if (chart._observer is null)
-            throw new InvalidOperationException("The chart observer is not initialized.");
+        // a style can set this from the base constructor, before the observer exists (#2397),
+        // the observer reads the current value when it is initialized.
+        if (chart._observer is null) return;
 
         var seriesObserver = (SeriesSourceObserver)chart._observer[nameof(SeriesSource)].Observer;
         seriesObserver.Initialize(chart.SeriesSource);
@@ -178,22 +179,19 @@ public partial class SourceGenChart
 
     static void OnChartPropertyChanged(SGChart chart)
     {
-#if BLAZOR_LVC
-        // hack for blazor, we need to wait for the OnAfterRender to have
-        // a reference to the canvas in the UI, CoreChart is null until then.
+        // CoreChart is null while the control is still being constructed: in Blazor until
+        // OnAfterRender, and in XAML when a style applies a value from the base constructor
+        // (WPF does it when Content is set, see #2397). There is nothing to update yet, the
+        // chart reads the value when it is measured for the first time.
         if (chart.CoreChart is null) return;
-#endif
         chart.CoreChart.Update();
     }
 
     static void OnTextPaintPropertyChanged(SGChart chart, object oldValue, object newValue)
     {
-#if BLAZOR_LVC
-        // hack for blazor, we need to wait for the OnAfterRender to have
-        // a reference to the canvas in the UI, CoreChart is null until then.
-        if (chart.CoreChart is null) return;
-#endif
         ((Paint)newValue)?.PaintStyle = PaintStyle.Text;
+        // see OnChartPropertyChanged: nothing to update before CoreChart exists.
+        if (chart.CoreChart is null) return;
         chart.CoreChart.Update();
     }
 
@@ -205,7 +203,8 @@ public partial class SourceGenChart
         if (chart.CoreChart is null) return;
 #endif
         chart.CoreCanvas.Sync = newValue;
-        chart.CoreChart.Update();
+        // see OnChartPropertyChanged, CoreChart is null while the control is constructed.
+        chart.CoreChart?.Update();
     }
 
 #pragma warning disable IDE0060 // Remove unused parameter, hack for the source generator
@@ -220,16 +219,15 @@ public partial class SourceGenChart
         string propertyName, object? oldValue = null, object? newValue = null) =>
             (chart, o, n) =>
             {
-                if (chart._observer is null)
-                    throw new InvalidOperationException("The chart observer is not initialized.");
+                // a style can set an observed property from the base constructor, before the
+                // observer and CoreChart exist (#2397). The observer reads the current value
+                // when it is initialized, and the chart when it is measured.
+                if (chart._observer is null) return;
 
                 chart._observer[propertyName].Observer.Initialize(n);
 
-#if BLAZOR_LVC
-                // hack for blazor, we need to wait for the OnAfterRender to have
-                // a reference to the canvas in the UI, CoreChart is null until then.
+                // CoreChart is null in Blazor until OnAfterRender.
                 if (chart.CoreChart is null) return;
-#endif
                 chart.CoreChart.Update();
 
 #if !BLAZOR_LVC
@@ -259,7 +257,7 @@ public partial class SourceGenChart
         OnXamlPropertyChanged(change);
 
         if (change.Property.Name == nameof(ActualThemeVariant))
-            CoreChart.ApplyTheme();
+            CoreChart?.ApplyTheme();
     }
 #endif
 }
