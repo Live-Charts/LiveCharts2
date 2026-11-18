@@ -3,9 +3,13 @@ To get help on editing this file, see https://github.com/beto-rodriguez/LiveChar
 content is normally pulled from the examples in the repository.
 -->
 
+{{ # the API type: the page title without "properties"; a few pages are titled differently from their type.
+   series_type = name | regex.replace ' [Pp]roperties$' '' | to_title_case_no_spaces
+   series_type = series_type | string.replace 'CandleSticksSeries' 'CandlesticksSeries'
+   series_type = series_type | string.replace 'StackedStepLineSeries' 'StackedStepAreaSeries' | string.replace 'StackedLineSeries' 'StackedAreaSeries' }}
 :::info
 This article does not include all the properties of the {{ name | to_title_case }} class, it only highlights some features, to
-explore the full object checkout the [API explorer]({{ website_url }}/api/{{ version }}/LiveChartsCore.SkiaSharpView.{{ name  | to_title_case_no_spaces }}-3)
+explore the full object checkout the [API explorer]({{ website_url }}/api/{{ version }}/LiveChartsCore.SkiaSharpView.{{ series_type }}-3)
 :::
 
 ## Name property

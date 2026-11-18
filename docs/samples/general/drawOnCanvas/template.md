@@ -52,7 +52,7 @@ based on the `X`, `Y` and `Diameter` properties.
 These properties are not regular properties, they are a special type defined by LiveCharts, the
 [MotionProperty<T>](https://livecharts.dev/api/{{ version }}/LiveChartsCore.Motion.MotionProperty-1) type is what handles animations
 in LiveCharts. Every time we access a motion property we get the value of the property at the current time based on the
-[IAnimatable](https://livecharts.dev/api/{{ version }}/LiveChartsCore.Drawing.IAnimatable) animation.
+[Animatable](https://livecharts.dev/api/{{ version }}/LiveChartsCore.Drawing.Animatable) animation.
 
 We also created an instance of the `SolidColorPaint` class, this class defines how the geometry will be rendered on the canvas,
 in this case a blue color with a stroke width of 2, then we added our geometry to the paint (you can add multiple geometries),
