@@ -171,8 +171,16 @@ public class DisposeTests
         }
     }
 
-    private static bool IsCoreLoaded(object chart) =>
-        chart is LiveChartsCore.Kernel.Sketches.IChartView view && view.CoreChart.IsLoaded;
+    // On 2.2 the map is not an IChartView and its core (GeoMapChart) has no IsLoaded: it tracks
+    // its state in a private _isUnloaded flag, read here (master's map derives from IChartView).
+    private static bool IsCoreLoaded(object chart) => chart switch
+    {
+        LiveChartsCore.Kernel.Sketches.IChartView view => view.CoreChart.IsLoaded,
+        LiveChartsCore.Geo.IGeoMapView map => !(bool)typeof(LiveChartsCore.GeoMapChart)
+            .GetField("_isUnloaded", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
+            .GetValue(map.CoreChart)!,
+        _ => false
+    };
 
     // Records Loaded/Unloaded of each chart and of its MotionCanvas (WinUI and Uno only), with the
     // framework's IsLoaded, whether it has a parent and the chart engine's IsLoaded at that moment.
