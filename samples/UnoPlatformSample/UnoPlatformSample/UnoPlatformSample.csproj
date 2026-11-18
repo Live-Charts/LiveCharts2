@@ -102,4 +102,15 @@
         <DefineConstants>$(DefineConstants);LVC_UNO_SKIA</DefineConstants>
     </PropertyGroup>
 
+    <!--
+    On CI only, the Windows App SDK head skips the GPU-view tests too (like WPF's TEST_HA_VIEWS).
+    There the GPU view is SkiaSharp 4's ANGLE SKSwapChainPanel, and on some GitHub runners its native
+    code kills the app (fail-fast 0xC0000409) when the view loads, in
+    gr_glinterface_create_native_interface (GRGlInterface.Create from SKSwapChainPanel.OnRenderFrame,
+    AngleSwapChainPanel.OnLoaded). Not LiveCharts code; the test still runs locally.
+    -->
+    <PropertyGroup Condition="$(UITesting) == 'true' and $(TargetFramework.Contains('-windows')) and '$(CI)' == 'true'">
+        <DefineConstants>$(DefineConstants);LVC_UNO_NO_GPU_TESTS</DefineConstants>
+    </PropertyGroup>
+
 </Project>

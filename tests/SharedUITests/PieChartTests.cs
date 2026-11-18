@@ -77,7 +77,7 @@ public class PieChartTests
     }
 #endif
 
-#if (WPF_UI_TESTING && TEST_HA_VIEWS) || MAUI_UI_TESTING || WINUI_UI_TESTING || (UNO_UI_TESTING && HAS_OS_LVC && !LVC_UNO_SKIA)
+#if (WPF_UI_TESTING && TEST_HA_VIEWS) || MAUI_UI_TESTING || WINUI_UI_TESTING || (UNO_UI_TESTING && HAS_OS_LVC && !LVC_UNO_SKIA && !LVC_UNO_NO_GPU_TESTS)
     // native platforms where gpu is supported.
     //
     // The Uno arm of this gate excludes the heads that render through Uno's
