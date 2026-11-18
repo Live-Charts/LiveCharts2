@@ -156,18 +156,21 @@ Uses a grid system to place `IDrawnElement` objects.
 
 ### Z-ordering with series
 
-By default, every series whose `ZIndex` is unset draws its fill at `SeriesId + 0.1`, while a `Visual`
-draws at `0`. That means decorations land **behind** the data they annotate, which is
-rarely what you want for glyphs, callouts or markers.
+By default a `Visual` is drawn **on top** of the series, which is what you normally want for
+glyphs, callouts or markers.
 
-To bring a visual to the front, set `Visual.ZIndex` to a value above
-the series stack. A safe ceiling is `1000` (above stacked series and below the crosshair layer):
+To draw a visual **behind** the series, for example as a background, set its `ZIndex` to a
+negative value. It is then drawn before everything in the plot area: the series, the separators,
+the sections and the draw margin frame, so a filled draw margin frame covers it there.
 
 ```csharp
-new RectangleVisual { ZIndex = 1000 };
+new RectangleVisual { ZIndex = -1 };
 ```
 
-Set it to `0` (the default) to keep the legacy "behind the series" placement, useful for backgrounds.
+A `ZIndex` of `0` (the default) or a positive value keeps the visual on top of the series. Visuals on
+the same side of the series are drawn in `ZIndex` order, so a visual with a higher `ZIndex` covers one
+with a lower value. The `ZIndex` can change at run time, and the visual moves to the other side of the
+series when its sign changes.
 
 ### Update on property change
 
