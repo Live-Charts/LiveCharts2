@@ -184,14 +184,13 @@ public class SemicircleHoverArea : HoverArea
 
     private float GetActualEndAngle()
     {
+        // Normalized like the start angle, with no adjustment: an end at 360 becomes 0, which is
+        // less than the start, and IsPointerOver / SuggestTooltipPlacement already treat an end
+        // below the start as a slice wrapping past 360 (NOTE #230206). The old -0.01 workaround
+        // for that case made slices narrower than 0.01 degrees wrap the whole circle (#2394).
         var endAngle = EndAngle;
-        if (endAngle == 0) return endAngle;
-
         endAngle %= 360;
         if (endAngle < 0) endAngle += 360;
-
-        // work around to avoid the case where the last slice (360) would be converted to 0
-        if (endAngle == 0) endAngle = 360;
         return endAngle;
     }
 }
