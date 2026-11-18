@@ -47,6 +47,12 @@ public abstract partial class SourceGenDrawnView : UserControl
         Loaded += (_, _) => OnDrawnViewLoaded();
         Unloaded += (_, _) =>
         {
+            // When the same element is removed and added back at once (e.g. a ContentControl's
+            // content set to null and back), WinUI raises Loaded for the re-add first and then the
+            // Unloaded for the removal, while the element is in the tree again and IsLoaded is still
+            // true. Unloading then left the chart unloaded and blank. Ignore that stale Unloaded.
+            if (IsLoaded) return;
+
             OnDrawnViewUnloaded();
             _wasInViewport = false;
         };

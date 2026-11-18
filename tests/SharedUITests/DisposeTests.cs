@@ -143,6 +143,87 @@ public class DisposeTests
         AssertChartsAreLoaded(sut.GetCurrentCharts());
     }
 
+    // Stress version of the reattach test above: on CI's WinUI and Uno (Windows App SDK) runners a
+    // chart sometimes ended up unloaded after an immediate remove + re-add. Many reattaches, with
+    // different waits between them, make a timing-dependent failure show up reliably; on WinUI/Uno
+    // the failure message carries the Loaded/Unloaded sequence of each chart and its MotionCanvas.
+    [AppTestMethod]
+    public async Task ChartsStayLoadedThroughManyImmediateReattaches()
+    {
+        var sut = await App.NavigateTo<Samples.Test.Dispose.View>();
+        await Task.Delay(1000);
+
+        var charts = sut.GetCurrentCharts();
+        var log = new LoadedEventsLog(charts);
+
+        for (var round = 0; round < 5; round++)
+        {
+            for (var i = 0; i < 6; i++)
+            {
+                sut.ReattachSameInstance();
+                log.Mark($"r{round}.{i}");
+
+                switch (i % 5)
+                {
+                    case 0: break;                          // next reattach right away
+                    case 1: await Task.Yield(); break;      // one dispatcher turn
+                    case 2: await Task.Delay(16); break;    // about one frame
+                    case 3: await Task.Delay(100); break;
+                    default: await Task.Delay(300); break;
+                }
+            }
+
+            await Task.Delay(1500);
+
+            foreach (var chart in charts)
+            {
+                if (!IsCoreLoaded(chart))
+                    Assert.Fail($"round {round}: {chart.GetType().Name} is not loaded after the reattaches.\n{log}");
+            }
+
+            AssertChartsAreLoaded(charts);
+        }
+    }
+
+    private static bool IsCoreLoaded(object chart) =>
+        chart is LiveChartsCore.Kernel.Sketches.IChartView view && view.CoreChart.IsLoaded;
+
+    // Records Loaded/Unloaded of each chart and of its MotionCanvas (WinUI and Uno only), with the
+    // framework's IsLoaded, whether it has a parent and the chart engine's IsLoaded at that moment.
+    private sealed class LoadedEventsLog
+    {
+        private readonly System.Text.StringBuilder _log = new();
+        private readonly System.Diagnostics.Stopwatch _clock = System.Diagnostics.Stopwatch.StartNew();
+
+        public LoadedEventsLog(object[] charts)
+        {
+#if WINUI_UI_TESTING || UNO_UI_TESTING
+            foreach (var chart in charts)
+            {
+                var name = chart.GetType().Name;
+                Watch((Microsoft.UI.Xaml.FrameworkElement)chart, name, chart);
+                if (((Microsoft.UI.Xaml.Controls.UserControl)chart).Content is Microsoft.UI.Xaml.FrameworkElement canvas)
+                    Watch(canvas, name + ".MotionCanvas", chart);
+            }
+#endif
+        }
+
+        public void Mark(string text) => _log.Append($"\n[{_clock.ElapsedMilliseconds}ms {text}] ");
+
+        public override string ToString() => _log.Length == 0 ? "(no event log on this platform)" : _log.ToString();
+
+#if WINUI_UI_TESTING || UNO_UI_TESTING
+        private void Watch(Microsoft.UI.Xaml.FrameworkElement element, string name, object chart)
+        {
+            element.Loaded += (_, _) => Append(name, "Loaded", element, chart);
+            element.Unloaded += (_, _) => Append(name, "Unloaded", element, chart);
+        }
+
+        private void Append(string name, string evt, Microsoft.UI.Xaml.FrameworkElement element, object chart) =>
+            _log.Append($"{name}.{evt}(fe.IsLoaded={element.IsLoaded},parent={element.Parent is not null},core={IsCoreLoaded(chart)}) ");
+#endif
+    }
+
     // every chart of the Dispose test page (Cartesian, Pie, Polar and GeoMap) is loaded and has
     // drawn its points, and on MAUI still has a handler. Fails if a chart is missing or the page
     // holds something else, so no chart goes unchecked.
