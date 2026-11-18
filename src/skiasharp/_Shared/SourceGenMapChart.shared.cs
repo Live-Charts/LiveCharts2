@@ -69,6 +69,8 @@ public partial class SourceGenMapChart : IGeoMapView
     {
         CoreChart = new GeoMapChart(this);
         _seriesObserver = new CollectionDeepObserver(() => CoreChart?.Update());
+        // a style can set Series from the base constructor, before the observer existed (#2397).
+        if (Series is not null) _seriesObserver.Initialize(Series);
 
         // Forward core lifecycle events to the IChartView surface so
         // consumers subscribing through the view get notified — matches
