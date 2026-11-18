@@ -6,7 +6,7 @@ content is normally pulled from the examples in the repository.
 {{ render "~/shared/genericSampleJustGifHeader.md" }}
 
 Zooming and panning is disabled by default, you can enable it by setting the `ZoomMode` property, this property is of type
-[ZoomAndPanMode](https://lvcharts.com/api/{{ version }}/LiveChartsCore.Measure.ZoomAndPanMode), this type is a flag enum
+[ZoomAndPanMode](https://livecharts.dev/api/{{ version }}/LiveChartsCore.Measure.ZoomAndPanMode), this type is a flag enum
 it means that you can combine the options as you need, you can learn more about zooming and panning
 options [here](#options).
 
@@ -45,7 +45,7 @@ On **Mobile** and touch screens:
 # Options
 
 You can enable zooming and panning by setting the `ZoomMode` property, this property is of type
-[ZoomAndPanMode](https://lvcharts.com/api/{{ version }}/LiveChartsCore.Measure.ZoomAndPanMode) and the options are:
+[ZoomAndPanMode](https://livecharts.dev/api/{{ version }}/LiveChartsCore.Measure.ZoomAndPanMode) and the options are:
 
 - `None`: Disables zooming and panning.
 - `PanX`: Enables panning on the X axis.
@@ -61,7 +61,7 @@ You can enable zooming and panning by setting the `ZoomMode` property, this prop
 
 Because each gesture has its own flag you can mix and match — for example `ZoomMode = ZoomAndPanMode.ZoomX | ZoomAndPanMode.PanY` enables zoom on the X axis and panning on the Y axis only, and `ZoomMode = ZoomAndPanMode.ZoomX` enables zoom on the X axis with no panning at all (useful on mobile where pan gestures can hide tooltips).
 
-The [ZoomAndPanMode](https://lvcharts.com/api/{{ version }}/LiveChartsCore.Measure.ZoomAndPanMode) type is a flag enum,
+The [ZoomAndPanMode](https://livecharts.dev/api/{{ version }}/LiveChartsCore.Measure.ZoomAndPanMode) type is a flag enum,
 so you can combine the options, for example, if you want to enable zooming on the `Both` axes and disable "Fit to Bounds"
 you could set the `ZoomMode` property to:
 
@@ -123,7 +123,7 @@ Setting `MinLimit` and `MaxLimit` properties to `null` or `double.NaN` will clea
 
 You can also zoom by section, this is a feature that allows you to select an area in the chart and zoom in to that area,
 when zooming is enabled, this feature is also enabled by default, you can also customize the trigger of this function, you can
-find more info [here](https://lvcharts.com/docs/{{ platform }}/{{ version }}/CartesianChart.Axes%20properties#zooming-and-panning).
+find more info [here](https://livecharts.dev/docs/{{ platform }}/{{ version }}/CartesianChart.Axes%20properties#zooming-and-panning).
 
 <div class="text-center sample-img">
     <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/{{ unique_name }}/selection-zoom.gif" alt="sample image" />

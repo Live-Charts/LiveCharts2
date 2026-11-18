@@ -12,7 +12,7 @@ at the [ApiExplorer]({{ website_url }}/api/{{ version }}/LiveChartsCore.SkiaShar
 The `CartesianChart` control is a 'ready to go' control to create plots using the 
 [Cartesian coordinate system](https://en.wikipedia.org/wiki/Cartesian_coordinate_system),
 To get started all you need to do is assign the `Series` property with a collection of 
-[`ICartesianSeries`]({{ website_url }}/api/{{ version }}/LiveChartsCore.Kernel.Sketches.ICartesianSeries-1).
+[`ICartesianSeries`]({{ website_url }}/api/{{ version }}/LiveChartsCore.Kernel.Sketches.ICartesianSeries).
 
 {{~ if xaml ~}}
 ```csharp

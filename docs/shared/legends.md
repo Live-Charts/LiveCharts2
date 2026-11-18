@@ -14,7 +14,7 @@ This section uses the `CartesianChart` control, but it works the same in the `{{
 A legend is a visual element that displays a list with the name, stroke and fills of the series in a chart:
 
 This is a brief sample about how to use the main features of the `IChartLegend<T>` interface, you can find a more detailed article at the button below or at the 
-[API explorer]({{ website_url }}/api/{{ version }}/LiveChartsCore.Kernel.Sketches.IChartLegend-1).
+[API explorer]({{ website_url }}/api/{{ version }}/LiveChartsCore.Kernel.Sketches.IChartLegend).
 
 <a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Legends" class="btn btn-outline-primary mb-3">
 <b>Go to the full legends article</b>

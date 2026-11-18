@@ -1,0 +1,33 @@
+name: Docs links
+permissions:
+  contents: read
+
+# lvcharts.com was the docs site until 2023 and now serves spam (#2382);
+# the docs live at livecharts.dev. Fail if a link to the old domain comes back.
+
+on:
+  push:
+    branches:
+      - master
+    paths: &docs-paths
+      - 'docs/**'
+      - 'README.md'
+      - '.github/workflows/docs-links.yml'
+  pull_request:
+    paths: *docs-paths
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.1
+
+      - name: No links to retired domains
+        run: |
+          if grep -rnIi --include='*.md' --include='*.html' 'lvcharts\.com' docs README.md; then
+            echo "::error::The docs link to lvcharts.com, which is no longer ours. Use https://livecharts.dev (or {{ website_url }})."
+            exit 1
+          fi
+          echo "No links to lvcharts.com."
