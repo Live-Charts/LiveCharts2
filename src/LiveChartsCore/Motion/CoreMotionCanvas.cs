@@ -165,8 +165,9 @@ public class CoreMotionCanvas : IDisposable
             // _toRemoveGeometries is a reusable scratch list; cleared at the end of each draw
             // pass. Per-frame allocation here showed up as easy waste in perf profiling — in
             // steady state nothing is removed.
-            foreach (var zone in Zones)
+            foreach (var zoneIndex in CanvasZone.DrawOrder)
             {
+                var zone = Zones[zoneIndex];
                 context.OnBeginZone(zone);
 
                 foreach (var task in zone.EnumerateTasks())
@@ -354,6 +355,25 @@ public class CoreMotionCanvas : IDisposable
         }
 
         return task;
+    }
+
+    /// <summary>
+    /// Moves a task to the given zone, without disposing it or its geometries.
+    /// </summary>
+    internal void MoveTaskToZone(Paint task, int zone)
+    {
+        lock (Sync)
+        {
+            if (!TryGetValue(zone, out var target))
+                throw new ArgumentOutOfRangeException(nameof(zone), zone, "The canvas zone does not exist.");
+
+            if (target.ContainsTask(task)) return;
+
+            foreach (var z in Zones)
+                if (z.RemoveTask(task)) break;
+
+            target.AddTask(task);
+        }
     }
 
     private bool TryGetValue(int zone, out CanvasZone canvasZone)

@@ -15,9 +15,10 @@ public class TooltipZoneTests
     //
     // The pixel manifestation depends on whether the tooltip's auto-placement
     // happens to overlap a tick path in the rendered layout, so this test pins
-    // the contract directly: the tooltip's task lands in the LAST canvas zone,
-    // which is the one that draws after every axis-related zone. The test does
-    // not name CanvasZone.Overlay so it would still fail behaviourally (delta = 0,
+    // the contract directly: the tooltip's task lands in the canvas zone that is
+    // DRAWN last, after every axis-related zone (the last one in CanvasZone.DrawOrder,
+    // not the last one in the zones array: Underlay, #2364, is drawn first). The test
+    // does not name CanvasZone.Overlay so it would still fail behaviourally (delta = 0,
     // not 1) if the new constant were renamed; it only asserts the routing.
 
     [TestMethod]
@@ -35,7 +36,7 @@ public class TooltipZoneTests
 
         // first render — no pointer set, tooltip not shown yet.
         _ = chart.GetImage();
-        var lastZoneIndex = chart.CoreCanvas.Zones.Length - 1;
+        var lastZoneIndex = CanvasZone.DrawOrder[CanvasZone.DrawOrder.Length - 1];
         var lastZoneBefore = chart.CoreCanvas.Zones[lastZoneIndex].CountTasks();
 
         // open the tooltip
@@ -49,7 +50,7 @@ public class TooltipZoneTests
         Assert.AreEqual(
             1,
             lastZoneAfter - lastZoneBefore,
-            $"Tooltip task must land in the last canvas zone (index {lastZoneIndex}). " +
+            $"Tooltip task must land in the canvas zone drawn last (index {lastZoneIndex}). " +
             $"Before tooltip: {lastZoneBefore} tasks, after: {lastZoneAfter}. " +
             "If the delta is 0 the tooltip went into an earlier zone and axis ticks will paint over it.");
     }
