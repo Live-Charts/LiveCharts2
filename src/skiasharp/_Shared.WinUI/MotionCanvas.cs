@@ -98,6 +98,12 @@ public partial class MotionCanvas : Canvas
     private void OnLoaded(object sender, RoutedEventArgs e) =>
         _composer.Initialize(CanvasCore);
 
-    private void OnUnloaded(object sender, RoutedEventArgs e) =>
+    private void OnUnloaded(object sender, RoutedEventArgs e)
+    {
+        // a stale Unloaded raised after the Loaded of an immediate re-add (see SourceGenDrawnView):
+        // disposing here would stop the frame loop of a canvas that is on screen again.
+        if (IsLoaded) return;
+
         _composer.Dispose(CanvasCore);
+    }
 }
