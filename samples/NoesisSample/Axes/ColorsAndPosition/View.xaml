@@ -1,0 +1,59 @@
+<UserControl
+    x:Class="NoesisSample.Axes.ColorsAndPosition.View"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lvc="clr-namespace:LiveChartsCore.Noesis;assembly=LiveChartsCore.Noesis"
+    xmlns:vms="clr-namespace:ViewModelsSamples.Axes.ColorsAndPosition;assembly=NoesisSample"
+    xmlns:local="clr-namespace:NoesisSample.Axes.ColorsAndPosition">
+
+    <UserControl.DataContext>
+        <vms:ViewModel/>
+    </UserControl.DataContext>
+
+    <UserControl.Resources>
+        <local:StringToPaintConverter x:Key="StringToPaintConverter" />
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal">
+            <Button Margin="6" Command="{Binding TogglePositionCommand}">Toggle position</Button>
+            <Button Margin="6" Command="{Binding SetNewColorCommand}">Set new color</Button>
+        </StackPanel>
+
+        <lvc:CartesianChart Grid.Row="1">
+
+            <lvc:CartesianChart.Series>
+                <lvc:SeriesCollection>
+                    <lvc:XamlColumnSeries Values="{Binding Values}"/>
+                </lvc:SeriesCollection>
+            </lvc:CartesianChart.Series>
+
+            <lvc:CartesianChart.XAxes>
+                <lvc:AxesCollection>
+                    <lvc:XamlAxis
+                        AxisName="X axis"
+                        TextSize="20"
+                        Position="{Binding Position}"
+                        LabelsPaint="{Binding Color, Converter={local:PaintConverter}}"
+                        SeparatorsPaint="{Binding Color, Converter={local:PaintConverter}}"/>
+                </lvc:AxesCollection>
+            </lvc:CartesianChart.XAxes>
+
+            <lvc:CartesianChart.YAxes>
+                <lvc:AxesCollection>
+                    <lvc:XamlAxis
+                        AxisName="Y axis"
+                        TextSize="20"
+                        Position="{Binding Position}"
+                        LabelsPaint="{Binding Color, Converter={local:PaintConverter}}"
+                        SeparatorsPaint="{Binding Color, Converter={local:PaintConverter}}"/>
+                </lvc:AxesCollection>
+            </lvc:CartesianChart.YAxes>
+        </lvc:CartesianChart>
+    </Grid>
+</UserControl>

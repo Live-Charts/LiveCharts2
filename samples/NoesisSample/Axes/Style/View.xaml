@@ -1,0 +1,73 @@
+<UserControl
+    x:Class="NoesisSample.Axes.Style.View"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib"
+    xmlns:lvc="clr-namespace:LiveChartsCore.Noesis;assembly=LiveChartsCore.Noesis"
+    xmlns:vms="clr-namespace:ViewModelsSamples.Axes.Style;assembly=NoesisSample"
+    >
+
+    <UserControl.DataContext>
+        <vms:ViewModel/>
+    </UserControl.DataContext>
+
+    <UserControl.Resources>
+
+
+
+
+    </UserControl.Resources>
+
+    <lvc:CartesianChart
+        Background="#303030"
+        Margin="20"
+        DrawMarginFrame="{lvc:Frame Stroke={lvc:SolidColorPaint Color={StaticResource Gallery.Axes.Style.gray}, StrokeWidth=2}}"
+        ZoomMode="Both"
+        TooltipPosition="Hidden">
+
+        <lvc:CartesianChart.Series>
+            <lvc:SeriesCollection>
+                <lvc:XamlLineSeries
+                    Values="{Binding Values}"
+                    Stroke="{lvc:SolidColorPaint Color='#2196F3', StrokeWidth=4}"
+                    Fill="{x:Null}"
+                    GeometryFill="{x:Null}"
+                    GeometryStroke="{x:Null}"/>
+            </lvc:SeriesCollection>
+        </lvc:CartesianChart.Series>
+
+        <lvc:CartesianChart.XAxes>
+            <lvc:AxesCollection>
+                <lvc:XamlAxis
+                    AxisName="X Axis"
+                    NamePaint="{lvc:SolidColorPaint Color={StaticResource Gallery.Axes.Style.gray1}}"
+                    TextSize="18"
+                    LabelsPaint="{lvc:SolidColorPaint Color={StaticResource Gallery.Axes.Style.gray}}"
+                    SeparatorsPaint="{lvc:SolidColorPaint Color={StaticResource Gallery.Axes.Style.gray}, StrokeWidth=1}"
+                    SubseparatorsPaint="{lvc:SolidColorPaint Color={StaticResource Gallery.Axes.Style.gray2}, StrokeWidth=0.5}"
+                    SubseparatorsCount="9"
+                    ZeroPaint="{lvc:SolidColorPaint Color={StaticResource Gallery.Axes.Style.gray1}, StrokeWidth=2}"
+                    TicksPaint="{lvc:SolidColorPaint Color={StaticResource Gallery.Axes.Style.gray}, StrokeWidth=1.5}"
+                    SubticksPaint="{lvc:SolidColorPaint Color={StaticResource Gallery.Axes.Style.gray}, StrokeWidth=1}"/>
+            </lvc:AxesCollection>
+        </lvc:CartesianChart.XAxes>
+
+        <lvc:CartesianChart.YAxes>
+            <lvc:AxesCollection>
+                <lvc:XamlAxis
+                    AxisName="Y Axis"
+                    NamePaint="{lvc:SolidColorPaint Color={StaticResource Gallery.Axes.Style.gray1}}"
+                    TextSize="18"
+                    LabelsPaint="{lvc:SolidColorPaint Color={StaticResource Gallery.Axes.Style.gray}}"
+                    SeparatorsPaint="{lvc:SolidColorPaint Color={StaticResource Gallery.Axes.Style.gray}, StrokeWidth=1}"
+                    SubseparatorsPaint="{lvc:SolidColorPaint Color={StaticResource Gallery.Axes.Style.gray2}, StrokeWidth=0.5}"
+                    SubseparatorsCount="9"
+                    ZeroPaint="{lvc:SolidColorPaint Color={StaticResource Gallery.Axes.Style.gray1}, StrokeWidth=2}"
+                    TicksPaint="{lvc:SolidColorPaint Color={StaticResource Gallery.Axes.Style.gray}, StrokeWidth=1.5}"
+                    SubticksPaint="{lvc:SolidColorPaint Color={StaticResource Gallery.Axes.Style.gray}, StrokeWidth=1}"/>
+            </lvc:AxesCollection>
+        </lvc:CartesianChart.YAxes>
+
+    </lvc:CartesianChart>
+
+</UserControl>

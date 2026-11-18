@@ -1,0 +1,39 @@
+<UserControl
+    x:Class="NoesisSample.Box.Basic.View"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lvc="clr-namespace:LiveChartsCore.Noesis;assembly=LiveChartsCore.Noesis"
+    xmlns:vms="clr-namespace:ViewModelsSamples.Box.Basic;assembly=NoesisSample">
+
+    <UserControl.DataContext>
+        <vms:ViewModel/>
+    </UserControl.DataContext>
+
+    <lvc:CartesianChart LegendPosition="Right">
+        <lvc:CartesianChart.Series>
+            <lvc:SeriesCollection>
+                <lvc:XamlBoxSeries
+                    SeriesName="Year 2023"
+                    Values="{Binding Values1}"/>
+                <lvc:XamlBoxSeries
+                    SeriesName="Year 2024"
+                    Values="{Binding Values2}"/>
+                <lvc:XamlBoxSeries
+                    SeriesName="Year 2025"
+                    Values="{Binding Values3}"/>
+            </lvc:SeriesCollection>
+        </lvc:CartesianChart.Series>
+        <lvc:CartesianChart.XAxes>
+            <lvc:AxesCollection>
+                <lvc:XamlAxis
+                    Labels="{Binding Labels}"
+                    LabelsRotation="0"
+                    SeparatorsPaint="{lvc:SolidColorPaint Color=#c8c8c8}"
+                    SeparatorsAtCenter="False"
+                    TicksPaint="{lvc:SolidColorPaint Color=#232323}"
+                    TicksAtCenter="True"/>
+            </lvc:AxesCollection>
+        </lvc:CartesianChart.XAxes>
+    </lvc:CartesianChart>
+
+</UserControl>

@@ -1,0 +1,81 @@
+﻿<Window
+    x:Class="NoesisSample.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="LiveCharts2 · Noesis"
+    Width="1920"
+    Height="1080"
+    Background="{DynamicResource Sample.Background}"
+    Foreground="{DynamicResource Sample.Foreground}">
+    <Grid Margin="25,20,25,20">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="260" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Grid Margin="0,0,20,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="60" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Image
+                Source="/NoesisSample;component/Images/livecharts.png"
+                Stretch="Uniform"
+                HorizontalAlignment="Left"
+                Margin="0,0,0,16" />
+
+            <ListBox
+                x:Name="SampleList"
+                Grid.Row="1"
+                ItemsSource="{Binding SamplePaths}"
+                BorderThickness="0"
+                Background="{DynamicResource Sample.Background}"
+                FontSize="15"
+                ScrollViewer.VerticalScrollBarVisibility="Auto">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding}" Margin="0,6" />
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+            <StackPanel Grid.Row="2" Margin="0,16,0,0">
+                <Button x:Name="ResetButton" Padding="16,10" Margin="0,0,0,10">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="↻" Margin="0,0,10,0" />
+                        <TextBlock Text="Reset example" />
+                    </StackPanel>
+                </Button>
+                <Button x:Name="ThemeButton" Padding="16,10">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="◐" Margin="0,0,10,0" />
+                        <TextBlock Text="Switch theme" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <Border
+            Grid.Column="1"
+            Background="{DynamicResource Sample.Surface}"
+            BorderBrush="{DynamicResource Sample.Border}"
+            BorderThickness="1"
+            CornerRadius="10"
+            Padding="24">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock
+                    x:Name="SampleTitle"
+                    FontSize="24"
+                    FontWeight="SemiBold"
+                    Margin="0,0,0,24" />
+                <ContentControl x:Name="SampleContent" Grid.Row="1" />
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

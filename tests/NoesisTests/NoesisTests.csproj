@@ -1,0 +1,14 @@
+<Project Sdk="MSTest.Sdk/4.0.2">
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net8.0</TargetFramework>
+        <UseRidGraph>true</UseRidGraph>
+        <IsPackable>false</IsPackable>
+        <NoWarn>$(NoWarn);MSTEST0001;MSTEST0037</NoWarn>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="../../src/noesis/LiveChartsCore.Noesis/LiveChartsCore.Noesis.csproj" />
+        <ProjectReference Include="../../generators/LiveChartsGenerators/LiveChartsGenerators.csproj" />
+    </ItemGroup>
+</Project>

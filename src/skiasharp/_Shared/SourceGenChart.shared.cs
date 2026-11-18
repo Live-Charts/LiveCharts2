@@ -255,7 +255,17 @@ public partial class SourceGenChart : IChartView
         }
     }
 
-#if WPF_LVC
+#if NOESIS_LVC
+    private protected void SetThemedValue(global::Noesis.DependencyProperty property, object? value)
+    {
+        if (ReadLocalValue(property) != global::Noesis.DependencyProperty.UnsetValue)
+        {
+            return;
+        }
+
+        SetCurrentValue(property, value);
+    }
+#elif WPF_LVC
     // Theme write for a generated dependency property: a value the user set in XAML / code
     // (a local value or a binding) always wins, so we skip it. Otherwise we write via
     // SetCurrentValue so the theme value never becomes a "local" value — that keeps the

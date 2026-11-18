@@ -1,0 +1,37 @@
+<UserControl
+    x:Class="NoesisSample.Polar.RadialArea.View"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lvc="clr-namespace:LiveChartsCore.Noesis;assembly=LiveChartsCore.Noesis"
+    xmlns:vms="clr-namespace:ViewModelsSamples.Polar.RadialArea;assembly=NoesisSample"
+    xmlns:c="clr-namespace:LiveChartsCore;assembly=LiveChartsCore">
+
+    <UserControl.DataContext>
+        <vms:ViewModel/>
+    </UserControl.DataContext>
+
+    <lvc:PolarChart InitialRotation="-45">
+        <lvc:PolarChart.Series>
+            <lvc:SeriesCollection>
+                <lvc:XamlPolarLineSeries
+                    Values="{Binding Values1}"
+                    LineSmoothness="0"
+                    GeometrySize="0"
+                    Fill="{lvc:SolidColorPaint Color=#900000ff}"/>
+                <lvc:XamlPolarLineSeries
+                    Values="{Binding Values2}"
+                    LineSmoothness="1"
+                    GeometrySize="0"
+                    Fill="{lvc:SolidColorPaint Color=#90ff0000}"/>
+            </lvc:SeriesCollection>
+        </lvc:PolarChart.Series>
+        <lvc:PolarChart.AngleAxes>
+            <lvc:PolarAxesCollection>
+                <lvc:XamlPolarAxis
+                    LabelsRotation="{Binding TangentAngle}"
+                    Labels="{Binding Labels}"/>
+            </lvc:PolarAxesCollection>
+        </lvc:PolarChart.AngleAxes>
+    </lvc:PolarChart>
+
+</UserControl>

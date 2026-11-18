@@ -33,8 +33,15 @@ LiveCharts supports:
 - Avalonia
 - Eto Forms
 - Uwp
+- NoesisGUI .NET (for Unity [check this](https://github.com/nadjibus/UnityNoesisLiveCharts2)).
 
 You can also use LiveCharts 2 in a console app or on the server side by installing only the core packages. Take a look at [this guide](https://livecharts.dev/docs/wpf/2.0.4/samples.general.chartToImage#build-an-image-in-the-server-side-or-console-app).
+
+### NoesisGUI
+
+Open [LiveCharts.Noesis.slnx](LiveCharts.Noesis.slnx) to build the Noesis backend and .NET sample gallery. Charts render through Noesis directly, without SkiaSharp.
+
+A separate [Unity example](https://github.com/nadjibus/UnityNoesisLiveCharts2) includes screen-space and world-space scenes, five animated chart types, light/dark themes, and MVVM commands.
 
 ### The Errors of v0
 

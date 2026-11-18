@@ -1,4 +1,4 @@
-﻿// The MIT License(MIT)
+// The MIT License(MIT)
 //
 // Copyright(c) 2021 Alberto Rodriguez Orozco & LiveCharts Contributors
 //
@@ -41,6 +41,9 @@ namespace LiveChartsCore.SkiaSharpView.Maui;
 #elif WINUI_LVC
 using Extension = Microsoft.UI.Xaml.Markup.MarkupExtension;
 namespace LiveChartsCore.SkiaSharpView.WinUI;
+#elif NOESIS_LVC
+using Extension = Noesis.MarkupExtension;
+namespace LiveChartsCore.SkiaSharpView.Noesis;
 #elif WPF_LVC
 using Extension = System.Windows.Markup.MarkupExtension;
 namespace LiveChartsCore.SkiaSharpView.WPF;
@@ -743,7 +746,7 @@ public class FloatExtension : BaseExtension
 
 #endif
 
-#if WINUI_LVC || AVALONIA_LVC
+#if WINUI_LVC || AVALONIA_LVC || NOESIS_LVC
 // a hacked extension because winui and avalonia do not support typeconverters from string to List<double>
 // at least I was not able to find how to do it... this extension is just to create simple charts,
 // used in the first chart sample.

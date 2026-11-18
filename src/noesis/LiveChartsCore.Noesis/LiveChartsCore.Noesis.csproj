@@ -1,0 +1,34 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFrameworks>netstandard2.1;net8.0</TargetFrameworks>
+        <AssemblyName>LiveChartsCore.Noesis</AssemblyName>
+        <RootNamespace>LiveChartsCore.Noesis</RootNamespace>
+        <UseRidGraph>true</UseRidGraph>
+        <DefineConstants>$(DefineConstants);NOESIS_LVC;XAML_LVC</DefineConstants>
+        <PathToPackAssets>../../../</PathToPackAssets>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(NoesisUnityAssembly)' != ''">
+        <DefineConstants>$(DefineConstants);NOESIS_UNITY</DefineConstants>
+    </PropertyGroup>
+    <Import Project="../../../nuget.props" />
+    <ItemGroup>
+        <EmbeddedResource Include="MotionCanvas.xaml" LogicalName="MotionCanvas.xaml" />
+        <Using Include="LiveChartsCore.Noesis.TypeConverters" />
+        <PackageReference Include="Noesis.GUI" Version="4.0.0" Condition="'$(NoesisUnityAssembly)' == ''" />
+        <Reference Include="Noesis.NoesisGUI" Condition="'$(NoesisUnityAssembly)' != ''">
+            <HintPath>$(NoesisUnityAssembly)</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <ProjectReference Include="../../LiveChartsCore/LiveChartsCore.csproj" />
+        <ProjectReference Include="../../../generators/LiveChartsGenerators/LiveChartsGenerators.csproj"
+                          OutputItemType="Analyzer"
+                          ReferenceOutputAssembly="false" />
+        <Compile Include="../../skiasharp/_Shared/SourceGenDrawnView.shared.cs" Link="Controls/SourceGenDrawnView.shared.cs" />
+        <Compile Include="../../skiasharp/_Shared/SourceGenChart.*.cs" Link="Controls/%(Filename).cs" />
+        <Compile Include="../../skiasharp/_Shared/SourceGenCartesianChart.*.cs" Link="Controls/%(Filename).cs" />
+        <Compile Include="../../skiasharp/_Shared/SourceGenPieChart.*.cs" Link="Controls/%(Filename).cs" />
+        <Compile Include="../../skiasharp/_Shared/SourceGenPolarChart.*.cs" Link="Controls/%(Filename).cs" />
+        <Compile Include="../../skiasharp/_Shared/SourceGenSankeyChart.*.cs" Link="Controls/%(Filename).cs" />
+        <Compile Include="../../skiasharp/_Shared/SourceGenTreemapChart.*.cs" Link="Controls/%(Filename).cs" />
+    </ItemGroup>
+</Project>

@@ -1,4 +1,4 @@
-﻿// The MIT License(MIT)
+// The MIT License(MIT)
 //
 // Copyright(c) 2021 Alberto Rodriguez Orozco & LiveCharts Contributors
 //
@@ -44,6 +44,9 @@ namespace LiveChartsCore.SkiaSharpView.Maui;
 #elif WINUI_LVC
 using BaseControl = Microsoft.UI.Xaml.FrameworkElement;
 namespace LiveChartsCore.SkiaSharpView.WinUI;
+#elif NOESIS_LVC
+using BaseControl = Noesis.FrameworkElement;
+namespace LiveChartsCore.SkiaSharpView.Noesis;
 #elif WPF_LVC
 using BaseControl = System.Windows.FrameworkElement;
 namespace LiveChartsCore.SkiaSharpView.WPF;

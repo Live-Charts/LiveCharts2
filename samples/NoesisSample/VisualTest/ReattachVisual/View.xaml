@@ -1,0 +1,29 @@
+<UserControl x:Class="NoesisSample.VisualTest.ReattachVisual.View"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:lvc="clr-namespace:LiveChartsCore.Noesis;assembly=LiveChartsCore.Noesis"
+             xmlns:vms="clr-namespace:ViewModelsSamples.VisualTest.ReattachVisual;assembly=NoesisSample">
+    <UserControl.DataContext>
+        <vms:ViewModel/>
+    </UserControl.DataContext>
+    <Grid x:Name="parent">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <lvc:CartesianChart
+            x:Name="chart"
+            Grid.Row="0"
+            Series="{Binding Series}"
+            Sections="{Binding Sections}"
+            ZoomMode="X">
+        </lvc:CartesianChart>
+
+        <Button
+            Grid.Row="1"
+            Content="Toggle attach"
+            Click="Button_Click">
+        </Button>
+    </Grid>
+</UserControl>

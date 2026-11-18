@@ -1,4 +1,4 @@
-﻿// The MIT License(MIT)
+// The MIT License(MIT)
 //
 // Copyright(c) 2021 Alberto Rodriguez Orozco & LiveCharts Contributors
 //
@@ -126,7 +126,17 @@ public partial class SourceGenMapChart : IGeoMapView
     // gets them); see SetThemedValue below.
     private protected bool _isApplyingTheme;
 
-#if WPF_LVC
+#if NOESIS_LVC
+    private protected void SetThemedValue(global::Noesis.DependencyProperty property, object? value)
+    {
+        if (ReadLocalValue(property) != global::Noesis.DependencyProperty.UnsetValue)
+        {
+            return;
+        }
+
+        SetCurrentValue(property, value);
+    }
+#elif WPF_LVC
     private protected void SetThemedValue(global::System.Windows.DependencyProperty property, object? value)
     {
         if (ReadLocalValue(property) != global::System.Windows.DependencyProperty.UnsetValue) return;
@@ -170,6 +180,11 @@ public partial class SourceGenMapChart : IGeoMapView
                 : CoreCanvas._virtualBackgroundColor;
         }
     }
+#elif NOESIS_LVC
+    LvcColor IChartView.BackColor =>
+        Background is not Noesis.SolidColorBrush brush
+            ? CoreCanvas._virtualBackgroundColor
+            : LvcColor.FromArgb(brush.Color.A, brush.Color.R, brush.Color.G, brush.Color.B);
 #elif WPF_LVC
     LvcColor IChartView.BackColor =>
         Background is not System.Windows.Media.SolidColorBrush b

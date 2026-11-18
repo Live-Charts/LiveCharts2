@@ -1,0 +1,28 @@
+<UserControl
+    x:Class="NoesisSample.General.TemplatedLegends.View"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lvc="clr-namespace:LiveChartsCore.Noesis;assembly=LiveChartsCore.Noesis"
+    xmlns:vms="clr-namespace:ViewModelsSamples.General.TemplatedLegends;assembly=NoesisSample">
+
+    <UserControl.DataContext>
+        <vms:ViewModel/>
+    </UserControl.DataContext>
+
+    <lvc:CartesianChart LegendPosition="Right">
+
+        <lvc:CartesianChart.Legend>
+            <vms:CustomLegend></vms:CustomLegend>
+        </lvc:CartesianChart.Legend>
+
+        <lvc:CartesianChart.Series>
+            <lvc:SeriesCollection>
+                <lvc:XamlColumnSeries
+                    SeriesName="Roger" Values="{Binding RogerValues}"/>
+                <lvc:XamlColumnSeries
+                    SeriesName="Susan" Values="{Binding SusanValues}" />
+            </lvc:SeriesCollection>
+        </lvc:CartesianChart.Series>
+    </lvc:CartesianChart>
+
+</UserControl>

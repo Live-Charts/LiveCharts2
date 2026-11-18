@@ -1,0 +1,35 @@
+<UserControl
+    x:Class="NoesisSample.Pies.Nested.View"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lvc="clr-namespace:LiveChartsCore.Noesis;assembly=LiveChartsCore.Noesis"
+    xmlns:vms="clr-namespace:ViewModelsSamples.Pies.Nested;assembly=NoesisSample"
+    xmlns:local="clr-namespace:NoesisSample.Pies.Nested">
+
+    <UserControl.DataContext>
+        <vms:ViewModel/>
+    </UserControl.DataContext>
+
+    <UserControl.Resources>
+        <local:StringToPaintConverter x:Key="StringToPaintConverter"/>
+    </UserControl.Resources>
+
+    <lvc:PieChart InitialRotation="120" SeriesSource="{Binding PieDataCollection}" LegendPosition="Right">
+        <lvc:PieChart.SeriesTemplate>
+            <DataTemplate>
+                <lvc:XamlPieSeries
+                SeriesName="{Binding Name}"
+                Values="{Binding Values}"
+                Stroke="{lvc:SolidColorPaint Color='#fff', StrokeWidth=2}"
+                Fill="{Binding Color, Converter={local:PaintConverter}}"
+                HoverPushout="0"
+                DataLabelsFormatter="{Binding Formatter}"
+                DataLabelsSize="20"
+                ShowDataLabels="{Binding IsTotal}"
+                DataLabelsPosition="Outer"
+                IsVisibleAtLegend="{Binding IsTotal}">
+                </lvc:XamlPieSeries>
+            </DataTemplate>
+        </lvc:PieChart.SeriesTemplate>
+    </lvc:PieChart>
+</UserControl>

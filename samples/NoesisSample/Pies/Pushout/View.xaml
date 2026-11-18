@@ -1,0 +1,22 @@
+<UserControl
+    x:Class="NoesisSample.Pies.Pushout.View"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lvc="clr-namespace:LiveChartsCore.Noesis;assembly=LiveChartsCore.Noesis"
+    xmlns:vms="clr-namespace:ViewModelsSamples.Pies.Pushout;assembly=NoesisSample">
+
+    <UserControl.DataContext>
+        <vms:ViewModel/>
+    </UserControl.DataContext>
+
+    <lvc:PieChart SeriesSource="{Binding Data}">
+        <lvc:PieChart.SeriesTemplate>
+            <DataTemplate>
+                <lvc:XamlPieSeries
+                    SeriesName="{Binding Name}"
+                    Values="{Binding Values}"
+                    Pushout="{Binding Pushout}"/>
+            </DataTemplate>
+        </lvc:PieChart.SeriesTemplate>
+    </lvc:PieChart>
+</UserControl>

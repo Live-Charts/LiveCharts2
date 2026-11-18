@@ -1,0 +1,47 @@
+<UserControl
+    x:Class="NoesisSample.Polar.Basic.View"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lvc="clr-namespace:LiveChartsCore.Noesis;assembly=LiveChartsCore.Noesis"
+    xmlns:vms="clr-namespace:ViewModelsSamples.Polar.Basic;assembly=NoesisSample"
+    xmlns:c="clr-namespace:LiveChartsCore;assembly=LiveChartsCore">
+
+    <UserControl.DataContext>
+        <vms:ViewModel/>
+    </UserControl.DataContext>
+
+    <lvc:PolarChart>
+        <lvc:PolarChart.Title>
+            <lvc:XamlDrawnLabelVisual
+                Text="My chart title"
+                TextSize="25"
+                Padding="{lvc:Padding Value='15'}"/>
+        </lvc:PolarChart.Title>
+        <lvc:PolarChart.Series>
+            <lvc:SeriesCollection>
+                <lvc:XamlPolarLineSeries
+                    Values="{Binding Values}"
+                    ShowDataLabels="True"
+                    GeometrySize="15"
+                    DataLabelsSize="8"
+                    DataLabelsPosition="Middle"
+                    DataLabelsRotation="67108864"
+                    IsClosed="True"/>
+            </lvc:SeriesCollection>
+        </lvc:PolarChart.Series>
+        <lvc:PolarChart.RadiusAxes>
+            <lvc:PolarAxesCollection>
+                <lvc:XamlPolarAxis
+                    LabelsAngle="-60"
+                    MaxLimit="30"/>
+            </lvc:PolarAxesCollection>
+        </lvc:PolarChart.RadiusAxes>
+        <lvc:PolarChart.AngleAxes>
+            <lvc:PolarAxesCollection>
+                <lvc:XamlPolarAxis
+                    LabelsRotation="33554432"/>
+            </lvc:PolarAxesCollection>
+        </lvc:PolarChart.AngleAxes>
+    </lvc:PolarChart>
+
+</UserControl>

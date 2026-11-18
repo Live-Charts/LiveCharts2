@@ -1,4 +1,4 @@
-﻿// The MIT License(MIT)
+// The MIT License(MIT)
 //
 // Copyright(c) 2021 Alberto Rodriguez Orozco & LiveCharts Contributors
 //
@@ -514,6 +514,8 @@ public class XamlFriendlyObjectsGenerator : IIncrementalGenerator
             "LiveChartsCore.SkiaSharpView.Uno.WinUI" => "WinUI",
             "LiveChartsCore.SkiaSharpView.Avalonia" => "Avalonia",
             "LiveChartsCore.SkiaSharpView.WPF" => "WPF",
+            "LiveChartsCore.SkiaSharpView.Noesis" => "Noesis",
+            "LiveChartsCore.Noesis" => "NoesisNative",
             "LiveChartsCore.SkiaSharpView.Blazor" => "Blazor",
             "LiveChartsCore.SkiaSharpView.WinForms" => "WinForms",
             "LiveChartsCore.SkiaSharpView.Eto" => "WinForms",
@@ -529,6 +531,8 @@ public class XamlFriendlyObjectsGenerator : IIncrementalGenerator
             "WinUI" => new WinUITemplate(context),
             "Avalonia" => new AvaloniaTemplate(context),
             "WPF" => new WPFTemplate(context),
+            "Noesis" => new NoesisTemplate(context),
+            "NoesisNative" => new NoesisTemplate(context, native: true),
             "WinForms" => new WinformsTemplate(context),
             "Blazor" => new BlazorTemplate(context),
             _ => throw new NotSupportedException($"The consumer type '{consumerType}' is not supported.")

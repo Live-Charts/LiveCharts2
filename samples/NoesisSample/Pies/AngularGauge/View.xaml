@@ -1,0 +1,65 @@
+<UserControl
+    x:Class="NoesisSample.Pies.AngularGauge.View"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lvc="clr-namespace:LiveChartsCore.Noesis;assembly=LiveChartsCore.Noesis"
+    xmlns:vms="clr-namespace:ViewModelsSamples.Pies.AngularGauge;assembly=NoesisSample"
+    MaxHeight="400"
+    MaxWidth="400">
+
+    <UserControl.DataContext>
+        <vms:ViewModel/>
+    </UserControl.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Button
+            Grid.Row="0"
+            Command="{Binding DoRandomChangeCommand}"
+            Content="Change value"/>
+
+        <lvc:PieChart
+            Grid.Row="1"
+            InitialRotation="-225"
+            MaxAngle="270"
+            MinValue="0"
+            MaxValue="100">
+            <lvc:PieChart.Series>
+                <lvc:SeriesCollection>
+                    <lvc:XamlAngularGaugeSeries
+                        GaugeValue="60"
+                        OuterRadiusOffset="130"
+                        MaxRadialColumnWidth="20"
+                        CornerRadius="0"/>
+                    <lvc:XamlAngularGaugeSeries
+                        GaugeValue="30"
+                        OuterRadiusOffset="130"
+                        MaxRadialColumnWidth="20"
+                        CornerRadius="0"/>
+                    <lvc:XamlAngularGaugeSeries
+                        GaugeValue="10"
+                        OuterRadiusOffset="130"
+                        MaxRadialColumnWidth="20"
+                        CornerRadius="0"/>
+                </lvc:SeriesCollection>
+            </lvc:PieChart.Series>
+            <lvc:PieChart.VisualElements>
+                <lvc:VisualsCollection>
+                    <lvc:XamlNeedle
+                        Width="20"
+                        Value="{Binding Value}"/>
+                    <lvc:XamlAngularTicks
+                        LabelsSize="16"
+                        LabelsOuterOffset="15"
+                        OuterOffset="65"
+                        TicksLength="20" />
+                </lvc:VisualsCollection>
+            </lvc:PieChart.VisualElements>
+        </lvc:PieChart>
+    </Grid>
+
+</UserControl>

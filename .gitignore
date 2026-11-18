@@ -347,3 +347,8 @@ nuget.exe
 /.claude/settings.local.json
 /.claude/screenshots/
 /.claude/worktrees/
+
+# Noesis sample local license and verification output
+/samples/NoesisSample/NoesisLicense.txt
+/Logs-Noesis-*.txt
+/artifacts/noesis/

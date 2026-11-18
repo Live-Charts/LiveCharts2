@@ -1,0 +1,11 @@
+<Solution>
+    <Folder Name="/Sample/">
+        <Project Path="samples/NoesisSample/NoesisSample.csproj" />
+    </Folder>
+    <Folder Name="/Tests/">
+        <Project Path="tests/NoesisTests/NoesisTests.csproj" />
+    </Folder>
+    <Project Path="generators/LiveChartsGenerators/LiveChartsGenerators.csproj" />
+    <Project Path="src/LiveChartsCore/LiveChartsCore.csproj" />
+    <Project Path="src/noesis/LiveChartsCore.Noesis/LiveChartsCore.Noesis.csproj" />
+</Solution>
