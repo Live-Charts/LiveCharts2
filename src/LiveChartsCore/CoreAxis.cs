@@ -1520,7 +1520,7 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
             }
             else
             {
-                ys = scale.MeasureInPixels(s * step);
+                ys = _logBase is null ? scale.MeasureInPixels(s * step) : scale.MeasureInPixels(s - s * step);
             }
 
             UpdateSeparator(subseparator, x + xs, y + ys, lxi, lxj, lyi, lyj, mode);
@@ -1551,7 +1551,7 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
             }
             else
             {
-                ys = scale.MeasureInPixels(s * step);
+                ys = _logBase is null ? scale.MeasureInPixels(s * step) : scale.MeasureInPixels(s - s * step);
             }
 
             UpdateTick(subtick, _tickLength * k, x + xs, y + ys, mode);
