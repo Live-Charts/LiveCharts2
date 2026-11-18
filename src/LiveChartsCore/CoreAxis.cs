@@ -1505,6 +1505,26 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
             : Math.Max(0, 1 + Math.Log(kl, _logBase.Value));
     }
 
+    /// <summary>
+    /// Offset, in axis units from the major separator, of a subdivision at the given step.
+    /// </summary>
+    /// <remarks>
+    /// Subdivisions are laid out from the separator's pixel to the right (X) or downwards (Y).
+    /// That walks up from the lower value of the major step only when the axis values grow in that
+    /// direction: on X unless inverted, on Y only when inverted (values grow upwards on screen).
+    /// Otherwise the walk starts at the upper value. A linear subdivision is symmetric, so it looks
+    /// the same either way, but a logarithmic one is not: its lines tighten toward the next power
+    /// of the base, so it must be mirrored (s - s * step) or the minor grid comes out upside down
+    /// (#2388, a normal Y log axis and an inverted X one).
+    /// </remarks>
+    private double GetSubdivisionOffset(double s, double step)
+    {
+        var walksDownFromUpperValue = (_orientation == AxisOrientation.Y) != IsInverted;
+        return _logBase is not null && walksDownFromUpperValue
+            ? s - s * step
+            : s * step;
+    }
+
     private void UpdateSubseparators(
         BaseLineGeometry[] subseparators, Scaler scale, double s, float x, float y, float lxi, float lxj, float lyi, float lyj, UpdateMode mode)
     {
@@ -1513,15 +1533,11 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
             var subseparator = subseparators[j];
             var step = GetSubdivisionStep(j);
 
+            var offset = scale.MeasureInPixels(GetSubdivisionOffset(s, step));
+
             float xs = 0f, ys = 0f;
-            if (_orientation == AxisOrientation.X)
-            {
-                xs = scale.MeasureInPixels(s * step);
-            }
-            else
-            {
-                ys = _logBase is null ? scale.MeasureInPixels(s * step) : scale.MeasureInPixels(s - s * step);
-            }
+            if (_orientation == AxisOrientation.X) xs = offset;
+            else ys = offset;
 
             UpdateSeparator(subseparator, x + xs, y + ys, lxi, lxj, lyi, lyj, mode);
         }
@@ -1544,15 +1560,11 @@ public abstract class CoreAxis<TTextGeometry, TLineGeometry>
             // subticks stay aligned with them on a logarithmic axis.
             var step = GetSubdivisionStep(j);
 
+            var offset = scale.MeasureInPixels(GetSubdivisionOffset(s, step));
+
             float xs = 0f, ys = 0f;
-            if (_orientation == AxisOrientation.X)
-            {
-                xs = scale.MeasureInPixels(s * step);
-            }
-            else
-            {
-                ys = _logBase is null ? scale.MeasureInPixels(s * step) : scale.MeasureInPixels(s - s * step);
-            }
+            if (_orientation == AxisOrientation.X) xs = offset;
+            else ys = offset;
 
             UpdateTick(subtick, _tickLength * k, x + xs, y + ys, mode);
         }
