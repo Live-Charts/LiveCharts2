@@ -1,8 +1,14 @@
+// WinUI, and MAUI on Windows: the MAUI chart is drawn in a WinUI panel (its handler's platform
+// view) that uses the same pointer controller.
+#if WINUI_UI_TESTING || (MAUI_UI_TESTING && WINDOWS)
+#define WINDOWS_POINTER_TESTING
+#endif
+
 using Factos;
 using SharedUITests.Helpers;
 using Xunit;
 
-#if WINUI_UI_TESTING
+#if WINDOWS_POINTER_TESTING
 using System;
 using System.Diagnostics;
 using System.Reflection;
@@ -10,7 +16,12 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using LiveChartsCore.SkiaSharpView;
+#endif
+#if WINUI_UI_TESTING
 using LiveChartsCore.SkiaSharpView.WinUI;
+#endif
+#if MAUI_UI_TESTING && WINDOWS
+using LiveChartsCore.SkiaSharpView.Maui;
 #endif
 
 // to run these tests, see the UITests project, specially the program.cs file.
@@ -22,8 +33,10 @@ public class PointerInputTests
 {
     public AppController App => AppController.Current;
 
-#if WINUI_UI_TESTING
+#if WINDOWS_POINTER_TESTING
     // https://github.com/Live-Charts/LiveCharts2/issues/2389
+    // https://github.com/Live-Charts/LiveCharts2/issues/2403 (MAUI on Windows: the chart's platform
+    // view is a WinUI panel that uses the same pointer controller)
     // A mouse drag starts a WinUI manipulation (the chart enables ManipulationModes.Scale for
     // pinch zoom). On a machine with a touch screen, the pointer controller took any started
     // manipulation for a pinch and dropped every pointer move until it completed, so dragging
@@ -45,21 +58,49 @@ public class PointerInputTests
             var sut = new CartesianChart
             {
                 Series = [new LineSeries<double> { Values = [2, 5, 3, 6, 4, 7] }],
+#if MAUI_UI_TESTING
+                MovedCommand = new CountingCommand(() => moves++)
+#else
                 PointerMoveCommand = new CountingCommand(() => moves++)
+#endif
             };
-            var rawMoves = 0;
-            sut.PointerMoved += (_, _) => rawMoves++;
 
+#if MAUI_UI_TESTING
+            await App.NavigateToView(new Microsoft.Maui.Controls.ContentPage { Content = sut });
+            await sut.WaitUntilChartLoadsAndRenders();
+            // the WinUI panel the MAUI chart is drawn in, where the pointer controller listens.
+            var element = (Microsoft.UI.Xaml.FrameworkElement)sut.Handler!.PlatformView!;
+#else
             await App.NavigateToView(sut);
             await sut.WaitUntilChartLoadsAndRenders();
+            var element = sut;
+#endif
+            var rawMoves = 0;
+            var presses = 0;
+            element.PointerMoved += (_, _) => rawMoves++;
+            // handledEventsToo: count the press even if an element below marked it handled.
+            element.AddHandler(Microsoft.UI.Xaml.UIElement.PointerPressedEvent,
+                new Microsoft.UI.Xaml.Input.PointerEventHandler((_, _) => presses++), true);
 
-            var from = RealMouse.ToScreen(sut, 0.3, 0.5);
-            var to = RealMouse.ToScreen(sut, 0.7, 0.5);
+            // The first click on a window that is not active can be spent activating it: the press
+            // never reaches the chart, there is nothing to drag, and this test passed for the wrong
+            // reason. Bring the window to the front, and press again if the press was lost.
+            RealMouse.BringAppWindowToFront();
+            await Task.Delay(300);
+
+            var from = RealMouse.ToScreen(element, 0.3, 0.5);
+            var to = RealMouse.ToScreen(element, 0.7, 0.5);
 
             RealMouse.MoveTo(from.X, from.Y);
             await Task.Delay(100);
-            RealMouse.LeftDown();
-            await Task.Delay(200); // past the 100ms the controller waits after a press
+            for (var attempt = 0; attempt < 3; attempt++)
+            {
+                RealMouse.LeftDown();
+                await Task.Delay(200); // past the 100ms the controller waits after a press
+                if (presses > 0) break;
+                RealMouse.LeftUp();
+                await Task.Delay(300);
+            }
 
             int movesBefore = moves, rawBefore = rawMoves;
             try
@@ -80,13 +121,14 @@ public class PointerInputTests
             var rawDuringDrag = rawMoves - rawBefore;
             var commandDuringDrag = moves - movesBefore;
 
-            // the OS input reached the chart: WinUI raised its own PointerMoved during the drag.
+            // the OS input reached the chart: the press, and WinUI's own PointerMoved during the drag.
+            Assert.True(presses > 0, "The mouse press didn't reach the chart, so nothing was dragged.");
             Assert.True(rawDuringDrag > 10,
                 $"WinUI raised PointerMoved {rawDuringDrag} times during the drag, the simulated mouse input didn't reach the chart.");
 
             // and LiveCharts handled those moves (it dropped all of them before the fix).
             Assert.True(commandDuringDrag >= rawDuringDrag / 2,
-                $"PointerMoveCommand ran {commandDuringDrag} times during the drag, WinUI raised PointerMoved {rawDuringDrag} times.");
+                $"The chart's move command ran {commandDuringDrag} times during the drag, WinUI raised PointerMoved {rawDuringDrag} times.");
         }
         finally
         {
@@ -123,6 +165,9 @@ public class PointerInputTests
 
         public static void LeftUp() => Send(LEFTUP, 0, 0);
 
+        public static void BringAppWindowToFront() =>
+            _ = SetForegroundWindow(Process.GetCurrentProcess().MainWindowHandle);
+
         private static void Send(uint flags, int dx, int dy)
         {
             var input = new INPUT { type = 0, mi = new MOUSEINPUT { dx = dx, dy = dy, dwFlags = flags } };
@@ -147,6 +192,9 @@ public class PointerInputTests
 
         [DllImport("user32.dll")]
         private static extern int GetSystemMetrics(int index);
+
+        [DllImport("user32.dll")]
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
     }
 #endif
 }
