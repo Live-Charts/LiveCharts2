@@ -7,6 +7,6 @@
   -->
   <ItemGroup>
       <PackageVersion Include="LiveChartsCore.SkiaSharpView.Uno.WinUI" Version="$(LiveChartsVersion)" />
-      <PackageVersion Include="Factos.Uno" Version="$(FactosVersion)" />
+      <PackageVersion Include="Factos.Uno" Version="$(FactosUnoVersion)" />
   </ItemGroup>
 </Project>

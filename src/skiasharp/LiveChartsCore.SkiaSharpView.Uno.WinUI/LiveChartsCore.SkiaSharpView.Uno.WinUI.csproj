@@ -1,18 +1,18 @@
-﻿<Project Sdk="Uno.Sdk/6.3.28">
+﻿<Project Sdk="Uno.Sdk/7.0.5">
   
   <PropertyGroup>
     <UnoSingleProject>true</UnoSingleProject>
     <OutputType>Library</OutputType>
-    <SkiaSharpVersion>$(LatestSkiaSharpVersion)</SkiaSharpVersion>
 
-    <TargetFrameworks>
-      net9.0;net9.0-android;net9.0-ios;net9.0-browserwasm;net9.0-desktop;
-      net10.0;net10.0-android;net10.0-ios;net10.0-browserwasm;net10.0-desktop
-    </TargetFrameworks>
+    <!--
+    Uno Platform 7 renders every head with Skia, so a single net10.0 build serves
+    desktop, browserwasm, android and ios apps; Uno no longer swaps an -android/-ios
+    build for it, and a native-renderer build there would break those apps.
+    -->
+    <TargetFrameworks>net10.0</TargetFrameworks>
 
     <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">
       $(TargetFrameworks);
-      net9.0-windows10.0.19041.0;
       net10.0-windows10.0.19041.0;
     </TargetFrameworks>
 
@@ -49,30 +49,21 @@
 
   <ItemGroup>
     <ProjectReference Include="../LiveChartsCore.SkiaSharp/LiveChartsCore.SkiaSharpView.csproj" />
-    <!-- If windows add SkiaSharp WinUI package. -->
-    <PackageReference
-       Condition="$(TargetFramework.Contains('-windows'))"
-       Include="SkiaSharp.Views.WinUI"
-       Version="$(LatestSkiaSharpVersion)" />
-    <!-- otherwise add SkiaSharp Uno package. -->
-    <PackageReference
-       Condition="!$(TargetFramework.Contains('-windows'))"
-       Include="SkiaSharp.Views.Uno.WinUI"
-       Version="$(LatestSkiaSharpVersion)" />
     <!--
-    On WASM with Uno's native renderer the charts shape text through HarfBuzzSharp
-    directly, so the wasm relink needs libHarfBuzzSharp; the Skia renderer brings it
-    on its own, the native renderer does not (#2020, #2333).
+    Uno Platform 7 ships SkiaSharp 4, where SKPaint.GetFont() is internal; SkiaSharp.HarfBuzz 3.x calls it
+    from SKShaper.Shape(string, SKPaint), so text shaping throws when an app resolves 3.x. Require 4.x.
     -->
-    <PackageReference
-       Condition="$(TargetFramework.Contains('-browserwasm'))"
-       Include="HarfBuzzSharp.NativeAssets.WebAssembly"
-       Version="$(HarfBuzzWASMVersion)" />
+    <PackageReference Include="SkiaSharp.HarfBuzz" Version="4.151.1" />
   </ItemGroup>
 
-  <!-- Include Uno skia renderer if needed -->
-  <PropertyGroup Condition="'$(HasOS)' != 'true'">
-    <UnoFeatures>$(UnoFeatures);SkiaRenderer</UnoFeatures>
+  <!--
+  Skia references SKCanvasElement (Uno.WinUI.Graphics2DSK) and, on Windows, SkiaSharp.Views.WinUI,
+  at the versions pinned by the Uno.Sdk.
+  -->
+  <PropertyGroup>
+    <UnoFeatures>$(UnoFeatures);Skia</UnoFeatures>
+    <!-- Uno 7 only adds SkiaSharp.Views.WinUI to the Windows build with this opt-in. -->
+    <UnoEnableSkiaOnWinAppSdk>true</UnoEnableSkiaOnWinAppSdk>
   </PropertyGroup>
 
   <ItemGroup>

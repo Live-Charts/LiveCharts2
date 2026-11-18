@@ -60,6 +60,9 @@ public abstract partial class SourceGenMapChart : SourceGenDrawnView, IGeoMapVie
     /// <inheritdoc />
     protected override void OnDrawnViewUnloaded() => CoreChart?.Unload();
 
+    /// <inheritdoc />
+    protected override void OnDrawnViewReturnedToViewport() => CoreChart?.Update();
+
     private void OnPointerWheelChanged(object sender, PointerRoutedEventArgs e)
     {
         var pp = e.GetCurrentPoint(this);
