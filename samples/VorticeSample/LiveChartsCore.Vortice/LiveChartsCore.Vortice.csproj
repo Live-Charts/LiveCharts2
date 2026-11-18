@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <LangVersion>$(GlobalLangVersion)</LangVersion>
     <TargetFramework>net10.0-windows</TargetFramework>
   </PropertyGroup>
 
