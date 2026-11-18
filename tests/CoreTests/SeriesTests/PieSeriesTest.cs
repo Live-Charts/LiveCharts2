@@ -16,6 +16,11 @@ namespace CoreTests.SeriesTests;
 [TestClass]
 public class PieSeriesTest
 {
+    // ShouldPlaceDataLabel turns on LabelGeometry.ShowDebugLines, a static: reset it so the debug
+    // boxes it draws around every label don't leak into the tests that run after this class.
+    [TestCleanup]
+    public void ResetLabelDebugLines() => LabelGeometry.ShowDebugLines = false;
+
     [TestMethod]
     public void ShouldScale()
     {
