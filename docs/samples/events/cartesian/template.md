@@ -51,7 +51,7 @@ By using the `Series` events you can subscribe strongly typed method signatures,
 the visual, the type of the label and the data context we are drawing.
 
 LiveCharts allows you to use any shape to represent a chart point 
-([see custom svg point example](https://lvcharts.com/docs/{{ platform }}/{{ version }}/samples.scatter.custom)), you can also
+([see custom svg point example](https://livecharts.dev/docs/{{ platform }}/{{ version }}/samples.scatter.custom)), you can also
 plot any type you need for example in the example above we are plotting instances of the `Fruit` class, the library is able
 to keep events strongly typed, but it could be tricky to guess the signature since the it changes depending on the series type,
 the visual shape and the geometry.

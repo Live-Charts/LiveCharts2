@@ -19,7 +19,7 @@ zooming occurs when the mouse wheel moves or when the pinch gesture occurs, the 
 moves and then goes up or when the pan gesture occurs.
 
 Zooming and panning is disabled by default, you can enable it by setting the `ZoomMode` property, this property is of type
-[ZoomAndPanMode](https://lvcharts.com/api/{{ version }}/LiveChartsCore.Measure.ZoomAndPanMode) and the options are:
+[ZoomAndPanMode](https://livecharts.dev/api/{{ version }}/LiveChartsCore.Measure.ZoomAndPanMode) and the options are:
 
 - `None`: Disables zooming and panning.
 - `PanX`: Enables panning on the X axis.
@@ -35,7 +35,7 @@ Zooming and panning is disabled by default, you can enable it by setting the `Zo
 
 Because each gesture has its own flag you can mix and match — for example `ZoomMode = ZoomAndPanMode.ZoomX | ZoomAndPanMode.PanY` enables zoom on the X axis and panning on the Y axis only, and `ZoomMode = ZoomAndPanMode.ZoomX` enables zoom on the X axis with no panning at all (useful on mobile where pan gestures can hide tooltips).
 
-The [ZoomAndPanMode](https://lvcharts.com/api/{{ version }}/LiveChartsCore.Measure.ZoomAndPanMode) type is a flag enum,
+The [ZoomAndPanMode](https://livecharts.dev/api/{{ version }}/LiveChartsCore.Measure.ZoomAndPanMode) type is a flag enum,
 so you can combine the options, for example, if you want to enable zooming on the `X` axis and disable "Fit to Bounds"
 and "Zoom by Section" you can set the `ZoomMode` property to:
 
