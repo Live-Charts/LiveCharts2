@@ -37,6 +37,12 @@ internal class CanvasZone
     // Overlay draws last so tooltips and legends are never obscured by ticks/labels
     // from the crosshair zones above (issue #2304).
     public const int Overlay = 4;
+    // Underlay draws first, behind the series, for visuals with a negative ZIndex (#2364): the
+    // ZIndex only orders paints within a zone, and the series draw in DrawMargin.
+    public const int Underlay = 5;
+
+    // The order zones are drawn in; a zone's constant is its index in the zones array.
+    public static readonly int[] DrawOrder = [Underlay, DrawMargin, NoClip, XCrosshair, YCrosshair, Overlay];
     private Paint[] _sortedPaints = [];
     private bool _isDirty = true;
 
@@ -46,7 +52,7 @@ internal class CanvasZone
 
     // one instance per zone
     public static CanvasZone[] CreateZones() =>
-        [new CanvasZone(), new CanvasZone(), new CanvasZone(), new CanvasZone(), new CanvasZone()];
+        [new CanvasZone(), new CanvasZone(), new CanvasZone(), new CanvasZone(), new CanvasZone(), new CanvasZone()];
 
     public Paint[] EnumerateTasks()
     {
