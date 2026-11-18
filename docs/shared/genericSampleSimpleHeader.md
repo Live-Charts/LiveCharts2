@@ -7,8 +7,9 @@ content is normally pulled from the examples in the repository.
 
 {{~ if xaml ~}}
 :::info
-This sample uses C# 13 preview features such as partial properties, it also uses features from the
-[CommunityToolkit.Mvvm](https://www.nuget.org/packages/CommunityToolkit.Mvvm/) package, you can learn more about it 
+This sample uses the [CommunityToolkit.Mvvm](https://www.nuget.org/packages/CommunityToolkit.Mvvm/) package
+and C# 14 partial properties: C# 14 is the default with the .NET 10 SDK, on older target frameworks set
+`<LangVersion>14</LangVersion>`. You can learn more about the samples
 [here]({{ website_url }}/docs/{{ platform }}/{{ version }}/About.About%20this%20samples).
 :::
 {{~ end ~}}
