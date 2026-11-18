@@ -924,6 +924,14 @@ public abstract class Chart
         throw new Exception("The title must be a Visual or a VisualElement.");
     }
 
+    // The fraction of a label's size that lies before its X/Y for the given alignment.
+    private static float GetAlignFactor(Align align) => align switch
+    {
+        Align.Middle => 0.5f,
+        Align.End => 1f,
+        _ => 0f
+    };
+
     /// <summary>
     /// Adds the title to the chart.
     /// </summary>
@@ -939,8 +947,16 @@ public abstract class Chart
             v.ApplyTheme(this);
 
             var size = v.GetHitBox().Size;
-            v.DrawnElement.X = ControlSize.Width * 0.5f - size.Width * 0.5f;
-            v.DrawnElement.Y = 0;
+
+            // The title's box goes at the top, centered. A label is drawn relative to its X and Y
+            // by its alignment (Start: its left/top edge is there, Middle: its center, End: its
+            // right/bottom edge), so shift X and Y by the same fraction of its size (#2371).
+            var (alignX, alignY) = v.DrawnElement is BaseLabelGeometry label
+                ? (GetAlignFactor(label.HorizontalAlign), GetAlignFactor(label.VerticalAlign))
+                : (0f, 0f);
+
+            v.DrawnElement.X = ControlSize.Width * 0.5f - size.Width * 0.5f + size.Width * alignX;
+            v.DrawnElement.Y = size.Height * alignY;
             AddVisual(((IChartElement)v).ChartElementSource);
             return;
         }
