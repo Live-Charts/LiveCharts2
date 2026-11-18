@@ -49,11 +49,8 @@ public class DrawnLabelVisual : Visual
     /// <param name="labelGeometry">The label.</param>
     public DrawnLabelVisual(LabelGeometry labelGeometry)
     {
-        // Chart.AddTitleToChart positions the title at (X, 0) and expects the
-        // bbox top-left at that point. BaseLabelGeometry defaults to Align.Middle,
-        // which would center the bbox on Y=0 and clip the top half.
-        labelGeometry.HorizontalAlign = Align.Start;
-        labelGeometry.VerticalAlign = Align.Start;
+        // The label keeps the alignment it was given: a label placed by its center keeps
+        // Align.Middle (#2371). Chart.AddTitleToChart accounts for the alignment of a title.
         _drawnElement = labelGeometry;
     }
 
