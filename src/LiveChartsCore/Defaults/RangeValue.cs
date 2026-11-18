@@ -90,7 +90,8 @@ public class RangeValue : IChartEntity, INotifyPropertyChanged
     {
         // PrimaryValue = high, TertiaryValue = low. Range series consumes the
         // coordinate from these slots; X is the EntityIndex carried in SecondaryValue.
-        Coordinate = High is null || Low is null
+        // A NaN low is no value, like null (#2340); a NaN high makes the coordinate empty on its own.
+        Coordinate = High is null || Low is null || double.IsNaN(Low.Value)
             ? Coordinate.Empty
             : new(High.Value, index, Low.Value, 0, 0, 0, Error.Empty);
     }
