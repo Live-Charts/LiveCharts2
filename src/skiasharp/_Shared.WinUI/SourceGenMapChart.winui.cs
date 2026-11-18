@@ -72,6 +72,9 @@ public abstract partial class SourceGenMapChart : UserControl, IGeoMapView
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
+        // see SourceGenChart.OnUnloaded: ignore the stale Unloaded of an immediate re-add.
+        if (IsLoaded) return;
+
         CoreChart?.Unload();
         _wasInViewport = false;
     }

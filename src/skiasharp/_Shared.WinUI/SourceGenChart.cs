@@ -108,6 +108,12 @@ public abstract partial class SourceGenChart : UserControl, IChartView
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
+        // When the same element is removed and added back at once (e.g. a ContentControl's
+        // content set to null and back), WinUI raises Loaded for the re-add first and then the
+        // Unloaded for the removal, while the element is in the tree again and IsLoaded is still
+        // true. Unloading then left the chart unloaded and blank. Ignore that stale Unloaded.
+        if (IsLoaded) return;
+
         ActualThemeChanged -= OnActualThemeChanged;
         _pointerController.DisposeController(this);
         StopObserving();
