@@ -1,5 +1,5 @@
 <!--
-To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/dev/docs/readme.md
+To get help on editing this file, see https://github.com/Live-Charts/LiveCharts2/blob/release/v2.2.x/docs/readme.md
 This file pulls content from the ~/shared/ tempaltes
 content is normally pulled from the examples in the repository.
 -->
@@ -14,7 +14,7 @@ changing on multiple threads so it can handle it and prevent
 There are 2 alternatives you can follow to prevent this issue: 1. use the [lock](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/lock) keyword to wrap any change in your data, 2. Invoke the changes on the UI thread.
 
 <div class="text-center sample-img">
-    <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/{{ unique_name }}/result.gif" alt="sample image" />
+    <img src="https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/{{ unique_name }}/result.gif" alt="sample image" />
 </div>
 
 ## Locking changes (Alternative 1)

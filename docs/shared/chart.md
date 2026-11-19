@@ -1,5 +1,5 @@
 <!--
-To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/dev/docs/readme.md
+To get help on editing this file, see https://github.com/Live-Charts/LiveCharts2/blob/release/v2.2.x/docs/readme.md
 content is normally pulled from the examples in the repository.
 -->
 
@@ -82,11 +82,11 @@ and  returns `float` value as the result (the progress of the animation from 0 t
 
 Now the chart will animate following the **BounceOut** curve.
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/bounceout-anim.gif)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/bounceout-anim.gif)
 
 Now try the `LiveChartsCore.EasingFunctions.Lineal` function, it will animate things lineally as the time elapses.
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/lineal-anim.gif)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/lineal-anim.gif)
 
 Finally you can also build your own function:
 
@@ -197,4 +197,4 @@ private LiveChartsCore.Measure.Margin margin = new LiveChartsCore.Measure.Margin
 cartesianChart1.DrawMargin = new LiveChartsCore.Measure.Margin(100);</code></pre>
 {{~ end ~}}
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/drawmargin.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/drawmargin.png)

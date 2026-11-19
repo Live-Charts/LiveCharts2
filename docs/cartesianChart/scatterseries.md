@@ -1,5 +1,5 @@
 <!--
-To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/dev/docs/readme.md
+To get help on editing this file, see https://github.com/Live-Charts/LiveCharts2/blob/release/v2.2.x/docs/readme.md
 -->
 
 # {{ name | to_title_case }}
@@ -13,7 +13,7 @@ To get help on editing this file, see https://github.com/beto-rodriguez/LiveChar
 If the stroke property is not set, then LiveCharts will create it based on the series position in your series collection
 and the current theme.
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/scatterstroke.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/scatterstroke.png)
 
 ```csharp
 Series = new ISeries[]
@@ -43,7 +43,7 @@ a look at the [Paints article]({{ website_url }}/docs/{{ platform }}/{{ version 
 If the fill property is not set, then LiveCharts will create it based on the series position in your series collection
 and the current theme.
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/scatterfill.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/scatterfill.png)
 
 ```csharp
 Series = new ISeries[]
@@ -72,7 +72,7 @@ a look at the [Paints article]({{ website_url }}/docs/{{ platform }}/{{ version 
 
 Determines the size of the geometry, if this property is not set, then the library will decide it based on the theme.
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/scattergeometrysize.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/scattergeometrysize.png)
 
 ```csharp
 var r = new Random();
@@ -113,7 +113,7 @@ size of the geometry will be `15` pixels as specified in the `MinGeometrySize` p
 the geometry size will be `40` defined by the `GeometrySize` property, for any `Weight` between this range the library
 will interpolate lineally to determine the corresponding size.
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/scattermgs.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/scattermgs.png)
 
 ```csharp
 var r = new Random();

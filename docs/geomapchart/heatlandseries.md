@@ -1,5 +1,5 @@
 <!--
-To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/dev/docs/readme.md
+To get help on editing this file, see https://github.com/Live-Charts/LiveCharts2/blob/release/v2.2.x/docs/readme.md
 -->
 
 # HeatLand series
@@ -7,7 +7,7 @@ To get help on editing this file, see https://github.com/beto-rodriguez/LiveChar
 The `HeatLandSeries` creates a heat map in the `GeoMap` control, it helps to assign a numeric value to a region (country, state, continent, ... depends on the map)
 then based on the gradient a color will be assigned to each region, colors are interpolated lineally based on the data scale in the series.
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/geomaphs.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/geomaphs.png)
 
 {{~ if xaml ~}}
 ```csharp
@@ -117,7 +117,7 @@ to define the gradient.
 
 When this property is not specified, then it is assigned automatically based on the theme of the library.
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/geo-heatmap.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/geo-heatmap.png)
 
 {{~ if xaml ~}}
 ```csharp
@@ -323,7 +323,7 @@ geoMap1.Series = new HeatLandSeries[]
 ```
 {{~ end ~}}
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/heatcs.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/heatcs.png)
 
 :::info
 For simplicity the image above shows the cartesian heat series, just to explain the property better.

@@ -1,12 +1,12 @@
 <!--
-To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/dev/docs/readme.md
+To get help on editing this file, see https://github.com/Live-Charts/LiveCharts2/blob/release/v2.2.x/docs/readme.md
 -->
 
 # Legends
 
 A legend is a visual element that displays a list with the name, stroke and fills of the series in a chart:
 
-![legends](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/legend.png)
+![legends](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/legend.png)
 
 You can place a legend at `Top`, `Bottom`, `Left`, `Right` or `Hidden` positions, notice the `Hidden` position will 
 disable legends in a chart, default value is `Hidden`.
@@ -73,7 +73,7 @@ cartesianChart1.LegendPosition = LiveChartsCore.Measure.LegendPosition.Bottom; /
 You can use the chart `LegendPosition`, `LegendTextPaint`, `LegendBackgroundPaint` and `LegendTextSize` to 
 define the legend look (full example [here](https://github.com/beto-rodriguez/LiveCharts2/blob/master/samples/{{ samples_folder }}/Axes/Multiple{{ view_extension }})).
 
-![custom](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/legend-custom-style.png)
+![custom](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/legend-custom-style.png)
 
 ## Custom legend control
 
@@ -93,4 +93,4 @@ a custom control to render legends in our charts using the LiveCharts API.
 {{~ render $"~/../samples/{platform_samples_folder}/General/TemplatedLegends{view_extension}" ~}}
 ```
 
-![custom tooltip](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/legend-custom-template.png)
+![custom tooltip](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/legend-custom-template.png)

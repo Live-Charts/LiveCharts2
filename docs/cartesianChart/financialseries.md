@@ -1,5 +1,5 @@
 <!--
-To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/dev/docs/readme.md
+To get help on editing this file, see https://github.com/Live-Charts/LiveCharts2/blob/release/v2.2.x/docs/readme.md
 -->
 
 # {{ name | to_title_case }}
@@ -28,7 +28,7 @@ Defines the stroke to use when the `Close` is greater than the `Open`.
 
 The following sample illustrates the use of the previous properties.
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/financialpaints.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/financialpaints.png)
 
 ```csharp
 XAxes = new[]
@@ -90,7 +90,7 @@ a look at the [Paints article]({{ website_url }}/docs/{{ platform }}/{{ version 
 
 Specifies the maximum width a column can take, take a look at the following sample, where the max width is `10`.
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/financialw10.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/financialw10.png)
 
 ```csharp
 XAxes = new[]

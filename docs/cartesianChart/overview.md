@@ -1,5 +1,5 @@
 <!--
-To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/dev/docs/readme.md
+To get help on editing this file, see https://github.com/Live-Charts/LiveCharts2/blob/release/v2.2.x/docs/readme.md
 -->
 
 # Cartesian chart control
@@ -86,7 +86,7 @@ cartesianChart1.Series = new ISeries[]
 ```
 {{~ end ~}}
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/cc-mvp.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/cc-mvp.png)
 
 The main components of this control are:
 
@@ -95,7 +95,7 @@ The main components of this control are:
 - Tooltip
 - Legend
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/chart-overview.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/chart-overview.png)
 
 But notice in the previous code snippet we did not specify the Axes, Tooltip, Legend or the series colors, this is because LiveCharts will
 decide them based on the current theme of the library, you can also customize any of these properties when you require it, this article will
@@ -108,84 +108,84 @@ any image below is a link to an article explaining more about them.
 
 <a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Line%20Series%20properties">
 <div class="series-miniature">
-<img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/samples/lines/basic/result.png" alt="series"/>
+<img src="https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/samples/lines/basic/result.png" alt="series"/>
 <div class="text-center"><b>Line series</b></div>
 </div>
 </a>
 
 <a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Column%20Series%20properties">
 <div class="series-miniature">
-<img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/samples/bars/basic/result.png"  alt="series"/>
+<img src="https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/samples/bars/basic/result.png"  alt="series"/>
 <div class="text-center"><b>Column series</b></div>
 </div>
 </a>
 
 <a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Scatter%20Series%20properties">
 <div class="series-miniature">
-<img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/samples/scatter/basic/result.png"  alt="series"/>
+<img src="https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/samples/scatter/basic/result.png"  alt="series"/>
 <div class="text-center"><b>Scatter series</b></div>
 </div>
 </a>
 
 <a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Step%20line%20Series%20properties">
 <div class="series-miniature">
-<img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/samples/steplines/basic/result.png" alt="series"/>
+<img src="https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/samples/steplines/basic/result.png" alt="series"/>
 <div class="text-center"><b>Step line series</b></div>
 </div>
 </a>
 
 <a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Heat%20Series%20properties">
 <div class="series-miniature">
-<img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/samples/heat/basic/result.png" alt="series"/>
+<img src="https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/samples/heat/basic/result.png" alt="series"/>
 <div class="text-center"><b>Heat series</b></div>
 </div>
 </a>
 
 <a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Candle%20Sticks%20Series%20properties">
 <div class="series-miniature">
-<img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/samples/financial/basicCandlesticks/result.png" alt="series"/>
+<img src="https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/samples/financial/basicCandlesticks/result.png" alt="series"/>
 <div class="text-center"><b>Candle sticks series</b></div>
 </div>
 </a>
 
 <a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Stacked%20Line%20Series%20properties">
 <div class="series-miniature">
-<img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/samples/stackedArea/basic/result.png" alt="series"/>
+<img src="https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/samples/stackedArea/basic/result.png" alt="series"/>
 <div class="text-center"><b>Stacked line series</b></div>
 </div>
 </a>
 
 <a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Stacked%20Column%20Series%20properties">
 <div class="series-miniature">
-<img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/samples/stackedBars/basic/result.png" alt="series"/>
+<img src="https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/samples/stackedBars/basic/result.png" alt="series"/>
 <div class="text-center"><b>Stacked column series</b></div>
 </div>
 </a>
 
 <a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Stacked%20Step%20Line%20Series%20properties">
 <div class="series-miniature">
-<img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/samples/stackedArea/stepArea/result.png" alt="series"/>
+<img src="https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/samples/stackedArea/stepArea/result.png" alt="series"/>
 <div class="text-center"><b>Stacked step line series</b></div>
 </div>
 </a>
 
 <a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/samples.box.basic">
 <div class="series-miniature">
-<img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/samples/box/basic/result.png" alt="series"/>
+<img src="https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/samples/box/basic/result.png" alt="series"/>
 <div class="text-center"><b>Box series</b></div>
 </div>
 </a>
 
 <a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/samples.error.basic">
 <div class="series-miniature">
-<img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/samples/error/basic/result.png" alt="series"/>
+<img src="https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/samples/error/basic/result.png" alt="series"/>
 <div class="text-center"><b>Error series</b></div>
 </div>
 </a>
 
 <a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/samples.scatter.bubbles">
 <div class="series-miniature">
-<img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/samples/scatter/bubbles/result.png" alt="series"/>
+<img src="https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/samples/scatter/bubbles/result.png" alt="series"/>
 <div class="text-center"><b>Bubble series</b></div>
 </div>
 </a>
@@ -357,7 +357,7 @@ cartesianChart1.YAxes = new Axis[]
 ```
 {{~ end ~}}
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/axes-paints.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/axes-paints.png)
 
 ## Axes.Labels and Axes.Labelers
 
@@ -398,7 +398,7 @@ YAxes = new List<Axis>
 };
 ```
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/1.7.labels.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/1.7.labels.png)
 
 ## Zooming and panning
 
@@ -429,7 +429,7 @@ cartesianChart1.ZoomMode = LiveChartsCore.Measure.ZoomAndPanMode.X;
 ```
 {{~ end ~}}
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/zoom-x.gif)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/zoom-x.gif)
 
 ## ZoomingSpeed property
 
@@ -533,7 +533,7 @@ cartesianChart1.DrawMarginFrame = new DrawMarginFrame
 ```
 {{~ end ~}}
 
-![sections](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/drawmarginframe.png)
+![sections](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/drawmarginframe.png)
 
 ## Sections 
 
@@ -681,4 +681,4 @@ cartesianChart1.Sections = new RectangularSection[]
 ```
 {{~ end ~}}
 
-![sections](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/cc-sections.png)
+![sections](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/cc-sections.png)

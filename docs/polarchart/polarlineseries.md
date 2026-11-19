@@ -1,5 +1,5 @@
 <!--
-To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/dev/docs/readme.md
+To get help on editing this file, see https://github.com/Live-Charts/LiveCharts2/blob/release/v2.2.x/docs/readme.md
 -->
 
 # {{ name | to_title_case }}
@@ -13,7 +13,7 @@ To get help on editing this file, see https://github.com/beto-rodriguez/LiveChar
 If the stroke property is not set, then LiveCharts will create it based on the series position in your series collection
 and the current theme.
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/polarlinestroke.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/polarlinestroke.png)
 
 ```csharp
 Series = new ISeries[]
@@ -52,7 +52,7 @@ and the current theme.
 
 The alpha channel enables transparency, it goes from 0 to 255, 0 is transparent and 255 disables transparency completely.
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/polarlinefill.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/polarlinefill.png)
 
 ```csharp
 Series = new ISeries[]
@@ -92,7 +92,7 @@ the series position in your series collection and the current theme. As long as 
 the default theme rule derives it from the series' `Stroke` (when `Stroke` is a `SolidColorPaint`) so the marker
 matches the line; if you do set `GeometryStroke` explicitly, your value wins.
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/polarlinegsf.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/polarlinegsf.png)
 
 ```csharp
 Series = new ISeries[]
@@ -120,7 +120,7 @@ Series = new ISeries[]
 
 Determines the size of the geometry, if this property is not set, then the library will decide it based on the theme.
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/polarlinegs.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/polarlinegs.png)
 
 ```csharp
 Series = new ISeries[]
@@ -143,7 +143,7 @@ Series = new ISeries[]
 Determines if the series line is straight or curved, this property is of type `double` and goes from `0` to `1` any other
 value will be ignored, where 0 is straight and 1 is the most curved line.
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/polarlinesmothness.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/polarlinesmothness.png)
 
 ```csharp
 Series = new ISeries[]
@@ -166,7 +166,7 @@ Series = new ISeries[]
 This property is enabled by default (`true`), it has a performance cost and allows the series to create gaps, when the
 series finds a `null` instance then the series will create a gap.
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/polarlinesnullsplit.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/polarlinesnullsplit.png)
 
 ```csharp
 Series = new ISeries[]

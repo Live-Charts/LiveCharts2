@@ -1,5 +1,5 @@
 <!--
-To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/dev/docs/readme.md
+To get help on editing this file, see https://github.com/Live-Charts/LiveCharts2/blob/release/v2.2.x/docs/readme.md
 -->
 
 # {{ name | to_title_case }}
@@ -13,7 +13,7 @@ To get help on editing this file, see https://github.com/beto-rodriguez/LiveChar
 If the stroke property is not set, then LiveCharts will create it based on the series position in your series collection
 and the current theme.
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/piestroke.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/piestroke.png)
 
 {{~ if xaml ~}}
 ```csharp
@@ -106,7 +106,7 @@ a look at the [Paints article]({{ website_url }}/docs/{{ platform }}/{{ version 
 If the fill property is not set, then LiveCharts will create it based on the series position in your series collection
 and the current theme.
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/piefill.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/piefill.png)
 
 {{~ if xaml ~}}
 ```csharp
@@ -207,7 +207,7 @@ var pieSeries = new PieSeries<int>
 };
 ```
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/piepushout.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/piepushout.png)
 
 ## MaxRadialColumnWidth
 
@@ -221,7 +221,7 @@ var pieSeries = new PieSeries<int>
 };
 ```
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/pieMaxRadialCW.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/pieMaxRadialCW.png)
 
 ## InnerRadius property
 
@@ -237,7 +237,7 @@ var pieSeries = new PieSeries<int>
 };
 ```
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/pieInnerRadius.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/pieInnerRadius.png)
 
 ## OuterRadiusOffset property
 
@@ -251,6 +251,6 @@ var pieSeries = new PieSeries<int>
 };
 ```
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/pieOuterRadiusOffset.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/pieOuterRadiusOffset.png)
 
 {{ render "~/shared/series2.md" }}

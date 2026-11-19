@@ -1,12 +1,12 @@
 <!--
-To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/dev/docs/readme.md
+To get help on editing this file, see https://github.com/Live-Charts/LiveCharts2/blob/release/v2.2.x/docs/readme.md
 -->
 
 # Tooltips
 
 Tooltips are popups that help the user to read a chart as the pointer moves.
 
-![tooltips](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/tooltips.gif)
+![tooltips](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/tooltips.gif)
 
 ## Behaviour
 
@@ -93,19 +93,19 @@ In a chart, the following options are available:
 
 **CompareAll**: Selects all the points whose hover area contain the pointer position.
 
-![tooltips](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/tsm_cac.gif)
+![tooltips](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/tsm_cac.gif)
 
 **CompareOnlyX**: Selects all the points whose hover area contain the pointer position, but it ignores the Y plane.
 
-![tooltips](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/tsm_cxc.gif)
+![tooltips](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/tsm_cxc.gif)
 
 **CompareOnlyY**: Selects all the points whose hover area contain the pointer position, but it ignores the X plane.
 
-![tooltips](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/tsm_cyc.gif)
+![tooltips](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/tsm_cyc.gif)
 
 **ExactMatch**: Selects all the points whose drawn shape contain the pointer position.
 
-![tooltips](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/tsm_cec.gif)
+![tooltips](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/tsm_cec.gif)
 
 **CompareAllTakeClosest**: Selects the points whose hover area contain the pointer position, 
 if overlapped then takes the closest to the pointer in each series.
@@ -154,11 +154,11 @@ Depending on the series type and [FindingStrategy](https://livecharts.dev/docs/{
 to any pointer event in the library (like `Hover`, `HoverLeft` or `PointerDown`), lets take as an example the default behavior of 
 the `ColumnSeries<T>`, it selects all the points that share the same `X` coordinate:
 
-![custom tooltip](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/custom-ha-compare.gif)
+![custom tooltip](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/custom-ha-compare.gif)
 
 But for this example, we want to override this behavior, instead we only need the tooltip to display the exact column where the pointer is in:
 
-![custom tooltip](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/custom-ha.gif)
+![custom tooltip](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/custom-ha.gif)
 
 When the [FindingStrategy](https://livecharts.dev/docs/{{ platform }}/{{ version }}/CartesianChart.Tooltips#findingstrategy-property), 
 is not enough, we can override the logic to determine whether a given point is inside a drawn `ChartPoint`. This method
@@ -169,7 +169,7 @@ will be used by the library to resolve the points to show in a tooltip, or the p
 ```
 
 :::tip
-Another alternative is to override the `HoverArea`, this area defines a section in the UI where the point is "selectable", you can find an example [here](https://github.com/beto-rodriguez/LiveCharts2/blob/dev/samples/ViewModelsSamples/General/TooltipHoverArea/ViewModel.cs).
+Another alternative is to override the `HoverArea`, this area defines a section in the UI where the point is "selectable", you can find an example [here](https://github.com/Live-Charts/LiveCharts2/blob/release/v2.2.x/samples/ViewModelsSamples/General/TooltipHoverArea/ViewModel.cs).
 :::
 
 ## Tooltip text
@@ -204,7 +204,7 @@ Lets take the example of the next series:"
 
 By default the tooltip will be:
 
-![tooltip](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/assets/tooltip-format1.png)
+![tooltip](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/assets/tooltip-format1.png)
 
 We can add format to the tooltip:
 
@@ -225,7 +225,7 @@ We can add format to the tooltip:
     }
 ];</code></pre>
 
-![tooltip](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/assets/tooltip-format2.png)
+![tooltip](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/assets/tooltip-format2.png)
 
 We used the Model property of the point, the Model property is just the item in the Values
 collection, for example in the next case, the Model property is of type `City`.
@@ -256,7 +256,7 @@ We can also show a label for the `X` coordinate, the default tooltip uses the X 
     YToolTipLabelFormatter = point => point.Model.ToString("C2")
 };</code></pre>
 
-![tooltip](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/assets/tooltip-format3.png)
+![tooltip](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/assets/tooltip-format3.png)
 
 When the series is "Stacked" (`PieSeries`, `StackedColumn` or `StackedRow`) we can find information about the stacked data
 in the `StackedValue` property, for example:
@@ -279,7 +279,7 @@ in the `StackedValue` property, for example:
 
 Will result in:
 
-![tooltip](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/assets/tooltip-format4.png)
+![tooltip](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/assets/tooltip-format4.png)
 
 :::tip
 The PieSeries class uses the `ToolTipLabelFormatter` property to configure the text inside the tooltip.
@@ -295,7 +295,7 @@ You can quickly change the position, the font, the text size or the background c
 {{~ render $"~/../samples/{platform_samples_folder}/Axes/NamedLabels{view_extension}" ~}}
 ```
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/samples/general/customTooltips/styling-tooltips.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/samples/general/customTooltips/styling-tooltips.png)
 
 ## Custom tooltip control
 
@@ -323,4 +323,4 @@ see [#1558](https://github.com/beto-rodriguez/LiveCharts2/issues/1558) for more 
 {{~ render $"~/../samples/{platform_samples_folder}/General/TemplatedTooltips{view_extension}" ~}}
 ```
 
-![custom tooltip](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/tooltip-custom-template.gif)
+![custom tooltip](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/tooltip-custom-template.gif)

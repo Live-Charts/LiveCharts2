@@ -1,5 +1,5 @@
 <!--
-To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/dev/docs/readme.md
+To get help on editing this file, see https://github.com/Live-Charts/LiveCharts2/blob/release/v2.2.x/docs/readme.md
 content is normally pulled from the examples in the repository.
 -->
 
@@ -8,7 +8,7 @@ content is normally pulled from the examples in the repository.
 You can use the chart `LegendPosition`, `LegendTextPaint`, `LegendBackgroundPaint` and `LegendTextSize` to 
 define the legend look (full example [here](https://github.com/beto-rodriguez/LiveCharts2/blob/master/samples/{{ samples_folder }}/Axes/Multiple{{ view_extension }})).
 
-![custom](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/legend-custom-style.png)
+![custom](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/legend-custom-style.png)
 
 # Override the default legend behavior
 
@@ -33,7 +33,7 @@ in the next example we set a larger miniature compared with the default size.
 {{~ render $"~/../samples/{platform_samples_folder}/General/TemplatedLegends{view_extension}" ~}}
 ```
 
-![custom legend](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/legend-custom-template.png)
+![custom legend](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/legend-custom-template.png)
 
 # Legend control from scratch
 

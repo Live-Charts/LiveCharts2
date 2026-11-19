@@ -1,5 +1,5 @@
 <!--
-To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/dev/docs/readme.md
+To get help on editing this file, see https://github.com/Live-Charts/LiveCharts2/blob/release/v2.2.x/docs/readme.md
 content is normally pulled from the examples in the repository.
 -->
 
@@ -20,7 +20,7 @@ This is a brief sample about how to use the main features of the `IChartLegend<T
 <b>Go to the full legends article</b>
 </a>
 
-![legends](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/legend.png)
+![legends](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/legend.png)
 
 You can place a legend at `Top`, `Bottom`, `Left`, `Right` or `Hidden` positions, notice the `Hidden` position will 
 disable legends in a chart, default value is `Hidden`.

@@ -1,5 +1,5 @@
 <!--
-To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/dev/docs/readme.md
+To get help on editing this file, see https://github.com/Live-Charts/LiveCharts2/blob/release/v2.2.x/docs/readme.md
 content is normally pulled from the examples in the repository.
 -->
 
@@ -22,5 +22,5 @@ This web site builds the control from code behind but you could also grab it fro
 {{~ end ~}}
 
 <div class="text-center sample-img">
-    <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/{{ unique_name }}/result.png" alt="sample image" />
+    <img src="https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/{{ unique_name }}/result.png" alt="sample image" />
 </div>

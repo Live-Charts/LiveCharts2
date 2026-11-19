@@ -1,12 +1,12 @@
 <!--
-To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/dev/docs/readme.md
+To get help on editing this file, see https://github.com/Live-Charts/LiveCharts2/blob/release/v2.2.x/docs/readme.md
 -->
 
 # Axes
 
 The following diagram illustrates an axis and its main components:
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/1.7.diagram.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/1.7.diagram.png)
 
 The cartesian chart control has the `XAxes` and `YAxes` properties, both of type `IEnumerable<IAxis>` by default
 when you do not set these properties, they will be an array containing only one element of the `Axis` class 
@@ -76,7 +76,7 @@ cartesianChart1.ZoomMode = LiveChartsCore.Measure.ZoomAndPanMode.X;
 ```
 {{~ end ~}}
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/zoom-x.gif)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/zoom-x.gif)
 
 **Y Mode:**
 
@@ -108,7 +108,7 @@ cartesianChart1.ZoomMode = LiveChartsCore.Measure.ZoomAndPanMode.Y;
 ```
 {{~ end ~}}
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/zoom-y.gif)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/zoom-y.gif)
 
 **Both Mode:**
 
@@ -140,7 +140,7 @@ cartesianChart1.ZoomMode = LiveChartsCore.Measure.ZoomAndPanMode.Both;
 ```
 {{~ end ~}}
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/zoom-both.gif)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/zoom-both.gif)
 
 ## MaxLimit and MinLimit properties
 
@@ -267,7 +267,7 @@ YAxes = new List<Axis>
 };
 ```
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/1.7.position.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/1.7.position.png)
 
 ## LabelsPaint and SeparatorsPaint properties
 
@@ -425,7 +425,7 @@ cartesianChart1.YAxes = new Axis[]
 ```
 {{~ end ~}}
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/axes-paints.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/axes-paints.png)
 
 :::info
 Paints can create gradients, dashed lines and more, if you need help using the `Paint` instances take 
@@ -442,7 +442,7 @@ collection, the label is mapped to the chart based on the position of the label 
 if the axis requires a label outside the bounds of the labels collection, then the index will be returned as the label,
 default value is null.
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/1.7.labels.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/1.7.labels.png)
 
 ```csharp
 Series = new ObservableCollection<ISeries>
@@ -495,14 +495,14 @@ YAxes = new List<Axis>
 };
 ```
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/1.7.rotation.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/1.7.rotation.png)
 
 ## Multiple axes
 
 Both of these properties are collections because the library supports to have more than one axis, the following sample illustrates
 how to create a chart that uses multiple axes:
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/1.7.multiple.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/1.7.multiple.png)
 
 ```csharp
 var blue = new SKColor(25, 118, 210);
@@ -595,7 +595,7 @@ public Axis[] YAxes { get; set; } =
     };
 ```
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/samples/axes/customSeparatorsInterval/result.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/samples/axes/customSeparatorsInterval/result.png)
 
 ## Labels Density
 
@@ -605,7 +605,7 @@ the number of separators and distance between each one, based on the data, the s
 any value greater than 0 will make the labels to be more separated, values less than 0 will make the labels to overlap 
 (labels rotation could prevent overlapping). Default value is 0.85.
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/labelsdensity.gif)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/labelsdensity.gif)
 
 ## Inverted property
 

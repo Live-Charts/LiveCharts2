@@ -1,5 +1,5 @@
 <!--
-To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/dev/docs/readme.md
+To get help on editing this file, see https://github.com/Live-Charts/LiveCharts2/blob/release/v2.2.x/docs/readme.md
 -->
 
 # {{ name | to_title_case }}
@@ -13,7 +13,7 @@ To get help on editing this file, see https://github.com/beto-rodriguez/LiveChar
 If the stroke property is not set, then LiveCharts will create it based on the series position in your series collection
 and the current theme.
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/columnstroke.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/columnstroke.png)
 
 ```csharp
 Series = new ISeries[]
@@ -43,7 +43,7 @@ a look at the [Paints article]({{ website_url }}/docs/{{ platform }}/{{ version 
 If the fill property is not set, then LiveCharts will create it based on the series position in your series collection
 and the current theme.
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/columnfill.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/columnfill.png)
 
 ```csharp
 Series = new ISeries[]
@@ -72,7 +72,7 @@ a look at the [Paints article]({{ website_url }}/docs/{{ platform }}/{{ version 
 
 These properties define the corners radius in the rectangle geometry.
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/columnr.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/columnr.png)
 
 ```csharp
 Series = new ISeries[]
@@ -90,7 +90,7 @@ Series = new ISeries[]
 
 Specifies the maximum width a column can take, take a look at the following sample, where the max width is `10`.
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/columnmw10.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/columnmw10.png)
 
 ```csharp
 Series = new ISeries[]
@@ -105,7 +105,7 @@ Series = new ISeries[]
 
 But now lets use `double.MaxValue` to see the difference.
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/columnmwmax.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/columnmwmax.png)
 
 ```csharp
 Series = new ISeries[]
@@ -120,7 +120,7 @@ Series = new ISeries[]
 
 Finally we could also set the padding to `0`.
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/columnmwmaxp0.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/columnmwmaxp0.png)
 
 ```csharp
 Series = new ISeries[]
@@ -159,7 +159,7 @@ Series = new ISeries[]
 The ignores bar position property let the series ignore all the other bar series in the same coordinate, this is useful
 to create backgrounds for columns, take a look at the following sample:
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/columnbg.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/columnbg.png)
 
 ```csharp
 Series = new ISeries[]

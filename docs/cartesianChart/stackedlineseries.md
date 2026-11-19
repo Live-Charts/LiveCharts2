@@ -1,5 +1,5 @@
 <!--
-To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/dev/docs/readme.md
+To get help on editing this file, see https://github.com/Live-Charts/LiveCharts2/blob/release/v2.2.x/docs/readme.md
 -->
 
 # {{ name | to_title_case }}
@@ -13,7 +13,7 @@ To get help on editing this file, see https://github.com/beto-rodriguez/LiveChar
 If the stroke property is not set, then LiveCharts will create it based on the series position in your series collection
 and the current theme.
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/stackedareastroke.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/stackedareastroke.png)
 
 ```csharp
 Series = new ISeries[]
@@ -57,7 +57,7 @@ and the current theme.
 
 The alpha channel enables transparency, it goes from 0 to 255, 0 is transparent and 255 disables transparency completely.
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/stackedareafill.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/stackedareafill.png)
 
 ```csharp
 Series = new ISeries[]
@@ -100,7 +100,7 @@ The geometry is the circle shape (by default) that the line series draws for eve
 You can customize the fill and stroke of this shape. If none of these properties are set, then LiveCharts will create them 
 based on the series position in your series collection and the current theme.
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/stackedareageometrystrokefill.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/stackedareageometrystrokefill.png)
 
 ```csharp
 Series = new ISeries[]
@@ -138,7 +138,7 @@ a look at the [Paints article]({{ website_url }}/docs/{{ platform }}/{{ version 
 
 Determines the size of the geometry, if this property is not set, then the library will decide it based on the theme.
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/stackedareags.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/stackedareags.png)
 
 ```csharp
 Series = new ISeries[]
@@ -172,7 +172,7 @@ Series = new ISeries[]
 Determines if the series line is straight or curved, this property is of type `double` and goes from `0` to `1` any other
 value will be ignored, where 0 is straight and 1 is the most curved line.
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/linesmothness.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/linesmothness.png)
 
 ```csharp
 Series = new ISeries[]

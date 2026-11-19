@@ -1,5 +1,5 @@
 <!--
-To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/dev/docs/readme.md
+To get help on editing this file, see https://github.com/Live-Charts/LiveCharts2/blob/release/v2.2.x/docs/readme.md
 content is normally pulled from the examples in the repository.
 -->
 
@@ -24,7 +24,7 @@ In this example a column turns yellow when the pointer is above, then it turns r
 restores the default paint when the pointer leaves.
 
 <div class="text-center sample-img">
-    <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/{{ unique_name }}/result.gif" alt="sample image" />
+    <img src="https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/{{ unique_name }}/result.gif" alt="sample image" />
 </div>
 
 {{~ if mvvm ~}}
@@ -59,7 +59,7 @@ the visual shape and the geometry.
 Please use the IDE intellisense to complete the signature:
 
 <div class="text-center sample-img">
-    <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/{{ unique_name }}/intellisense.gif" alt="sample image" />
+    <img src="https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/{{ unique_name }}/intellisense.gif" alt="sample image" />
 </div>
 
 Notice how the IDE is able to detect that the first series is of type `int` (`ScatterSeries<int>`) while the second is of 
