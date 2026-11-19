@@ -116,7 +116,10 @@ public class MotionCanvas : UserControl
 
         public void Render(ImmediateDrawingContext context)
         {
-            if (!context.TryGetFeature<ISkiaSharpApiLeaseFeature>(out var leaseFeature))
+            // use the instance TryGetFeature(Type) overload, it exists on Avalonia 11 and 12,
+            // the generic extension (OptionalFeatureProviderExtensions) was removed on Avalonia 12.
+            // See https://github.com/Live-Charts/LiveCharts2/issues/2117.
+            if (context.TryGetFeature(typeof(ISkiaSharpApiLeaseFeature)) is not ISkiaSharpApiLeaseFeature leaseFeature)
                 throw new Exception("SkiaSharp is not supported.");
 
             using var lease = leaseFeature.Lease();
