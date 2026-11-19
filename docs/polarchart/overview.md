@@ -1,5 +1,5 @@
 <!--
-To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/dev/docs/readme.md
+To get help on editing this file, see https://github.com/Live-Charts/LiveCharts2/blob/release/v2.2.x/docs/readme.md
 -->
 
 # The Polar Chart Control
@@ -79,7 +79,7 @@ PolarChart1.Series = new[]
 ```
 {{~ end ~}}
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/polar-mvp.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/polar-mvp.png)
 
 The main components of this control are:
 
@@ -99,7 +99,7 @@ any image below is a link to an article explaining more about them.
 
 <a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/PolarChart.Polar%20Line%20Series">
 <div class="series-miniature">
-<img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/samples/polarLines/basic/result.png" alt="series"/>
+<img src="https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/samples/polarLines/basic/result.png" alt="series"/>
 <div class="text-center"><b>Polar Line series</b></div>
 </div>
 </a>
@@ -137,7 +137,7 @@ polarChart1.InitialRotation = -90;
 
 Notice a change in the `InitialRotation` property is animated automatically based on the chart animations settings:
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/polar-rotation.gif)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/polar-rotation.gif)
 
 ## InnerRadius property
 
@@ -172,7 +172,7 @@ polarChart1.InnerRadius = 50;
 
 Notice a change in the `InnerRadius` property is animated automatically based on the chart animations settings:
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/polar-innerRadius.gif)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/polar-innerRadius.gif)
 
 ## TotalAngle property
 
@@ -207,7 +207,7 @@ polarChart1.TotalAngle = 270;
 
 Notice a change in the `TotalAngle` property is animated automatically based on the chart animations settings:
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/polar-totalangle.gif)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/polar-totalangle.gif)
 
 ## PolarAxis.LabelsPaint and PolarAxis.SeparatorsPaint properties
 
@@ -346,7 +346,7 @@ polarChart1.AngleAxes = new PolarAxis[]
 ```
 {{~ end ~}}
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/polar-axes-style.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/polar-axes-style.png)
 
 ## PolarAxis.Labels vs PolarAxis.Labeler properties
 
@@ -533,7 +533,7 @@ polarChart1.AngleAxes = new PolarAxis[]
 ```
 {{~ end ~}}
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/polar-star.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/polar-star.png)
 
 ## PolarAxis.LabelsRotation property
 
@@ -557,7 +557,7 @@ AngleAxes = new PolarAxis[]
 };
 ```
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/polar-labels-rotation.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/polar-labels-rotation.png)
 
 You can also place labels at the cotangent angle:
 
@@ -571,7 +571,7 @@ AngleAxes = new PolarAxis[]
 };
 ```
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/polar-labels-rotation2.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/polar-labels-rotation2.png)
 
 Finally notice that you can combine the `LiveCharts.CotangentAngle` and `LiveCharts.TangentAngle` with decimal degrees,
 the following expressions are valid also:

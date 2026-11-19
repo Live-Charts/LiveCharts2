@@ -1,5 +1,5 @@
 <!--
-To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/dev/docs/readme.md\
+To get help on editing this file, see https://github.com/Live-Charts/LiveCharts2/blob/release/v2.2.x/docs/readme.md\
 content is normally pulled from the examples in the repository.
 -->
 
@@ -23,7 +23,7 @@ Now both axes use the same scale. We can easily notice this in the grid drawn by
 no matter if we zoom in/out (or use the panning feature).
 
 <div class="text-center sample-img">
-    <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/{{ unique_name }}/matchsdr.gif" alt="sample image" />
+    <img src="https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/{{ unique_name }}/matchsdr.gif" alt="sample image" />
 </div>
 
 ## Custom Axis scale
@@ -46,7 +46,7 @@ CustomScaleExtensions.DoubleY(myChart);
 Once we run our app again, we can see that our scale works as expected:
 
 <div class="text-center sample-img">
-    <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/{{ unique_name }}/doubley.png" alt="sample image" />
+    <img src="https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/{{ unique_name }}/doubley.png" alt="sample image" />
 </div>
 
 ## Scale separators to 1 inch sample
@@ -74,7 +74,7 @@ And that's it, now our separators will be one inch long always, no matter the ch
 and panning level.
 
 <div class="text-center sample-img">
-    <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/{{ unique_name }}/inch-long-separator.jpg" alt="sample image" style="max-width: 650px" />
+    <img src="https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/{{ unique_name }}/inch-long-separator.jpg" alt="sample image" style="max-width: 650px" />
 </div>
 
 {{ render "~/shared/relatedTo.md" }}

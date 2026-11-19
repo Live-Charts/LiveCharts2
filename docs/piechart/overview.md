@@ -1,5 +1,5 @@
 <!--
-To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/dev/docs/readme.md
+To get help on editing this file, see https://github.com/Live-Charts/LiveCharts2/blob/release/v2.2.x/docs/readme.md
 -->
 
 # The Pie Chart Control
@@ -76,14 +76,14 @@ PieChart1.Series = new ISeries[]
 ```
 {{~ end ~}}
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/piemvp.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/piemvp.png)
 
 ## InitialRotation property
 
 Controls the angle in degrees where the first slice is drawn, the `InitialRotation` property will change the start angle of
 the pie, the following diagram explains where the `PieChart` rotation starts:
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/pie-rotation.png)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/pie-rotation.png)
 
 {{~ if xaml ~}}
 ```xml
@@ -111,7 +111,7 @@ PieChart1.InitialRotation = -90;
 
 Notice a change in the `InitialRotation` property is animated automatically based on the chart animations settings:
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/pie-inrot.gif)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/pie-inrot.gif)
 
 ## MaxAngle property
 
@@ -143,7 +143,7 @@ PieChart1.MaxAngle = 270;
 
 Notice the `MaxAngle` property is animated automatically based on the chart animations settings:
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/_assets/pie-maxangle.gif)
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/_assets/pie-maxangle.gif)
 
 {{ render "~/shared/chart.md" }}
 

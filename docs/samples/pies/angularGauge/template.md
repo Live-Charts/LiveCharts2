@@ -1,5 +1,5 @@
 <!--
-To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/dev/docs/readme.md
+To get help on editing this file, see https://github.com/Live-Charts/LiveCharts2/blob/release/v2.2.x/docs/readme.md
 content is normally pulled from the examples in the repository.
 -->
 
@@ -88,7 +88,7 @@ public partial class ViewModel
 Run the app again, now there is a rectangle as our needle:
 
 <div class="text-center sample-img">
-    <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/{{ unique_name }}/needle-rect.png" alt="sample image" />
+    <img src="https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/{{ unique_name }}/needle-rect.png" alt="sample image" />
 </div>
 
 :::tip

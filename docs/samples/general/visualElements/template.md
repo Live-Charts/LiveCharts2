@@ -1,5 +1,5 @@
 <!--
-To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/dev/docs/readme.md
+To get help on editing this file, see https://github.com/Live-Charts/LiveCharts2/blob/release/v2.2.x/docs/readme.md
 content is normally pulled from the examples in the repository.
 -->
 
@@ -80,7 +80,7 @@ The easiest way is to inherit from `DrawnGeometry`, this class implements `IDraw
 In the next example we inherit from `BoundedDrawnGeometry` it only adds the `Width` and `Height` properties to the `DrawnGeometry` class.
 
 <div class="text-center sample-img">
-    <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/{{ unique_name }}/custom.png" alt="sample image" />
+    <img src="https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/{{ unique_name }}/custom.png" alt="sample image" />
 </div>
 
 ```csharp
@@ -123,7 +123,7 @@ the size of the largest element in the children collection. For example, in the 
 coordinate [in the layout system] and the `LabelGeometry` in the 10,0 coordinate.
 
 <div class="text-center sample-img">
-    <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/{{ unique_name }}/absolute.png" alt="sample image" />
+    <img src="https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/{{ unique_name }}/absolute.png" alt="sample image" />
 </div>
 
 ```csharp
@@ -135,7 +135,7 @@ coordinate [in the layout system] and the `LabelGeometry` in the 10,0 coordinate
 Stacks `IDrawnElement` objects in vertical or horizontal order.
 
 <div class="text-center sample-img">
-    <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/{{ unique_name }}/stack.png" alt="sample image" />
+    <img src="https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/{{ unique_name }}/stack.png" alt="sample image" />
 </div>
 
 ```csharp
@@ -147,7 +147,7 @@ Stacks `IDrawnElement` objects in vertical or horizontal order.
 Uses a grid system to place `IDrawnElement` objects.
 
 <div class="text-center sample-img">
-    <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/{{ unique_name }}/table.png" alt="sample image" />
+    <img src="https://raw.githubusercontent.com/Live-Charts/LiveCharts2/release/v2.2.x/docs/{{ unique_name }}/table.png" alt="sample image" />
 </div>
 
 ```csharp
