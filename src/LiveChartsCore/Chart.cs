@@ -69,6 +69,7 @@ public abstract class Chart
     private LvcSize _previousSize = new();
     private int _nextSeriesId = 0;
     private long _lastMeasureTimeStamp = -1;
+    private volatile bool _isMeasureDeferred;
 
 #if NET5_0_OR_GREATER
     internal bool _isMobile;
@@ -91,6 +92,7 @@ public abstract class Chart
         Kind = kind;
         Canvas = canvas;
         canvas.Validated += OnCanvasValidated;
+        canvas.FrameDrawn += OnCanvasFrameDrawn;
 
         _updateThrottler = new ActionThrottler(UpdateThrottlerUnlocked, TimeSpan.FromMilliseconds(50))
         {
@@ -367,6 +369,7 @@ public abstract class Chart
     public virtual void Unload()
     {
         _lastMeasureTimeStamp = -1;
+        _isMeasureDeferred = false;
         IsLoaded = false;
         _everMeasuredElements.Clear();
         _toDeleteElements.Clear();
@@ -854,6 +857,14 @@ public abstract class Chart
         throw new Exception("The title must be a Visual or a VisualElement.");
     }
 
+    // The fraction of a label's size that lies before its X/Y for the given alignment.
+    private static float GetAlignFactor(Align align) => align switch
+    {
+        Align.Middle => 0.5f,
+        Align.End => 1f,
+        _ => 0f
+    };
+
     /// <summary>
     /// Adds the title to the chart.
     /// </summary>
@@ -865,8 +876,16 @@ public abstract class Chart
         if (View.Title?.ChartElementSource is Visual v && v.DrawnElement is not null)
         {
             var size = v.GetHitBox().Size;
-            v.DrawnElement.X = ControlSize.Width * 0.5f - size.Width * 0.5f;
-            v.DrawnElement.Y = 0;
+
+            // The title's box goes at the top, centered. A label is drawn relative to its X and Y
+            // by its alignment (Start: its left/top edge is there, Middle: its center, End: its
+            // right/bottom edge), so shift X and Y by the same fraction of its size (#2371).
+            var (alignX, alignY) = v.DrawnElement is BaseLabelGeometry label
+                ? (GetAlignFactor(label.HorizontalAlign), GetAlignFactor(label.VerticalAlign))
+                : (0f, 0f);
+
+            v.DrawnElement.X = ControlSize.Width * 0.5f - size.Width * 0.5f + size.Width * alignX;
+            v.DrawnElement.Y = size.Height * alignY;
             AddVisual(((IChartElement)v).ChartElementSource);
             return;
         }
@@ -914,8 +933,28 @@ public abstract class Chart
 
         if (canMeasure)
             _lastMeasureTimeStamp = Canvas._lastFrameTimestamp;
+        else
+            // Don't drop the request: the previous measure invalidated the canvas, so the
+            // platform draws a frame as soon as it can (e.g. when a hidden chart is shown
+            // again), and OnCanvasFrameDrawn measures then. Before, the request was lost and
+            // the chart kept stale data until its next update (#2405).
+            _isMeasureDeferred = true;
 
         return canMeasure;
+    }
+
+    private void OnCanvasFrameDrawn(CoreMotionCanvas canvas)
+    {
+        // runs on the thread that draws the frame (a render thread on some platforms);
+        // Update() can be called from any thread.
+        if (!_isMeasureDeferred) return;
+        _isMeasureDeferred = false;
+
+        if (!IsLoaded) return;
+
+        // not an automatic update: the measure it replaces was already requested, so it
+        // must run even if the view disabled automatic updates.
+        Update(new ChartUpdateParams { IsAutomaticUpdate = false });
     }
 
     private List<ChartPoint> CleanHoveredPoints(HashSet<ChartPoint> hovered)

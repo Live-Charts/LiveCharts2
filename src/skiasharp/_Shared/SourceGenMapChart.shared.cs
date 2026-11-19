@@ -51,6 +51,8 @@ public partial class SourceGenMapChart : IGeoMapView
     {
         CoreChart = new GeoMapChart(this);
         _seriesObserver = new CollectionDeepObserver(() => CoreChart?.Update());
+        // a style can set Series from the base constructor, before the observer existed (#2397).
+        if (Series is not null) _seriesObserver.Initialize(Series);
 
         ActiveMap = Maps.GetWorldMap();
         SyncContext = new object();

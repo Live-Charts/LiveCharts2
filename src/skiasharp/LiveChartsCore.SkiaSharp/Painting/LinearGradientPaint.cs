@@ -60,6 +60,7 @@ public class LinearGradientPaint(
 {
     private SKShader? _shader;
     private SKRect _activeClip = new();
+    private SKRect _shaderClip;
 
     private SKColor[] GradientStops { get; set; } = gradientStops;
     private SKPoint StartPoint { get; set; } = startPoint;
@@ -193,8 +194,13 @@ public class LinearGradientPaint(
 
     private SKShader GetShader()
     {
-        if (_shader is not null)
+        // the gradient is laid out over the clip, so it is rebuilt when the clip changes,
+        // for example when the chart is resized (#2372).
+        if (_shader is not null && _activeClip == _shaderClip)
             return _shader;
+
+        _shaderClip = _activeClip;
+        _shader?.Dispose();
 
         var xf = _activeClip.Location.X;
         var xt = xf + _activeClip.Width;

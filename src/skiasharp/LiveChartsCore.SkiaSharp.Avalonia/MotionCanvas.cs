@@ -77,7 +77,11 @@ public class MotionCanvas : UserControl
 
         context.Custom(new ChartFrameOperation(CanvasCore, Bounds, GetBackground()));
 
-        if (CanvasCore.IsValid) return;
+        // Avalonia still calls Render on a hidden control (own or ancestor IsVisible=false) but never draws it, so the
+        // canvas would never become valid and this would re-invalidate every frame. Showing the control makes Avalonia
+        // render it again, which restarts this loop, and the core runs any measure blocked meanwhile on that first
+        // frame (Chart.IsRendering). https://github.com/Live-Charts/LiveCharts2/issues/2405
+        if (CanvasCore.IsValid || !IsEffectivelyVisible) return;
         _ = Dispatcher.UIThread.InvokeAsync(InvalidateVisual, DispatcherPriority.Background);
     }
 

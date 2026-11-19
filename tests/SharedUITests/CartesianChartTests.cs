@@ -142,6 +142,40 @@ public class CartesianChartTests
     }
 #endif
 
+#if AVALONIA_UI_TESTING || WINUI_UI_TESTING || UNO_UI_TESTING || MAUI_UI_TESTING || WPF_UI_TESTING || WINFORMS_UI_TESTING || ETO_UI_TESTING || BLAZOR_UI_TESTING
+    // based on:
+    // https://github.com/Live-Charts/LiveCharts2/issues/2405
+    // a chart updated while hidden must not make the window redraw every frame,
+    // and must draw all its points once it is shown again.
+
+    [AppTestMethod]
+    public async Task HiddenChartUpdatesDoNotRedrawEveryFrame()
+    {
+        var sut = await App.NavigateTo<Samples.VisualTest.Issue2405Repro.View>();
+        await Task.Delay(1000);
+
+        sut.HideBackChart();
+        await Task.Delay(300);
+        sut.AddBackValue();
+        await Task.Delay(400);
+        sut.AddBackValue();
+        await Task.Delay(400);
+
+        // the front chart has no change of its own; before the fix it drew ~60 frames a second here.
+        var frontFrames = 0;
+        void OnFrontValidated(LiveChartsCore.Motion.CoreMotionCanvas _) => frontFrames++;
+        sut.FrontChart.CoreCanvas.Validated += OnFrontValidated;
+        await Task.Delay(1000);
+        sut.FrontChart.CoreCanvas.Validated -= OnFrontValidated;
+        Assert.True(frontFrames < 10, $"the front chart drew {frontFrames} frames in 1 s");
+
+        // before the fix the second value added while hidden was never measured.
+        sut.ShowBackChart();
+        await Task.Delay(1000);
+        Assert.ChartIsLoaded(sut.BackChart);
+    }
+#endif
+
 #if BLAZOR_UI_TESTING
     // based on:
     // https://github.com/Live-Charts/LiveCharts2/issues/1993
@@ -164,7 +198,7 @@ public class CartesianChartTests
     }
 #endif
 
-#if (WPF_UI_TESTING && TEST_HA_VIEWS) || MAUI_UI_TESTING || WINUI_UI_TESTING || (UNO_UI_TESTING && HAS_OS_LVC && !LVC_UNO_SKIA)
+#if (WPF_UI_TESTING && TEST_HA_VIEWS) || MAUI_UI_TESTING || WINUI_UI_TESTING || (UNO_UI_TESTING && HAS_OS_LVC && !LVC_UNO_SKIA && !LVC_UNO_NO_GPU_TESTS)
     // native platforms where gpu is supported.
     //
     // The Uno arm of this gate excludes the heads that render through Uno's

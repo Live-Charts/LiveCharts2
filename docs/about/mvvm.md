@@ -64,3 +64,22 @@ Now we inherited from `ObservableObject` and marked the *Series* property with t
 will add all this boring and repetitive 
 code for us, this is just a quick guide to get started with the docs in this site but you can learn more about the 
 toolkit [here](https://www.youtube.com/watch?v=aCxl0z04BN8) or in the [official docs](https://learn.microsoft.com/en-us/dotnet/communitytoolkit/mvvm/).
+
+## Requirements to use the samples code
+
+The view models in this site use `[ObservableProperty]` on partial properties, often with an initial value
+(`public partial ISeries[] Series { get; set; } = [...]`). To copy them into your project you need:
+
+- **C# 14**: it is the default when the project targets .NET 10 with the .NET 10 SDK. If your project targets an older
+  framework (for example .NET 8 or .NET Framework), set it in the project file:
+
+```xml
+<PropertyGroup>
+  <LangVersion>14</LangVersion>
+</PropertyGroup>
+```
+
+- **CommunityToolkit.Mvvm 8.4.1 or later**: earlier versions only generate partial properties when the language
+  version is `preview`.
+
+LiveCharts itself does not require any of this, it is only used to write the view models of these samples.

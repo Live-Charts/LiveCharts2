@@ -36,6 +36,7 @@ public class RadialGradientPaint : SkiaPaint
 {
     private SKShader? _shader;
     private SKRect _activeClip = new();
+    private SKRect _shaderClip;
     private readonly SKColor[] _gradientStops;
     private SKPoint _center;
     private float _radius;
@@ -168,8 +169,13 @@ public class RadialGradientPaint : SkiaPaint
 
     private SKShader GetShader()
     {
-        if (_shader is not null)
+        // the gradient is laid out over the clip, so it is rebuilt when the clip changes,
+        // for example when the chart is resized (#2372).
+        if (_shader is not null && _activeClip == _shaderClip)
             return _shader;
+
+        _shaderClip = _activeClip;
+        _shader?.Dispose();
 
         var center = new SKPoint(_activeClip.Location.X + _center.X * _activeClip.Width, _activeClip.Location.Y + _center.Y * _activeClip.Height);
         var r = _activeClip.Location.X + _activeClip.Width > _activeClip.Location.Y + _activeClip.Height

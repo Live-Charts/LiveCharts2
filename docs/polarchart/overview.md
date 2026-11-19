@@ -12,7 +12,7 @@ at the [ApiExplorer]({{ website_url }}/api/{{ version }}/LiveChartsCore.SkiaShar
 The `PolarChart` control is a 'ready to go' control to create plots using the 
 [Polar coordinate system](https://en.wikipedia.org/wiki/Polar_coordinate_system),
 To get started all you need to do is assign the `Series` property with a collection of 
-[`IPolarSeries`]({{ website_url }}/api/{{ version }}/LiveChartsCore.Kernel.Sketches.IPolarSeries-1).
+[`IPolarSeries`]({{ website_url }}/api/{{ version }}/LiveChartsCore.Kernel.Sketches.IPolarSeries).
 
 {{~ if xaml ~}}
 ```csharp
@@ -97,7 +97,7 @@ cover the most common scenarios.
 There are ~multiple~ series available in the library, you can add one or mix them all in the same chart, every series has unique properties,
 any image below is a link to an article explaining more about them.
 
-<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Polar%20Line%20Series">
+<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/PolarChart.Polar%20Line%20Series">
 <div class="series-miniature">
 <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/dev/docs/samples/polarLines/basic/result.png" alt="series"/>
 <div class="text-center"><b>Polar Line series</b></div>

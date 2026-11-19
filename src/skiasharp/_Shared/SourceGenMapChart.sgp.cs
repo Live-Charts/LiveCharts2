@@ -86,19 +86,17 @@ public partial class SourceGenMapChart
         if (chart.CoreChart is null) return;
 #endif
         chart.CoreCanvas.Sync = newValue;
-        chart.CoreChart.Update();
+        // CoreChart is null while the control is constructed, a style can set values then (#2397).
+        chart.CoreChart?.Update();
     }
 
     static void OnSeriesPropertyChanged(SGChart chart, object oldValue, object newValue)
     {
-#if BLAZOR_LVC
-        // hack for blazor, we need to wait for the OnAfterRender to have
-        // a reference to the canvas in the UI, CoreChart is null until then.
-        if (chart.CoreChart is null) return;
-#endif
         chart._seriesObserver?.Dispose();
         chart._seriesObserver?.Initialize((IEnumerable<IGeoSeries>)newValue);
-        chart.CoreChart.Update();
+        // CoreChart is null while the control is constructed: in Blazor until OnAfterRender,
+        // and in XAML when a style sets values from the base constructor (#2397).
+        chart.CoreChart?.Update();
     }
 
     static Action<SGChart, object, object> OnPaintPropertyChanged(

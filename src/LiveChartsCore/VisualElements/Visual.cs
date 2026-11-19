@@ -24,6 +24,7 @@ using System;
 using LiveChartsCore.Drawing;
 using LiveChartsCore.Kernel;
 using LiveChartsCore.Kernel.Events;
+using LiveChartsCore.Motion;
 using LiveChartsCore.Painting;
 
 namespace LiveChartsCore.VisualElements;
@@ -49,10 +50,9 @@ public abstract class Visual : ChartElement, IInternalInteractable
     public TimeSpan AnimationSpeed { get; set; } = TimeSpan.FromMilliseconds(300);
 
     /// <summary>
-    /// Gets or sets the z-index of the drawn task that hosts this visual.
-    /// When 0 (default) the visual is drawn behind series whose paints sit at
-    /// <c>SeriesId + offset</c>. Set a positive value (e.g. 1000) to render
-    /// the visual on top of series.
+    /// Gets or sets the z-index of the visual. By default (0) and with a positive value the visual
+    /// is drawn on top of the series; set a negative value to draw it behind the series, for
+    /// example as a background. Visuals on the same side of the series are ordered by their z-index.
     /// </summary>
     public int ZIndex { get; set => SetProperty(ref field, value); }
 
@@ -69,15 +69,25 @@ public abstract class Visual : ChartElement, IInternalInteractable
 
         Measure(chart);
 
+        // The series draw in the DrawMargin zone and a zone's ZIndex only orders the paints in it,
+        // so the side of the series a visual is on is decided by its zone: Underlay is drawn before
+        // the series, NoClip after them (#2364).
+        var zone = ZIndex < 0 ? CanvasZone.Underlay : CanvasZone.NoClip;
+
         if (_drawnTask is null || _drawnTask.IsEmpty)
         {
             if (DrawnElement is Animatable animatable)
                 animatable.Animate(Easing, AnimationSpeed);
 
-            _drawnTask = chart.Canvas.AddGeometry(DrawnElement);
+            _drawnTask = chart.Canvas.AddGeometry(zone, DrawnElement);
+        }
+        else
+        {
+            // the ZIndex can change at run time, to the other side of the series.
+            chart.Canvas.MoveTaskToZone(_drawnTask, zone);
         }
 
-        if (ZIndex != 0) _drawnTask.ZIndex = ZIndex;
+        _drawnTask.ZIndex = ZIndex;
     }
 
     /// <inheritdoc cref="IInteractable.GetHitBox"/>

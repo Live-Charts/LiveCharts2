@@ -74,6 +74,22 @@ public class ChartViewHandler : ContentViewHandler
         base.DisconnectHandler(platformView);
     }
 
+    // Apple only (#1725, #2404): UIKit holds the gesture recognizers' target strongly, and through
+    // it this handler and the chart, so a chart that left the window must drop its recognizers or it
+    // leaks. Disconnecting the whole handler did that, but MAUI doesn't create a new handler when the
+    // same view is added back (it reuses the parent's), so the chart never loaded again. Release and
+    // restore just the recognizers instead; DisposeController/InitializeController are re-entrant.
+    // the typed PlatformView property throws when there is none, IElementHandler's returns null.
+    internal void ReleasePointerController()
+    {
+        if (((Microsoft.Maui.IElementHandler)this).PlatformView is { } view) _pointerController.DisposeController(view);
+    }
+
+    internal void RestorePointerController()
+    {
+        if (((Microsoft.Maui.IElementHandler)this).PlatformView is { } view) _pointerController.InitializeController(view);
+    }
+
     private void OnPressed(object? sender, PressedEventArgs args) => ChartView?.OnPressed(sender, args);
     private void OnMoved(object? sender, ScreenEventArgs args) => ChartView?.OnMoved(sender, args);
     private void OnReleased(object? sender, PressedEventArgs args) => ChartView?.OnReleased(sender, args);

@@ -12,7 +12,7 @@ This section uses the `CartesianChart` control, but it works the same in the `{{
 {{~ end ~}}
 
 
-Defines the animations speed of all the [chart elements]({{ website_url }}/api/{{ version }}/LiveChartsCore.Kernel.IChartElement-1) (axes, series, sections).
+Defines the animations speed of all the [chart elements]({{ website_url }}/api/{{ version }}/LiveChartsCore.Kernel.IChartElement) (axes, series, sections).
 
 {{~ if xaml ~}}
 <pre><code>&lt;lvc:CartesianChart
@@ -44,7 +44,7 @@ This section uses the `CartesianChart` control, but it works the same in the `{{
 
 This property defines the way the shapes in the chart animate, in other words it controls the way the 
 [IMotionProperties]({{ website_url }}/api/{{ version }}/LiveChartsCore.Motion.IMotionProperty) of all the 
-[chart elements]({{ website_url }}/api/{{ version }}/LiveChartsCore.Kernel.IChartElement-1) (axes, series, sections) in the chart
+[chart elements]({{ website_url }}/api/{{ version }}/LiveChartsCore.Kernel.IChartElement) (axes, series, sections) in the chart
 move from a state 'A' to state 'B'.
 
 The property is of type `Func<float, float>`, it means that it is a function that takes a `float` argument (the time elapsed from 0 to 1), 
