@@ -701,7 +701,7 @@ keep edits there, not duplicated here.
 
 Quick reference for the dev-loop hooks the workflow relies on:
 
-- **`LVC_SAMPLE=<sample-path>`** — XAML samples (Avalonia / WPF / WinUI / MAUI / Uno) auto-navigate to the named sample on launch, e.g. `LVC_SAMPLE=VisualTest/Issue1986Repro`. Skips manual UI navigation for repros.
+- **`LVC_SAMPLE=<sample-path>`** — The Avalonia / WPF / WinUI / MAUI samples auto-navigate to the named sample on launch, e.g. `LVC_SAMPLE=VisualTest/Issue1986Repro`. Skips manual UI navigation for repros.
 - **`LVC_SCREENSHOT=<png-path>`** — Avalonia / WPF / WinUI samples render the main window to PNG via `RenderTargetBitmap` shortly after activation and exit. Captures scale to physical pixels on HiDPI.
 - **`LVC_SCREENSHOT_DELAY_MS=<ms>`** — overrides the 3 s default settle delay before the in-app screenshot is taken (use on slower CI hosts).
 - **`.claude/scripts/capture-window.{ps1,-macos.sh,-linux.sh}`** — per-OS PrintWindow / `screencapture` / `grim` fallbacks for platforms without an in-app capture path (MAUI, Uno).
