@@ -36,16 +36,16 @@ MAUI/WASM projects require workloads: `dotnet workload install maui --skip-sign-
 
 ```bash
 # Unit tests (MSTest) — primary test suite
-dotnet test tests/CoreTests/ --framework net8.0
+dotnet test --project tests/CoreTests/CoreTests.csproj --framework net8.0
 
 # Snapshot tests (image comparison, net10.0 only)
-dotnet test tests/SnapshotTests/
+dotnet test --project tests/SnapshotTests/SnapshotTests.csproj
 
-# UI tests via Factos (requires sample apps built)
+# UI tests via Factos: set `appToRun` (and `tf` for maui/uno) in tests/UITests/Program.cs, then
 dotnet run --project tests/UITests/
-dotnet run --project tests/UITests/ -- --select wpf
-dotnet run --project tests/UITests/ -- --select avalonia-desktop
 ```
+
+The repo uses Microsoft.Testing.Platform (`global.json`), so pass the project with `--project`; `dotnet test <folder>` fails on some 10.0 SDKs. In Debug, `tests/UITests/Program.cs` replaces the command-line arguments with `appToRun`, so `-- --select <app>` has no effect locally. App ids are listed in the `toTest` table there (`avalonia-desktop`, `wpf-net10`, `winui`, `maui`, …). The Release configuration tests the packed NuGet packages and is meant for CI.
 
 Tests use `CoreMotionCanvas.IsTesting = true` to disable animations. UI tests are defined in `tests/SharedUITests/` (shared project) and run against each platform via the Factos orchestrator in `tests/UITests/`.
 
@@ -90,6 +90,18 @@ Based on [.NET Runtime coding style](https://github.com/dotnet/runtime/blob/main
 - **C# 14.0** language version
 - Animation system (`Motion/`) is core infrastructure — changes require extensive testing
 - Chart updates can arrive from any thread; synchronization is essential
+
+## Commits & PRs
+
+These apply to every change, not only GitHub-issue work. Check `git log --oneline -15` for the current style before the first commit.
+
+- **One concept per commit.** A fix, its regression test, re-recorded snapshots and docs are separate commits, in this order: `fix(<scope>): …`, `test(<scope>): …`, `test(snapshots): …`, `docs: …`. Add `(#<issue>)` to the summary when there is an issue. Reverting the fix commit alone must make the test from the test commit fail.
+- **Never force-push** a branch that is already pushed. Add commits on top. If a PR's history really needs reshaping, open a new PR and close the old one with a link to it.
+- **One worktree per change**: `git worktree add ../LiveCharts2-<slug> -b <type>/<slug> origin/master`. Keep the primary checkout free for other work.
+- **Public API changes** come with a docs update, as its own `docs:` commit in the same PR.
+- **Render-path changes** (paint, layout, text, z-index, draw order) must run the snapshot tests before the work is called done; unit tests have missed visible regressions.
+- **Re-recording snapshots**: CI runs them on Windows, so record new baselines on Windows. Clear `bin/Debug/net10.0/SnapshotsDiff` before each run (leftover files make the comparison throw). Tests that take several snapshots (`…_0`, `…_1`, …) stop at the first mismatch, so repeat run → copy `SnapshotsNew/<name>.png` over `Snapshots/` until nothing fails. Look at the changed images before committing them.
+- For GitHub issues, follow the full workflow in `.claude/skills/repro-and-fix/SKILL.md`.
 
 ## Additional Documentation
 

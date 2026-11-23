@@ -45,22 +45,19 @@ fastest dev loop on Windows (no WindowsAppSDK / packaged-build overhead).
 
 ## Project conventions you must follow
 
-These are durable rules from `~/.claude/projects/.../memory/MEMORY.md`. Re-read
-the relevant memory file if uncertain — these are not optional:
+The commit, PR, worktree and snapshot rules are in `CLAUDE.md` → "Commits &
+PRs". They apply to every change, so they live there and not here. The ones this
+workflow leans on most:
 
-- **Worktree per issue.** Create `../LiveCharts2-fix-<issue>-<slug>` first
-  (`feedback_worktree_per_issue`). Don't work in the primary tree.
-- **One concept per commit.** Fix and regression test go in *separate* commits.
-  The regression-test commit must fail when the fix is reverted — verify this
-  before pushing (`feedback_commit_separation`).
+- **Worktree per issue.** Create `../LiveCharts2-fix-<issue>-<slug>` first.
+  Don't work in the primary tree.
+- **One concept per commit.** Fix, regression test, re-recorded snapshots and
+  docs go in *separate* commits. The regression-test commit must fail when the
+  fix is reverted — verify this before pushing.
 - **Snapshot tests for render-path changes.** If your fix touches paint, layout,
-  z-index, or draw order, run `tests/SnapshotTests/` before claiming done — unit
-  tests have missed catastrophic regressions
-  (`feedback_run_snapshots_for_render_changes`).
-- **Update docs when public API changes** in the same change set as a separate
-  commit (`feedback_update_docs_for_api`).
+  text, z-index, or draw order, run `tests/SnapshotTests/` before claiming done.
 - Check `Directory.Build.props` for `<LiveChartsVersion>` and use that value in
-  user-facing text (`project_current_version`).
+  user-facing text.
 
 ## Workflow
 
@@ -131,11 +128,12 @@ the file.
 
 ### 4. Auto-launch the sample at your repro
 
-All XAML platform samples read `LVC_SAMPLE` at startup and load that sample
-instead of the default landing screen. Set it before launching:
+The Avalonia, WPF, WinUI and MAUI samples read `LVC_SAMPLE` at startup and load
+that sample instead of the default landing screen (the Uno sample doesn't read
+it yet; navigate manually there). Set it before launching:
 
 ```bash
-# bash / WSL
+# bash / WSL (on macOS/Linux the binary has no .exe extension)
 LVC_SAMPLE=VisualTest/Issue<N>Repro \
   ./samples/AvaloniaSample/Platforms/AvaloniaSample.Desktop/bin/Debug/net10.0/AvaloniaSample.Desktop.exe
 ```
@@ -143,7 +141,7 @@ LVC_SAMPLE=VisualTest/Issue<N>Repro \
 ```powershell
 # PowerShell
 $env:LVC_SAMPLE = "VisualTest/Issue<N>Repro"
-.\samples\WPFSample\bin\Debug\net10.0-windows\WPFSample.exe
+.\samples\WPFSample\bin\Debug\net10.0-windows10.0.19041.0\WPFSample.exe
 ```
 
 Build first if needed: `dotnet build samples/<Platform>Sample/... -c Debug`.
@@ -172,7 +170,7 @@ LVC_SCREENSHOT=$(pwd)/.claude/screenshots/<N>-before.png \
 # PowerShell
 $env:LVC_SAMPLE = "VisualTest/Issue<N>Repro"
 $env:LVC_SCREENSHOT = "$pwd\.claude\screenshots\<N>-before.png"
-.\samples\WPFSample\bin\Debug\net10.0-windows\WPFSample.exe
+.\samples\WPFSample\bin\Debug\net10.0-windows10.0.19041.0\WPFSample.exe
 ```
 
 After it exits, `Read` the PNG. You're multimodal — describe what you see,
@@ -287,8 +285,10 @@ catching the bug; fix the test before moving on.
 To run a single Factos UI test:
 
 ```bash
-# In tests/UITests/Program.cs, set: var appToRun = "<platform>-desktop"
-# (avalonia-desktop / wpf-net10 / winui / maui / uno).
+# In tests/UITests/Program.cs, set: var appToRun = "<app id>"
+# (avalonia-desktop / wpf-net10 / winui / maui / uno; full list in the toTest table)
+# and, for maui/uno, `tf` to the target framework to run.
+# Debug builds ignore `-- --select ...` on the command line.
 dotnet build tests/UITests/UITests.csproj -c Debug
 cd tests/UITests/bin/Debug/net10.0 && dotnet UITests.dll
 # Revert the appToRun change before committing — it's a local dev-loop tweak.
@@ -320,12 +320,15 @@ output can still look subtly wrong if the assertion was too narrow.
 
 ### 10. Commit and PR
 
-You developed test-first, but commit fix-first. Two commits, in this order:
+You developed test-first, but commit fix-first. Commits, in this order:
 
 1. `fix(<scope>): <one-line summary> (#<N>)` — only the fix.
 2. `test(<scope>): regression for <symptom> (#<N>)` — only the test +
    repro view. Do not stage `samples/ViewModelsSamples/Index.cs`; see step 3
    for why.
+3. `test(snapshots): <what moved> (#<N>)` — only when the fix legitimately
+   changes existing snapshots. Re-record them on Windows (see `CLAUDE.md`) and
+   look at every changed image before committing.
 
 Why fix-first commit order despite test-first development: every commit on
 the branch should be individually green so `git bisect` lands on a usable
@@ -333,7 +336,8 @@ state. If the test commit landed first it would be a failing-test commit
 that bisect would (correctly) flag as broken. Fix-then-test keeps both
 commits green while still satisfying the project rule that reverting the
 fix must surface the regression — revert commit 1 alone and the test from
-commit 2 fails.
+commit 2 fails. (When snapshots move, commit 1 alone fails the snapshot suite
+until commit 3; that is accepted here, as in earlier render fixes.)
 
 Commit message style follows recent history (`git log --oneline -10`).
 Body: imperative, mention the root-cause mechanism, why the test catches it.
@@ -373,7 +377,7 @@ needs. Don't re-document the code — just the insights.
 
 - Issue triage: `gh issue view <N> --repo Live-Charts/LiveCharts2`
 - **Auto-launch sample**: `LVC_SAMPLE=<path>` env var (Avalonia, WPF, WinUI,
-  MAUI, Uno).
+  MAUI; not Uno yet).
 - **In-app screenshot**: `LVC_SCREENSHOT=<path>` env var (Avalonia, WPF,
   WinUI). Sample renders to PNG after `LVC_SCREENSHOT_DELAY_MS` (default
   3000) and exits.
@@ -383,6 +387,6 @@ needs. Don't re-document the code — just the insights.
     `-WindowTitle <substring>` instead of `-ProcessName`)
   - macOS:   `.claude/scripts/capture-window-macos.sh`
   - Linux:   `.claude/scripts/capture-window-linux.sh` (X11 / sway / GNOME)
-- Factos UI tests: `tests/UITests/`, set `appToRun` in `Program.cs` for
-  local runs.
+- Factos UI tests: `tests/UITests/`, set `appToRun` (and `tf` for maui/uno) in
+  `Program.cs` for local runs.
 - Build per-platform: `LiveCharts.<Platform>.slnx` solutions.
