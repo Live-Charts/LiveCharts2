@@ -1,6 +1,6 @@
 {
   "summary": {
-    "generatedon": "2026-11-23T16:48:29Z",
+    "generatedon": "2026-11-23T17:18:49Z",
     "parser": "DynamicCodeCoverage",
     "assemblies": 2,
     "classes": 362,
@@ -19,7 +19,7 @@
     "fullmethodcoverage": 69.7
  },
   "metrics": [
-    { "name": "Blocks covered", "value": 38191 },
+    { "name": "Blocks covered", "value": 38189 },
     { "name": "Blocks not covered", "value": 6447 } ],
   "coverage": {
     "assemblies": [
