@@ -91,6 +91,18 @@ Based on [.NET Runtime coding style](https://github.com/dotnet/runtime/blob/main
 - Animation system (`Motion/`) is core infrastructure — changes require extensive testing
 - Chart updates can arrive from any thread; synchronization is essential
 
+## Commits & PRs
+
+These apply to every change, not only GitHub-issue work. Check `git log --oneline -15` for the current style before the first commit.
+
+- **One concept per commit.** A fix, its regression test, re-recorded snapshots and docs are separate commits, in this order: `fix(<scope>): …`, `test(<scope>): …`, `test(snapshots): …`, `docs: …`. Add `(#<issue>)` to the summary when there is an issue. Reverting the fix commit alone must make the test from the test commit fail.
+- **Never force-push** a branch that is already pushed. Add commits on top. If a PR's history really needs reshaping, open a new PR and close the old one with a link to it.
+- **One worktree per change**: `git worktree add ../LiveCharts2-<slug> -b <type>/<slug> origin/master`. Keep the primary checkout free for other work.
+- **Public API changes** come with a docs update, as its own `docs:` commit in the same PR.
+- **Render-path changes** (paint, layout, text, z-index, draw order) must run the snapshot tests before the work is called done; unit tests have missed visible regressions.
+- **Re-recording snapshots**: CI runs them on Windows, so record new baselines on Windows. Clear `bin/Debug/net10.0/SnapshotsDiff` before each run (leftover files make the comparison throw). Tests that take several snapshots (`…_0`, `…_1`, …) stop at the first mismatch, so repeat run → copy `SnapshotsNew/<name>.png` over `Snapshots/` until nothing fails. Look at the changed images before committing them.
+- For GitHub issues, follow the full workflow in `.claude/skills/repro-and-fix/SKILL.md`.
+
 ## Additional Documentation
 
 See `.github/copilot-instructions.md` for extended guidance including: sample platform view patterns (XAML/code-only/Blazor), adding new series types, CI/CD workflow details, and documented build errors with workarounds.

@@ -495,6 +495,7 @@ In `Directory.Build.props`:
 - ✅ Use platform-specific solution files for focused development
 - ✅ Consult `CONTRIBUTING.md` for detailed style guide
 - ✅ Use shared code in `_Shared/` folders when adding cross-platform features
+- ✅ Follow the commit, PR and worktree rules in `CLAUDE.md` → "Commits & PRs" (one concept per commit, no force-push)
 
 ### Don'ts
 - ❌ Don't break multi-platform support when modifying core projects
