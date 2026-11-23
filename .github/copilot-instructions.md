@@ -161,14 +161,13 @@ When building fails for specific targets, you can:
 
 **Run Tests:**
 ```bash
-dotnet test tests/CoreTests/
+dotnet test --project tests/CoreTests/CoreTests.csproj
 
 # Run for specific framework
-dotnet test tests/CoreTests/ --framework net8.0
-
-# Run with coverage
-dotnet test tests/CoreTests/ --collect:"XPlat Code Coverage"
+dotnet test --project tests/CoreTests/CoreTests.csproj --framework net8.0
 ```
+
+The repo uses Microsoft.Testing.Platform (`global.json`): pass the project with `--project`, since `dotnet test <folder>` fails on some 10.0 SDKs. CI collects coverage with `dotnet-coverage collect "dotnet run --project tests/CoreTests/CoreTests.csproj ..."` (see `.github/actions/run-tests/action.yml`).
 
 **Test Structure:**
 - `ChartTests/`: High-level chart functionality
@@ -191,7 +190,7 @@ Snapshot tests render charts to images and compare them against stored reference
 
 **Run Tests:**
 ```bash
-dotnet test tests/SnapshotTests/
+dotnet test --project tests/SnapshotTests/SnapshotTests.csproj
 ```
 
 ### UI Testing
@@ -218,14 +217,11 @@ dotnet test tests/SnapshotTests/
 
 **Running UI Tests:**
 ```bash
-# Run UI tests (requires sample apps to be built)
+# Set appToRun (and tf for maui/uno) in tests/UITests/Program.cs, then:
 dotnet run --project tests/UITests/
-
-# Run against specific platform (see Program.cs for options)
-dotnet run --project tests/UITests/ -- --select wpf
-dotnet run --project tests/UITests/ -- --select avalonia-desktop
-dotnet run --project tests/UITests/ -- --select maui --test-env "tf=net10.0-windows10.0.19041.0"
 ```
+
+In Debug, `Program.cs` replaces the command-line arguments with `appToRun`/`tf`, so `-- --select <app>` has no effect locally. App ids are in the `toTest` table in `Program.cs` (`avalonia-desktop`, `wpf-net10`, `winui`, `maui`, …). The Release configuration tests the packed NuGet packages and is what CI runs.
 
 **Important Notes:**
 - UI testing requires the Factos package
@@ -531,17 +527,13 @@ dotnet workload list
 
 # === Testing ===
 # Run core unit tests
-dotnet test tests/CoreTests/ --framework net8.0
+dotnet test --project tests/CoreTests/CoreTests.csproj --framework net8.0
 
 # Run snapshot tests
-dotnet test tests/SnapshotTests/
+dotnet test --project tests/SnapshotTests/SnapshotTests.csproj
 
-# Run UI tests (requires sample apps to build)
+# Run UI tests (set appToRun in tests/UITests/Program.cs first)
 dotnet run --project tests/UITests/
-
-# Run UI tests for specific platform
-dotnet run --project tests/UITests/ -- --select wpf
-dotnet run --project tests/UITests/ -- --select avalonia-desktop
 
 # === Running Samples ===
 # Run WPF sample

@@ -36,16 +36,16 @@ MAUI/WASM projects require workloads: `dotnet workload install maui --skip-sign-
 
 ```bash
 # Unit tests (MSTest) — primary test suite
-dotnet test tests/CoreTests/ --framework net8.0
+dotnet test --project tests/CoreTests/CoreTests.csproj --framework net8.0
 
 # Snapshot tests (image comparison, net10.0 only)
-dotnet test tests/SnapshotTests/
+dotnet test --project tests/SnapshotTests/SnapshotTests.csproj
 
-# UI tests via Factos (requires sample apps built)
+# UI tests via Factos: set `appToRun` (and `tf` for maui/uno) in tests/UITests/Program.cs, then
 dotnet run --project tests/UITests/
-dotnet run --project tests/UITests/ -- --select wpf
-dotnet run --project tests/UITests/ -- --select avalonia-desktop
 ```
+
+The repo uses Microsoft.Testing.Platform (`global.json`), so pass the project with `--project`; `dotnet test <folder>` fails on some 10.0 SDKs. In Debug, `tests/UITests/Program.cs` replaces the command-line arguments with `appToRun`, so `-- --select <app>` has no effect locally. App ids are listed in the `toTest` table there (`avalonia-desktop`, `wpf-net10`, `winui`, `maui`, …). The Release configuration tests the packed NuGet packages and is meant for CI.
 
 Tests use `CoreMotionCanvas.IsTesting = true` to disable animations. UI tests are defined in `tests/SharedUITests/` (shared project) and run against each platform via the Factos orchestrator in `tests/UITests/`.
 
