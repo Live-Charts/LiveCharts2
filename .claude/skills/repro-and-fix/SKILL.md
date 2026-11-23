@@ -45,22 +45,19 @@ fastest dev loop on Windows (no WindowsAppSDK / packaged-build overhead).
 
 ## Project conventions you must follow
 
-These are durable rules from `~/.claude/projects/.../memory/MEMORY.md`. Re-read
-the relevant memory file if uncertain — these are not optional:
+The commit, PR, worktree and snapshot rules are in `CLAUDE.md` → "Commits &
+PRs". They apply to every change, so they live there and not here. The ones this
+workflow leans on most:
 
-- **Worktree per issue.** Create `../LiveCharts2-fix-<issue>-<slug>` first
-  (`feedback_worktree_per_issue`). Don't work in the primary tree.
-- **One concept per commit.** Fix and regression test go in *separate* commits.
-  The regression-test commit must fail when the fix is reverted — verify this
-  before pushing (`feedback_commit_separation`).
+- **Worktree per issue.** Create `../LiveCharts2-fix-<issue>-<slug>` first.
+  Don't work in the primary tree.
+- **One concept per commit.** Fix, regression test, re-recorded snapshots and
+  docs go in *separate* commits. The regression-test commit must fail when the
+  fix is reverted — verify this before pushing.
 - **Snapshot tests for render-path changes.** If your fix touches paint, layout,
-  z-index, or draw order, run `tests/SnapshotTests/` before claiming done — unit
-  tests have missed catastrophic regressions
-  (`feedback_run_snapshots_for_render_changes`).
-- **Update docs when public API changes** in the same change set as a separate
-  commit (`feedback_update_docs_for_api`).
+  text, z-index, or draw order, run `tests/SnapshotTests/` before claiming done.
 - Check `Directory.Build.props` for `<LiveChartsVersion>` and use that value in
-  user-facing text (`project_current_version`).
+  user-facing text.
 
 ## Workflow
 
@@ -320,12 +317,15 @@ output can still look subtly wrong if the assertion was too narrow.
 
 ### 10. Commit and PR
 
-You developed test-first, but commit fix-first. Two commits, in this order:
+You developed test-first, but commit fix-first. Commits, in this order:
 
 1. `fix(<scope>): <one-line summary> (#<N>)` — only the fix.
 2. `test(<scope>): regression for <symptom> (#<N>)` — only the test +
    repro view. Do not stage `samples/ViewModelsSamples/Index.cs`; see step 3
    for why.
+3. `test(snapshots): <what moved> (#<N>)` — only when the fix legitimately
+   changes existing snapshots. Re-record them on Windows (see `CLAUDE.md`) and
+   look at every changed image before committing.
 
 Why fix-first commit order despite test-first development: every commit on
 the branch should be individually green so `git bisect` lands on a usable
@@ -333,7 +333,8 @@ state. If the test commit landed first it would be a failing-test commit
 that bisect would (correctly) flag as broken. Fix-then-test keeps both
 commits green while still satisfying the project rule that reverting the
 fix must surface the regression — revert commit 1 alone and the test from
-commit 2 fails.
+commit 2 fails. (When snapshots move, commit 1 alone fails the snapshot suite
+until commit 3; that is accepted here, as in earlier render fixes.)
 
 Commit message style follows recent history (`git log --oneline -10`).
 Body: imperative, mention the root-cause mechanism, why the test catches it.
