@@ -346,6 +346,14 @@ internal static class DrawingTextExtensions
             var lineHeight = metrics.Descent - metrics.Ascent + metrics.Leading;
             var widths = new List<float>();
 
+            // Fonts disagree on how much room their ascent reserves above the capitals
+            // (Segoe UI ~1.08em, Helvetica ~0.77em), so a baseline at -Ascent drew the text
+            // low on Windows and high on macOS. Centering the cap height in the line box
+            // places the visible text at the same spot whatever the platform font is.
+            var baseline = metrics.CapHeight > 0
+                ? (lineHeight + metrics.CapHeight) * 0.5f
+                : -metrics.Ascent;
+
             // For RTL text, reverse the blobs so words are positioned right-to-left
             var orderedBlobs = isRTL ? ((IEnumerable<PositionedBlob>)blobs).Reverse() : blobs;
 
@@ -364,7 +372,7 @@ internal static class DrawingTextExtensions
                     knownHeight = y;
                 }
 
-                pb.Position = new SKPoint(x + padding.Left, y + padding.Top - metrics.Ascent);
+                pb.Position = new SKPoint(x + padding.Left, y + padding.Top + baseline);
                 x += w;
 
                 if (x > knownWidth)
