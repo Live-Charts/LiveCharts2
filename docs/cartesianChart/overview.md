@@ -106,7 +106,7 @@ cover the most common scenarios.
 There are multiple series available in the library, you can add one or mix them all in the same chart, every series has unique properties,
 any image below is a link to an article explaining more about them.
 
-<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Line%20Series%20properties">
+<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Line%20and%20step%20line%20series">
 <div class="series-miniature">
 <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/samples/lines/basic/result.png" alt="series"/>
 <div class="text-center"><b>Line series</b></div>
@@ -127,7 +127,7 @@ any image below is a link to an article explaining more about them.
 </div>
 </a>
 
-<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Step%20line%20Series%20properties">
+<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Line%20and%20step%20line%20series#step-lines">
 <div class="series-miniature">
 <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/samples/steplines/basic/result.png" alt="series"/>
 <div class="text-center"><b>Step line series</b></div>

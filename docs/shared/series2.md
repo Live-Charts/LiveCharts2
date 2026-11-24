@@ -11,7 +11,7 @@ You can plot any type of data, please see the [mappers article]({{ website_url }
 
 You can also customize the geometry for each point in a series, you can use the geometries defined on LiveCharts, SVG geometries
 or draw your own using the SkiaSharp API, if you want to learn more please take a look at
-[this article]({{ website_url }}/docs/{{ platform }}/{{ version }}/samples.lines.custom).
+[this article]({{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Line%20and%20step%20line%20series#point-geometries).
 
 ## ZIndex property
 
