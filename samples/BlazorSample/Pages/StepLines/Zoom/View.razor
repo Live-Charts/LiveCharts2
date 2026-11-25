@@ -2,6 +2,7 @@
 @using LiveChartsCore.SkiaSharpView.Blazor
 @using LiveChartsCore.SkiaSharpView
 @using LiveChartsCore
+@using ViewModelsSamples.StepLines.Zoom
 
 <CartesianChart
 	Series="Series"
@@ -13,27 +14,14 @@
 
     protected override void OnInitialized()
     {
-        var values = Fetch();
+        var viewModel = new ViewModel();
 
         Series = new ISeries[]
         {
             new StepLineSeries<int>
             {
-                Values = values
+                Values = viewModel.Values
             }
         };
-    }
-
-    private static int[] Fetch()
-    {
-        var values = new int[100];
-        var r = new Random();
-        var t = 0;
-        for (var i = 0; i < 100; i++)
-        {
-            t += r.Next(-90, 100);
-            values[i] = t;
-        }
-        return values;
     }
 }

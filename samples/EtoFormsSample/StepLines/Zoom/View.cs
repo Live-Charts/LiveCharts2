@@ -2,6 +2,7 @@
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Eto;
+using ViewModelsSamples.StepLines.Zoom;
 
 namespace EtoFormsSample.StepLines.Zoom;
 
@@ -9,13 +10,13 @@ public class View : Panel
 {
     public View()
     {
-        var values = Fetch();
+        var viewModel = new ViewModel();
 
         var series = new ISeries[]
         {
             new StepLineSeries<int>
             {
-                Values = values
+                Values = viewModel.Values
             }
         };
 
@@ -26,18 +27,5 @@ public class View : Panel
         };
 
         Content = cartesianChart;
-    }
-
-    private static int[] Fetch()
-    {
-        var values = new int[100];
-        var r = new System.Random();
-        var t = 0;
-        for (var i = 0; i < 100; i++)
-        {
-            t += r.Next(-90, 100);
-            values[i] = t;
-        }
-        return values;
     }
 }
