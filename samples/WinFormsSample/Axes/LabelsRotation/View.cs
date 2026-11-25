@@ -35,7 +35,7 @@ public partial class View : UserControl
             new LineSeries<double>
             {
                 Values = values,
-                YToolTipLabelFormatter = tooltipFormat
+                XToolTipLabelFormatter = tooltipFormat
             }
         };
 
@@ -44,14 +44,13 @@ public partial class View : UserControl
             Labeler = labeler,
             MinStep = 1,
             LabelsRotation = 45,
-            SeparatorsPaint = new SolidColorPaint(SkiaSharp.SKColors.LightGray, 2)
+            SeparatorsPaint = new SolidColorPaint(new SkiaSharp.SKColor(238, 238, 238), 2)
         };
 
         yAxis = new Axis
         {
             LabelsRotation = 15, // initial value
-            Labeler = Labelers.Currency,
-            SeparatorsPaint = new SolidColorPaint(SkiaSharp.SKColors.LightGray, 2)
+            SeparatorsPaint = new SolidColorPaint(new SkiaSharp.SKColor(238, 238, 238), 2)
         };
 
         cartesianChart = new CartesianChart
