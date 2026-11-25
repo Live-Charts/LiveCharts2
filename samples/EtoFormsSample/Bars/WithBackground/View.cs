@@ -4,6 +4,7 @@ using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Eto;
 using LiveChartsCore.SkiaSharpView.Painting;
 using SkiaSharp;
+using ViewModelsSamples.Bars.WithBackground;
 
 namespace EtoFormsSample.Bars.WithBackground;
 
@@ -13,21 +14,20 @@ public class View : Panel
 
     public View()
     {
-        var values1 = new double[] { 10, 10, 10, 10, 10, 10, 10 };
-        var values2 = new double[] { 3, 10, 5, 3, 7, 3, 8 };
+        var viewModel = new ViewModel();
 
         var series = new ISeries[]
         {
             new ColumnSeries<double>
             {
-                Values = values1,
+                Values = viewModel.Values1,
                 Fill = new SolidColorPaint(new SKColor(180, 180, 180, 50)),
                 IgnoresBarPosition = true,
                 IsHoverable = false
             },
             new ColumnSeries<double>
             {
-                Values = values2,
+                Values = viewModel.Values2,
                 IgnoresBarPosition = true
             }
         };
