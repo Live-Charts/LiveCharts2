@@ -1,32 +1,58 @@
 <!--
 To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/master/docs/readme.md
+Samples are pulled from the repository with render_sample, the code shown always matches the samples.
 -->
 
-# {{ name | to_title_case }}
+# Financial series
 
-{{ render "~/shared/series.md" }}
+Financial series plot the high, open, close and low prices of each period. A `CandlesticksSeries` draws every point
+as a candle: a box from the open to the close price, with lines up to the high and down to the low. An `OhlcSeries`
+draws the same data as OHLC bars. Both series share every property, so this article covers them together.
 
-{{ render "~/shared/datalabels.md" }}
+:::info
+This article highlights the most used features. Every property is listed in the API explorer:
+[CandlesticksSeries]({{ website_url }}/api/{{ version }}/LiveChartsCore.SkiaSharpView.CandlesticksSeries-3) and
+[OhlcSeries]({{ website_url }}/api/{{ version }}/LiveChartsCore.SkiaSharpView.OhlcSeries-3).
+{{~ if xaml ~}}
+In XAML, declare them as `XamlCandlesticksSeries` and `XamlOhlcSeries`.
+{{~ end ~}}
+:::
 
-## UpStroke property
+## Candlesticks
 
-Defines the stroke to use when the `Open` is greater than the `Close`.
+The values of a financial series are usually
+[FinancialPoint]({{ website_url }}/api/{{ version }}/LiveChartsCore.Defaults.FinancialPoint) instances, with a
+`Date`, `High`, `Open`, `Close` and `Low`. The date is the X coordinate, stored as `DateTime.Ticks`, so the X axis of
+this sample is a date time axis (see below). Notice the order of the arguments when you use the constructor:
+`new FinancialPoint(date, high, open, close, low)`.
 
-## UpFill property
+{{ render_sample "financial/basicCandlesticks" }}
 
-Defines the fill to use when the `Open` is greater than the `Close`.
+## OHLC bars
 
-## DownStroke property
+An `OhlcSeries` takes the same data and properties. Each point is drawn with lines: a vertical line from the high to
+the low, a tick to the left at the open price and a tick to the right at the close price.
 
-Defines the stroke to use when the `Close` is greater than the `Open`.
+{{ render_sample "financial/basicOhlc" }}
 
-## DownFill property
+## Date time X axis
 
-Defines the stroke to use when the `Close` is greater than the `Open`.
+Each candle is as wide as the `UnitWidth` of the X axis, measured in pixels. With dates on the X axis, the unit is a
+number of ticks, so it must match the distance between your points, one day in the samples above. A `DateTimeAxis`
+does that for you: `new DateTimeAxis(TimeSpan.FromDays(1), date => date.ToString("yyyy MMM dd"))` sets the
+`UnitWidth` and the `MinStep` of the axis to one day, and formats the labels with the given function.{{ if xaml }}
+In XAML, the `XamlDateTimeAxis` takes the unit in its `Interval` property (one day by default) and the format
+function in `DateFormatter`, as the samples above do.{{ end }}
 
-## Paints example
+When the dates do not matter, use
+[FinancialPointI]({{ website_url }}/api/{{ version }}/LiveChartsCore.Defaults.FinancialPointI) instead: it has no date
+and uses the index of each point as its X coordinate.
 
-The following sample illustrates the use of the previous properties.
+## Up and down paints
+
+A point is drawn with `UpFill` and `UpStroke` when its close price is greater than its open price, and with `DownFill`
+and `DownStroke` otherwise. When they are not set, the default theme draws up points in green and down points in red,
+with a stroke of `3` pixels.
 
 ![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/financialpaints.png)
 
@@ -82,13 +108,14 @@ Series = new ISeries[]
 ```
 
 :::info
-Paints can create gradients, dashed lines and more, if you need help using the `Paint` instances take 
-a look at the [Paints article]({{ website_url }}/docs/{{ platform }}/{{ version }}/Overview.Paints).
+Paints can also draw gradients and dashed lines, see the
+[Paints article]({{ website_url }}/docs/{{ platform }}/{{ version }}/Overview.Paints).
 :::
 
-## MaxBarWidth property
+## Width
 
-Specifies the maximum width a column can take, take a look at the following sample, where the max width is `10`.
+`MaxBarWidth` limits the width of each candle, in pixels. It is `25` by default, so candles stop growing on wide
+charts. The point can still be hovered across the whole unit of the axis. With `MaxBarWidth = 10`:
 
 ![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/financialw10.png)
 
@@ -102,7 +129,7 @@ XAxes = new[]
         // set the unit width of the axis to "days"
         // since our X axis is of type date time and 
         // the interval between our points is in days
-        UnitWidth = TimeSpan.FromDays(1).Ticks // mark
+        UnitWidth = TimeSpan.FromDays(1).Ticks
     }
 };
 
@@ -110,6 +137,7 @@ Series = new ISeries[]
 {
     new CandlesticksSeries<FinancialPoint>
     {
+        MaxBarWidth = 10, // mark
         Values = new ObservableCollection<FinancialPoint>
         {
             new FinancialPoint(new DateTime(2021, 1, 1), 523, 500, 450, 400),
@@ -127,4 +155,29 @@ Series = new ISeries[]
 };
 ```
 
-{{ render "~/shared/series2.md" }}
+## Tooltips and data labels
+
+The tooltip shows the four prices of the point (`H`, `O`, `C` and `L`) formatted as currency. Set
+`YToolTipLabelFormatter` to change that text. Data labels are off by default, setting `DataLabelsPaint` turns them on,
+and by default they show the high and low prices of the point, also as currency. `DataLabelsFormatter` changes them:
+
+```csharp
+new CandlesticksSeries<FinancialPoint>
+{
+    Values = new ObservableCollection<FinancialPoint> { /* ... */ },
+    YToolTipLabelFormatter = point => // mark
+        $"Open {point.Model?.Open:N2}, Close {point.Model?.Close:N2}", // mark
+    DataLabelsPaint = new SolidColorPaint(SKColors.Gray), // mark
+    DataLabelsFormatter = point => $"{point.Model?.Close:N2}" // mark
+}
+```
+
+## Data, names and updates
+
+- `Values` takes any `IEnumerable<T>`. Use an `ObservableCollection<T>` and the chart animates every added, removed or
+  replaced value. `FinancialPoint` also updates the chart when one of its properties changes, see
+  [automatic updates]({{ website_url }}/docs/{{ platform }}/{{ version }}/Overview.Automatic%20updates).
+- To plot your own types, see [mappers]({{ website_url }}/docs/{{ platform }}/{{ version }}/Overview.Mappers).
+- `Name`{{ if xaml }} (`SeriesName` in XAML){{ end }} is shown in tooltips and legends. When it is not set, the
+  series is named "Series 1", "Series 2" and so on.
+- `ZIndex` sets which series draws on top, and `IsVisible` shows or hides the series.

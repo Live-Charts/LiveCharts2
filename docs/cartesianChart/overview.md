@@ -141,7 +141,7 @@ any image below is a link to an article explaining more about them.
 </div>
 </a>
 
-<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Candle%20Sticks%20Series%20properties">
+<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Financial%20series">
 <div class="series-miniature">
 <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/samples/financial/basicCandlesticks/result.png" alt="series"/>
 <div class="text-center"><b>Candle sticks series</b></div>
