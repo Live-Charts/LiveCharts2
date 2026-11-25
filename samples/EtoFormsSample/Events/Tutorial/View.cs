@@ -9,6 +9,7 @@ using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Eto;
 using LiveChartsCore.SkiaSharpView.Painting;
 using SkiaSharp;
+using ViewModelsSamples.Events.Tutorial;
 
 namespace EtoFormsSample.Events.Tutorial;
 
@@ -20,18 +21,18 @@ public class View : Panel
 
     public View()
     {
+        var viewModel = new ViewModel();
+
         _series =
         [
             new ColumnSeries<double>
             {
-                Values = [1, 5, 4, 3],
-                Name = "Series 1",
+                Values = viewModel.Values1,
                 Stroke = new SolidColorPaint(SKColors.Transparent)
             },
             new ColumnSeries<double>
             {
-                Values = [3, 2, 6, 2],
-                Name = "Series 2",
+                Values = viewModel.Values2,
                 Stroke = new SolidColorPaint(SKColors.Transparent)
             }
         ];

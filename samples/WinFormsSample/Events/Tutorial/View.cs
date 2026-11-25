@@ -12,6 +12,7 @@ using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
 using LiveChartsCore.SkiaSharpView.WinForms;
 using SkiaSharp;
+using ViewModelsSamples.Events.Tutorial;
 
 namespace WinFormsSample.Events.Tutorial;
 
@@ -26,18 +27,17 @@ public partial class View : UserControl
         InitializeComponent();
         Size = new System.Drawing.Size(400, 400);
 
-        // Example data for demonstration
+        var viewModel = new ViewModel();
+
         _series = [
             new ColumnSeries<double>
             {
-                Values = [1, 5, 4, 3],
-                Name = "Series 1",
+                Values = viewModel.Values1,
                 Stroke = new SolidColorPaint(SKColors.Transparent)
             },
             new ColumnSeries<double>
             {
-                Values = [3, 2, 6, 2],
-                Name = "Series 2",
+                Values = viewModel.Values2,
                 Stroke = new SolidColorPaint(SKColors.Transparent)
             }
         ];
