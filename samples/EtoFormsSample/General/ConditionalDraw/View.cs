@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using System.Threading.Tasks;
-using Eto.Forms;
+﻿using Eto.Forms;
 using LiveChartsCore;
 using LiveChartsCore.Defaults;
 using LiveChartsCore.Drawing;
@@ -11,28 +8,22 @@ using LiveChartsCore.SkiaSharpView.Eto;
 using LiveChartsCore.SkiaSharpView.Painting;
 using LiveChartsCore.VisualStates;
 using SkiaSharp;
+using ViewModelsSamples.General.ConditionalDraw;
 
 namespace EtoFormsSample.General.ConditionalDraw;
 
 public class View : Panel
 {
-    private readonly ObservableCollection<ObservableValue> _values;
-    private readonly Random _random = new();
-
     public View()
     {
-        _values =
-        [
-            new(2),
-            new(3),
-            new(4)
-        ];
+        // the view model changes the values every 3 seconds
+        var viewModel = new ViewModel();
 
         var columnSeries = new ColumnSeries<ObservableValue>
         {
             ShowDataLabels = true,
             DataLabelsSize = 15,
-            Values = _values,
+            Values = viewModel.Values,
         };
 
         columnSeries.PointMeasured += OnPointMeasured;
@@ -55,11 +46,10 @@ public class View : Panel
         var cartesianChart = new CartesianChart
         {
             Series = [columnSeries],
-            TooltipPosition = LiveChartsCore.Measure.TooltipPosition.Left,
+            TooltipPosition = LiveChartsCore.Measure.TooltipPosition.Bottom,
         };
 
         Content = cartesianChart;
-        _ = Randomize();
     }
 
     private void OnPointMeasured(ChartPoint point)
@@ -78,18 +68,6 @@ public class View : Panel
         {
             states.ClearState("Danger", ctx.Visual);
             states.ClearState("LabelDanger", ctx.Label);
-        }
-    }
-
-    private async Task Randomize()
-    {
-        while (true)
-        {
-            await Task.Delay(3000);
-            foreach (var item in _values)
-            {
-                item.Value = _random.Next(1, 10);
-            }
         }
     }
 }

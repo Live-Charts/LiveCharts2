@@ -8,7 +8,7 @@
 @using LiveChartsCore.VisualStates;
 @using SkiaSharp;
 @using LiveChartsCore.Drawing;
-@using System.Collections.ObjectModel
+@using ViewModelsSamples.General.ConditionalDraw
 
 <CartesianChart
     Series="@series"
@@ -16,22 +16,18 @@
 </CartesianChart>
 
 @code {
-    private ObservableCollection<ObservableValue> _values = new ObservableCollection<ObservableValue>
-    {
-        new ObservableValue(2),
-        new ObservableValue(3),
-        new ObservableValue(4)
-    };
-    private Random _random = new Random();
     private ISeries[] series;
 
     protected override void OnInitialized()
     {
+        // the view model changes the values every 3 seconds
+        var viewModel = new ViewModel();
+
         var columnSeries = new ColumnSeries<ObservableValue>
         {
             ShowDataLabels = true,
             DataLabelsSize = 15,
-            Values = _values
+            Values = viewModel.Values
         };
         columnSeries.PointMeasured += OnPointMeasured;
 
@@ -49,8 +45,6 @@
         ]);
 
         series = new ISeries[] { columnSeries };
-
-        _ = Randomize();
     }
 
     private void OnPointMeasured(ChartPoint point)
@@ -69,18 +63,6 @@
         {
             states.ClearState("Danger", ctx.Visual);
             states.ClearState("LabelDanger", ctx.Label);
-        }
-    }
-
-    private async Task Randomize()
-    {
-        while (true)
-        {
-            await Task.Delay(3000);
-            foreach (var item in _values)
-            {
-                item.Value = _random.Next(1, 10);
-            }
         }
     }
 }
