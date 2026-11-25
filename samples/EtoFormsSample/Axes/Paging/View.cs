@@ -1,8 +1,8 @@
-﻿using System;
-using Eto.Forms;
+﻿using Eto.Forms;
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Eto;
+using ViewModelsSamples.Axes.Paging;
 
 namespace EtoFormsSample.Axes.Paging;
 
@@ -14,7 +14,7 @@ public class View : Panel
 
     public View()
     {
-        values = Fetch();
+        values = new ViewModel().Values;
         xAxis = new Axis();
 
         var series = new ISeries[]
@@ -53,18 +53,5 @@ public class View : Panel
     {
         xAxis.MinLimit = null;
         xAxis.MaxLimit = null;
-    }
-
-    private static int[] Fetch()
-    {
-        var random = new Random();
-        var trend = 100;
-        var values = new System.Collections.Generic.List<int>();
-        for (var i = 0; i < 100; i++)
-        {
-            trend += random.Next(-30, 50);
-            values.Add(trend);
-        }
-        return values.ToArray();
     }
 }

@@ -1,9 +1,9 @@
-﻿using System;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.WinForms;
 using SkiaSharp;
+using ViewModelsSamples.Axes.Paging;
 
 #pragma warning disable IDE1006 // Naming Styles
 
@@ -20,7 +20,7 @@ public partial class View : UserControl
         InitializeComponent();
         Size = new System.Drawing.Size(100, 100);
 
-        values = Fetch();
+        values = new ViewModel().Values;
         xAxis = new Axis();
 
         var series = new ISeries[]
@@ -64,18 +64,5 @@ public partial class View : UserControl
     {
         xAxis.MinLimit = null;
         xAxis.MaxLimit = null;
-    }
-
-    private static int[] Fetch()
-    {
-        var random = new Random();
-        var trend = 100;
-        var values = new System.Collections.Generic.List<int>();
-        for (var i = 0; i < 100; i++)
-        {
-            trend += random.Next(-30, 50);
-            values.Add(trend);
-        }
-        return [.. values];
     }
 }

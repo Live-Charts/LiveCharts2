@@ -3,6 +3,7 @@
 @using LiveChartsCore;
 @using LiveChartsCore.SkiaSharpView;
 @using LiveChartsCore.Measure;
+@using ViewModelsSamples.Axes.Paging
 
 <div>
     <button type="button" class="btn btn-primary" @onclick="() => GoToPage(0)">Page 1</button>
@@ -26,7 +27,7 @@
     // for simplicity we use the page constructor
     public View()
     {
-        values = Fetch();
+        values = new ViewModel().Values;
         xAxis = new Axis();
         series = new ISeries[]
         {
@@ -46,18 +47,5 @@
     {
         xAxis.MinLimit = null;
         xAxis.MaxLimit = null;
-    }
-
-    private static int[] Fetch()
-    {
-        var random = new Random();
-        var trend = 100;
-        var values = new System.Collections.Generic.List<int>();
-        for (int i = 0; i < 31; i++)
-        {
-            trend += random.Next(-10, 11);
-            values.Add(trend);
-        }
-        return values.ToArray();
     }
 }
