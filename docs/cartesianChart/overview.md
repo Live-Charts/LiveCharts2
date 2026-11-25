@@ -169,14 +169,14 @@ any image below is a link to an article explaining more about them.
 </div>
 </a>
 
-<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/samples.box.basic">
+<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Box%20series%20and%20error%20bars#box-series">
 <div class="series-miniature">
 <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/samples/box/basic/result.png" alt="series"/>
 <div class="text-center"><b>Box series</b></div>
 </div>
 </a>
 
-<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/samples.error.basic">
+<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Box%20series%20and%20error%20bars#error-bars">
 <div class="series-miniature">
 <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/samples/error/basic/result.png" alt="series"/>
 <div class="text-center"><b>Error series</b></div>
