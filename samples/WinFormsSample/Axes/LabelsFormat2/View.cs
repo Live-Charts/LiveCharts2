@@ -3,6 +3,7 @@ using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.WinForms;
 using SkiaSharp;
+using LiveChartsCore.SkiaSharpView.Painting;
 
 #pragma warning disable IDE1006 // Naming Styles
 
@@ -30,17 +31,23 @@ public partial class View : UserControl
 
         var xAxis = new Axis
         {
-            Name = "姓名",
+            Name = "Salesman/woman",
             Labels = labels
         };
 
         var yAxis = new Axis
         {
-            Name = "销售额",
+            Name = "Sales",
             NamePadding = new LiveChartsCore.Drawing.Padding(0, 15),
             Labeler = Labeler,
-            LabelsPaint = new LiveChartsCore.SkiaSharpView.Painting.SolidColorPaint(SKColors.DarkGreen)
-            // You can set FontFamily, FontWeight, etc. if needed for Chinese support
+            LabelsPaint = new SolidColorPaint(SKColors.Blue)
+            {
+                SKTypeface = SKTypeface.FromFamilyName(
+                    "Times New Roman",
+                    SKFontStyleWeight.ExtraBold,
+                    SKFontStyleWidth.Normal,
+                    SKFontStyleSlant.Italic)
+            }
         };
 
         cartesianChart = new CartesianChart

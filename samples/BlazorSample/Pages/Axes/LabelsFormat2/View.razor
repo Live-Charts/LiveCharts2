@@ -26,7 +26,7 @@
     {
         new Axis
         {
-            Name = "姓名",
+            Name = "Salesman/woman",
             Labels = labels
         }
     };
@@ -35,10 +35,17 @@
     {
         new Axis
         {
-            Name = "销售额",
+            Name = "Sales",
             NamePadding = new LiveChartsCore.Drawing.Padding(0, 15),
             Labeler = Labeler,
-            LabelsPaint = new SolidColorPaint(SKColors.DarkGreen)
+            LabelsPaint = new SolidColorPaint(SKColors.Blue)
+            {
+                SKTypeface = SKTypeface.FromFamilyName(
+                    "Times New Roman",
+                    SKFontStyleWeight.ExtraBold,
+                    SKFontStyleWidth.Normal,
+                    SKFontStyleSlant.Italic)
+            }
         }
     };
 
