@@ -77,7 +77,7 @@ public class View : Panel
 
         cartesianChart = new CartesianChart
         {
-            BackgroundColor = new Eto.Drawing.Color(48 / 255f, 48 / 255f, 48 / 255f),
+            BackgroundColor = new Eto.Drawing.Color(51 / 255f, 51 / 255f, 51 / 255f),
             Series = series,
             XAxes = new[] { xAxis },
             YAxes = new[] { yAxis },
