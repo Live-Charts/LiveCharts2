@@ -3,6 +3,7 @@ using LiveChartsCore.SkiaSharpView.WinForms;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore;
 using LiveChartsCore.Defaults;
+using ViewModelsSamples.Scatter.Bubbles;
 
 namespace WinFormsSample.Scatter.Bubbles;
 
@@ -13,28 +14,26 @@ public partial class View : UserControl
         InitializeComponent();
         Size = new System.Drawing.Size(50, 50);
 
-        var values1 = Fetch(1);
-        var values2 = Fetch(10);
-        var values3 = Fetch(10);
+        var viewModel = new ViewModel();
 
         var series = new ISeries[]
         {
             new ScatterSeries<WeightedPoint>
             {
-                Values = values1,
+                Values = viewModel.Values1,
                 GeometrySize = 100,
                 MinGeometrySize = 5
             },
             new ScatterSeries<WeightedPoint>
             {
-                Values = values2,
+                Values = viewModel.Values2,
                 GeometrySize = 100,
                 MinGeometrySize = 5,
                 StackGroup = 1
             },
             new ScatterSeries<WeightedPoint>
             {
-                Values = values3,
+                Values = viewModel.Values3,
                 GeometrySize = 100,
                 MinGeometrySize = 5,
                 StackGroup = 1
@@ -50,20 +49,5 @@ public partial class View : UserControl
         };
 
         Controls.Add(cartesianChart);
-    }
-
-    private static WeightedPoint[] Fetch(int scale)
-    {
-        var r = new System.Random();
-        var length = 10;
-        var values = new WeightedPoint[length];
-        for (var i = 0; i < length; i++)
-        {
-            var x = r.Next(0, 20);
-            var y = r.Next(0, 20);
-            var w = r.Next(0, 100) * scale;
-            values[i] = new WeightedPoint(x, y, w);
-        }
-        return values;
     }
 }
