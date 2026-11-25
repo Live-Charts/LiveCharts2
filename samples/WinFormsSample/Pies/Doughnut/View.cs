@@ -1,5 +1,6 @@
-﻿using System.Windows.Forms;
-using LiveChartsCore.SkiaSharpView.Extensions;
+﻿using System.Linq;
+using System.Windows.Forms;
+using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.WinForms;
 using ViewModelsSamples.Pies.Doughnut;
 
@@ -14,11 +15,16 @@ public partial class View : UserControl
         InitializeComponent();
         Size = new System.Drawing.Size(50, 50);
 
-        var seriesCollection = new[] { 2, 4, 1, 4, 3 }
-            .AsPieSeries((value, series) =>
+        var viewModel = new ViewModel();
+
+        var seriesCollection = viewModel.Data
+            .Select(data => new PieSeries<double>
             {
-                series.MaxRadialColumnWidth = 60;
-            });
+                Name = data.Name,
+                Values = data.Values,
+                MaxRadialColumnWidth = 60
+            })
+            .ToArray();
 
         pieChart = new PieChart
         {
