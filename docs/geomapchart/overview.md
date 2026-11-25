@@ -1,101 +1,75 @@
 <!--
 To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/master/docs/readme.md
+Samples are pulled from the repository with render_sample, the code shown always matches the samples.
 -->
 
-# The GeoMap Chart
+# Geo maps
 
-The `GeoMap` control is useful to create geographical maps, it uses files in [geojson](https://en.wikipedia.org/wiki/GeoJSON) format to render
-vectorized maps.
-
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/geomaphs.png)
+The `GeoMap` control draws a map from a [GeoJSON](https://en.wikipedia.org/wiki/GeoJSON) file: every feature of the
+file is a land (a country, a state, a region) drawn as a vector shape. A world map is built in. A `HeatLandSeries`
+gives a value to some of the lands and paints each one with a color taken from a gradient, the result is a
+[choropleth map](https://en.wikipedia.org/wiki/Choropleth_map).
 
 :::info
-**A note on disputed boundaries.** Maps reflect the borders encoded in
-the underlying GeoJSON file — there are real disagreements about
-Crimea, Taiwan, Western Sahara, Kashmir, and other regions, and no
-single GeoJSON satisfies every audience. LiveCharts2 doesn't take a
-position; it just renders the GeoJSON you give it. If the borders
-shown don't match what you need, load a different GeoJSON — see the
-[CustomMap sample]({{ website_url }}/docs/{{ platform }}/{{ version }}/samples.maps.customMap)
-for the loader recipe.
+This article highlights the most used features. Every property is listed in the API explorer:
+[GeoMap]({{ website_url }}/api/{{ version }}/LiveChartsCore.SkiaSharpView.{{ platform }}.GeoMap),
+[HeatLandSeries]({{ website_url }}/api/{{ version }}/LiveChartsCore.SkiaSharpView.HeatLandSeries) and
+[GeoMapChart]({{ website_url }}/api/{{ version }}/LiveChartsCore.GeoMapChart) (the `CoreChart` of the control).
+{{~ if xaml ~}}
+There is no XAML version of `HeatLandSeries`: create the series in code and bind the `Series` property. Declare the
+title as `XamlDrawnLabelVisual`.
+{{~ end ~}}
 :::
 
-{{~ if xaml ~}}
-<pre><code>using LiveChartsCore.SkiaSharpView;
+## Basic map
+
+Add a `HeatLandSeries` to the `Series` of the map and fill its `Lands` with `HeatLand` items. The `Name` of a
+`HeatLand` is the short name of a land in the map, and its `Value` sets the color of that land. In the built-in world
+map the short names are the [ISO 3166-1 alpha-3](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-3) codes in lowercase,
+`bra` for Brazil or `usa` for the United States; the full list is in
+[word-map-index.json](https://github.com/beto-rodriguez/LiveCharts2/blob/master/docs/_assets/word-map-index.json).
+Write the names in lowercase: the map stores every short name in lowercase and finds lands with a case-sensitive
+match, so `BRA` paints nothing.
+
+Lands with no value keep the `Fill` of the map. The map is updated when a `Value` changes or when `Lands` is replaced:
+this sample sets random values every half second, and the `ToggleBrazil` command of its view model (no button calls
+it in the sample views) replaces `Lands` with a copy without Brazil, and back.
+
+{{ render_sample "maps/world" }}
+
+This sample uses the Mercator projection, see [map projections](#map-projections){{ if avalonia }}, and adds a title
+and a heat legend, see [title and legend](#title-and-legend){{ end }}.
+
+:::info
+A map draws the borders of the GeoJSON file it is given. Some borders are disputed (Crimea, Taiwan, Western Sahara,
+Kashmir and others) and no single file satisfies every audience. If the borders of the built-in map do not match what
+you need, load another file, see [custom maps](#custom-maps).
+:::
+
+## Heat map colors
+
+`HeatMap` is an array of [LvcColor]({{ website_url }}/api/{{ version }}/LiveChartsCore.Drawing.LvcColor), it needs at
+least two colors. The first color is used for the lowest value (the "coldest") and the last one for the highest (the
+"hottest"), any value in between gets a color interpolated linearly between them. When it is not set, the gradient
+goes from light blue to dark blue.
+
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/geo-heatmap.png)
+
+```csharp
+using SkiaSharp;
+using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Drawing.Geometries;
 
-namespace ViewModelsSamples.Maps.World
-{
-    public class ViewModel
-    {
-        public HeatLandSeries[] Series { get; set; }
-            = new HeatLandSeries[]
-            {
-                new HeatLandSeries
-                {
-                    // every country has a unique identifier
-                    // check the "shortName" property in the following
-                    // json file to assign a value to a country in the heat map
-                    // https://github.com/beto-rodriguez/LiveCharts2/blob/master/docs/_assets/word-map-index.json
-                    Lands = new HeatLand[]
-                    {
-                        new HeatLand { Name = "bra", Value = 13 },
-                        new HeatLand { Name = "mex", Value = 10 },
-                        new HeatLand { Name = "usa", Value = 15 },
-                        new HeatLand { Name = "deu", Value = 13 },
-                        new HeatLand { Name = "fra", Value = 8 },
-                        new HeatLand { Name = "kor", Value = 10 },
-                        new HeatLand { Name = "zaf", Value = 12 },
-                        new HeatLand { Name = "are", Value = 13 }
-                    }
-                }
-            };
-    }
-}</code></pre>
-
-<pre><code>&lt;lvc:GeoMap Series="{Binding Series}">&lt;/lvc:GeoMap></code></pre>
-{{~ end ~}}
-
-{{~ if blazor ~}}
-<pre><code>@using LiveChartsCore.SkiaSharpView;
-@using LiveChartsCore.SkiaSharpView.Drawing.Geometries;
-
-&lt;GeoMap Series="series">&lt;/GeoMap>
-
-@code {
-    private HeatLandSeries[] series = new HeatLandSeries[]
-    {
-        new HeatLandSeries
-        {
-            // every country has a unique identifier
-            // check the "shortName" property in the following
-            // json file to assign a value to a country in the heat map
-            // https://github.com/beto-rodriguez/LiveCharts2/blob/master/docs/_assets/word-map-index.json
-            Lands = new HeatLand[]
-            {
-                new HeatLand { Name = "bra", Value = 13 },
-                new HeatLand { Name = "mex", Value = 10 },
-                new HeatLand { Name = "usa", Value = 15 },
-                new HeatLand { Name = "deu", Value = 13 },
-                new HeatLand { Name = "fra", Value = 8 },
-                new HeatLand { Name = "kor", Value = 10 },
-                new HeatLand { Name = "zaf", Value = 12 },
-                new HeatLand { Name = "are", Value = 13 }
-            }
-        }
-    };
-}</code></pre>
-{{~ end ~}}
-
-{{~ if winforms ~}}
-<pre><code>geoMap1.Series = new HeatLandSeries[]
+Series = new HeatLandSeries[]
 {
     new HeatLandSeries
     {
-        // every country has a unique identifier
-        // check the "shortName" property in the following
-        // json file to assign a value to a country in the heat map
-        // https://github.com/beto-rodriguez/LiveCharts2/blob/master/docs/_assets/word-map-index.json
+        HeatMap = new[] // mark
+        { // mark
+            SKColors.LightPink.AsLvcColor(), // the first element is the "coldest" // mark
+            SKColors.Pink.AsLvcColor(), // mark
+            SKColors.DeepPink.AsLvcColor() // the last element is the "hottest" // mark
+        }, // mark
         Lands = new HeatLand[]
         {
             new HeatLand { Name = "bra", Value = 13 },
@@ -108,721 +82,429 @@ namespace ViewModelsSamples.Maps.World
             new HeatLand { Name = "are", Value = 13 }
         }
     }
-};</code></pre>
-{{~ end ~}}
+};
+```
 
-## Stroke property
+By default the gradient goes from the lowest to the highest value in `Lands`. Set `MinValue` and `MaxValue` to fix
+that range, for example to keep the same colors while the data changes; values outside the range take the first or
+the last color. The heat legend shows the same range.
 
-Paints the outline of every land. When `null` (the default) no outline is
-drawn — the heat fill alone defines each land's silhouette.
+`ColorStops` sets where each color of the `HeatMap` is placed in the gradient, from `0` to `1`, with one item for each
+color. It works as in the heat series, see
+[color stops]({{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Heat%20series#color-stops).
+
+## Stroke and fill
+
+`Stroke` and `Fill` are properties of the map, not of the series. `Stroke` draws the border of every land, white by
+default. `Fill` paints the lands that have no value in any series, light gray by default; the lands with a value keep
+their heat color.
 
 {{~ if xaml ~}}
-<pre><code>using LiveChartsCore.SkiaSharpView;
-using LiveChartsCore.SkiaSharpView.Drawing.Geometries;
+```csharp
+public SolidColorPaint Stroke { get; set; } =
+    new SolidColorPaint(SKColors.Red) { StrokeThickness = 2 }; // mark
+```
 
-namespace ViewModelsSamples.Maps.World
-{
-    public class ViewModel
-    {
-        public HeatLandSeries[] Series { get; set; }
-            = new HeatLandSeries[]
-            {
-                new HeatLandSeries { Lands = new HeatLand[] { ... } }
-            };
-
-        public SolidColorPaint Stroke { get; set; } 
-            = new SolidColorPaint(SKColors.Red) { StrokeThickness = 2 }; // mark
-    }
-}</code></pre>
-
-<pre><code>&lt;lvc:GeoMap
+```xml
+<lvc:GeoMap
     Series="{Binding Series}"
-    Stroke="{Binding Stroke}">&lt;!-- mark -->
-&lt;/lvc:GeoMap></code></pre>
+    Stroke="{Binding Stroke}"> <!-- mark -->
+</lvc:GeoMap>
+```
 {{~ end ~}}
 
 {{~ if blazor ~}}
-<pre><code>@using LiveChartsCore.SkiaSharpView;
-@using LiveChartsCore.SkiaSharpView.Drawing.Geometries;
-
-&lt;GeoMap
+```xml
+<GeoMap
     Series="series"
-    Stroke="stroke">&lt;!-- mark -->
-&lt;/GeoMap>
+    Stroke="stroke"> <!-- mark -->
+</GeoMap>
 
 @code {
-    private HeatLandSeries[] series = new HeatLandSeries[]
-    {
-        new HeatLandSeries { Lands = new HeatLand[] { ... } }
-    };
-
     private SolidColorPaint stroke = new SolidColorPaint(SKColors.Red) { StrokeThickness = 2 }; // mark
-}</code></pre>
+    // ...
+}
+```
 {{~ end ~}}
 
-{{~ if winforms ~}}
-<pre><code>geoMap1.Series = new HeatLandSeries[]
-{
-    new HeatLandSeries
-    {
-        Lands = new HeatLand[] { ... }
-    }
-};
-geoMap1.Stroke = new SolidColorPaint(SKColors.Red) { StrokeThickness = 2 }; // mark</code></pre>
+{{~ if winforms || eto ~}}
+```csharp
+geoMap1.Stroke = new SolidColorPaint(SKColors.Red) { StrokeThickness = 2 }; // mark
+```
 {{~ end ~}}
 
 ![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/geomap-stroke.png)
 
-:::info
-Paints can create gradients, dashed lines and more, if you need help using the `Paint` instances take 
-a look at the [Paints article]({{ website_url }}/docs/{{ platform }}/{{ version }}/Overview.Paints).
-:::
-
-## Fill property
-
-Paints lands that have **no value** in any series — the "background" lands
-on the map. Lands that participate in a heat series keep their interpolated
-heat color regardless of `Fill`. When `null` (the default) unmapped lands
-stay transparent.
-
 {{~ if xaml ~}}
-<pre><code>using LiveChartsCore.SkiaSharpView;
-using LiveChartsCore.SkiaSharpView.Drawing.Geometries;
+```csharp
+public SolidColorPaint Fill { get; set; } = new SolidColorPaint(SKColors.LightPink); // mark
+```
 
-namespace ViewModelsSamples.Maps.World
-{
-    public class ViewModel
-    {
-        public HeatLandSeries[] Series { get; set; }
-            = new HeatLandSeries[]
-            {
-                new HeatLandSeries { Lands = new HeatLand[] { ... } }
-            };
-
-        public SolidColorPaint Fill { get; set; } = new SolidColorPaint(SKColors.LightPink); // mark
-    }
-}</code></pre>
-
-<pre><code>&lt;lvc:GeoMap
+```xml
+<lvc:GeoMap
     Series="{Binding Series}"
-    Fill="{Binding Fill}">&lt;!-- mark -->
-&lt;/lvc:GeoMap></code></pre>
+    Fill="{Binding Fill}"> <!-- mark -->
+</lvc:GeoMap>
+```
 {{~ end ~}}
 
 {{~ if blazor ~}}
-<pre><code>@using LiveChartsCore.SkiaSharpView;
-@using LiveChartsCore.SkiaSharpView.Drawing.Geometries;
-
-&lt;GeoMap
+```xml
+<GeoMap
     Series="series"
-    Fill="fill">&lt;!-- mark -->
-&lt;/GeoMap>
+    Fill="fill"> <!-- mark -->
+</GeoMap>
 
 @code {
-    private HeatLandSeries[] series = new HeatLandSeries[]
-    {
-        new HeatLandSeries { Lands = new HeatLand[] { ... } }
-    };
-
     private SolidColorPaint fill = new SolidColorPaint(SKColors.LightPink); // mark
-}</code></pre>
+    // ...
+}
+```
 {{~ end ~}}
 
-{{~ if winforms ~}}
-<pre><code>geoMap1.Series = new HeatLandSeries[]
-{
-    new HeatLandSeries
-    {
-        Lands = new HeatLand[] { ... }
-    }
-};
-geoMap1.Fill = new SolidColorPaint(SKColors.LightPink); // mark</code></pre>
+{{~ if winforms || eto ~}}
+```csharp
+geoMap1.Fill = new SolidColorPaint(SKColors.LightPink); // mark
+```
 {{~ end ~}}
 
 ![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/geomap-fill.png)
 
-:::info
-Paints can create gradients, dashed lines and more, if you need help using the `Paint` instances take 
-a look at the [Paints article]({{ website_url }}/docs/{{ platform }}/{{ version }}/Overview.Paints).
-:::
-
-## Title property
-
-A `Title` is a `Visual` rendered above the map — the older
-`VisualElement` is still accepted, any other type throws. The same
-`DrawnLabelVisual` used by cartesian and pie charts works here — set
-`Text`, `TextSize` and `Padding`. The map shrinks vertically to make
-room for the title.
-
-The theme paints the title, so it follows the light and dark modes on
-its own. Set the `Paint` property to pick the color yourself; a paint
-you set is never overwritten by the theme.
-
-{{~ if xaml ~}}
-<pre><code>&lt;lvc:GeoMap Series="{Binding Series}"&gt;
-    &lt;lvc:GeoMap.Title&gt;&lt;!-- mark -->
-        &lt;lvc:XamlDrawnLabelVisual
-            Text="World population by country"
-            TextSize="20"
-            Padding="{lvc:Padding '12'}"/&gt;
-    &lt;/lvc:GeoMap.Title&gt;
-&lt;/lvc:GeoMap></code></pre>
-{{~ end ~}}
-
-{{~ if blazor ~}}
-<pre><code>&lt;GeoMap Series="series" Title="title"&gt;&lt;/GeoMap&gt;
-
-@code {
-    private DrawnLabelVisual title = new DrawnLabelVisual(
-        new LabelGeometry
-        {
-            Text = "World population by country",
-            TextSize = 20,
-            Padding = new Padding(12)
-        });
-}</code></pre>
-{{~ end ~}}
-
-{{~ if winforms ~}}
-<pre><code>geoMap1.Title = new DrawnLabelVisual(
-    new LabelGeometry
-    {
-        Text = "World population by country",
-        TextSize = 20,
-        Padding = new Padding(12)
-    });</code></pre>
-{{~ end ~}}
-
-## Legend property
-
-Heat maps benefit from a gradient legend so the reader can map colors
-back to values. Set `LegendPosition` and assign an `SKHeatLegend` —
-the legend reads `HeatMap`, `ColorStops`, and the per-series
-`WeightBounds` (min/max value across the data) to render the gradient
-bar and its end labels.
-
-| LegendPosition | Effect                                           |
-| -------------- | ------------------------------------------------ |
-| `Hidden`       | Default — no legend.                             |
-| `Left`         | Vertical gradient bar pinned to the left.        |
-| `Right`        | Vertical gradient bar pinned to the right.       |
-| `Top`          | Horizontal gradient bar pinned to the top.      |
-| `Bottom`       | Horizontal gradient bar pinned to the bottom.    |
-
-{{~ if xaml ~}}
-<pre><code>&lt;lvc:GeoMap
-    Series="{Binding Series}"
-    LegendPosition="Right"&gt;&lt;!-- mark -->
-    &lt;lvc:GeoMap.Legend&gt;
-        &lt;draw:SKHeatLegend BadgePadding="{lvc:Padding '20, 16, 8, 16'}"/&gt;&lt;!-- mark -->
-    &lt;/lvc:GeoMap.Legend&gt;
-&lt;/lvc:GeoMap></code></pre>
-
-Make sure to declare the `draw` namespace on the root element:
-
-<pre><code>xmlns:draw="using:LiveChartsCore.SkiaSharpView.SKCharts"</code></pre>
-{{~ end ~}}
-
-{{~ if blazor ~}}
-<pre><code>&lt;GeoMap
-    Series="series"
-    LegendPosition="LiveChartsCore.Measure.LegendPosition.Right"
-    Legend="legend"&gt;&lt;!-- mark -->
-&lt;/GeoMap>
-
-@code {
-    private SKHeatLegend legend = new();
-}</code></pre>
-{{~ end ~}}
-
-{{~ if winforms ~}}
-<pre><code>geoMap1.LegendPosition = LiveChartsCore.Measure.LegendPosition.Right;
-geoMap1.Legend = new SKHeatLegend(); // mark</code></pre>
-{{~ end ~}}
+On the orthographic projection, `Fill` also paints the disc of the globe.
 
 :::info
-Override the gradient endpoints (e.g. to pin the legend to 0–100 even
-when the data only spans 5–87) by setting `MinValue` and `MaxValue`
-on the `HeatLandSeries`. The map's heat ramp uses the same bounds, so
-the rendered colors and the legend stay in sync.
+Paints can also draw gradients and dashed lines, see the
+[Paints article]({{ website_url }}/docs/{{ platform }}/{{ version }}/Overview.Paints).
 :::
 
-## MapProjection property
+## Map projections
 
-Defines the [projection](https://en.wikipedia.org/wiki/Map_projection) of the
-map coordinates in the control coordinates. Three projections are available:
+`MapProjection` sets how longitudes and latitudes are placed on the screen. The map keeps the aspect ratio of the
+projection and is centered in the control.
 
-| Value          | Use case                                                            |
-| -------------- | ------------------------------------------------------------------- |
-| `Default`      | No projection — raw control-coordinate plot. Useful for non-geographic maps. |
-| `Mercator`     | Flat world map; preserves angles, exaggerates polar areas.          |
-| `Orthographic` | 3D globe view — only one hemisphere visible at a time, rotate to look at the other side. |
-
-### Mercator
+| Value          | Result                                                                                       |
+| -------------- | -------------------------------------------------------------------------------------------- |
+| `Default`      | The default. Longitude and latitude are used as X and Y directly (an equirectangular map).   |
+| `Mercator`     | The projection of most web maps; it keeps the shapes and stretches the areas near the poles. |
+| `Orthographic` | A globe: only the hemisphere that faces the viewer is drawn, lands are cut at the horizon.   |
 
 {{~ if xaml ~}}
-<pre><code>&lt;lvc:GeoMap
+```xml
+<lvc:GeoMap
     Series="{Binding Series}"
-    MapProjection="Mercator"&gt;&lt;!-- mark -->
-&lt;/lvc:GeoMap></code></pre>
+    MapProjection="Mercator"> <!-- mark -->
+</lvc:GeoMap>
+```
 {{~ end ~}}
 
 {{~ if blazor ~}}
-<pre><code>&lt;GeoMap
+```xml
+<GeoMap
     Series="series"
-    MapProjection="LiveChartsCore.Geo.MapProjection.Mercator"&gt;&lt;!-- mark -->
-&lt;/GeoMap></code></pre>
+    MapProjection="LiveChartsCore.Geo.MapProjection.Mercator"> <!-- mark -->
+</GeoMap>
+```
 {{~ end ~}}
 
-{{~ if winforms ~}}
-<pre><code>geoMap1.MapProjection = LiveChartsCore.Geo.MapProjection.Mercator;</code></pre>
+{{~ if winforms || eto ~}}
+```csharp
+geoMap1.MapProjection = LiveChartsCore.Geo.MapProjection.Mercator; // mark
+```
 {{~ end ~}}
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/geomap-mercator.png)
+The [basic map](#basic-map) uses `Mercator`. This is the same data with the `Default` projection:
 
-By default the Mercator projection is clipped to latitudes -65° (south)
-to +85° (north) — drops the sub-Antarctic empty band while keeping
-Greenland fully visible. Each edge is configurable via `MinLatitude`,
-`MaxLatitude`, `MinLongitude`, and `MaxLongitude` on the chart — leave a
-value as `double.NaN` (the default) to keep the projection's natural
-default.
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/refs/heads/master/tests/SnapshotTests/Snapshots/MapsTests_DefaultProjection.png)
 
-To render the classic full-earth Mercator including Antarctica, extend
-the bottom edge with `MinLatitude = -85` (the top is already at +85):
+And with `Orthographic`, which faces longitude 0 and latitude 0 until you rotate it, see
+[rotate the globe](#rotate-the-globe):
+
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/refs/heads/master/tests/SnapshotTests/Snapshots/MapsTests_OrthographicDefault.png)
+
+## Map bounds
+
+`MinLatitude`, `MaxLatitude`, `MinLongitude` and `MaxLongitude` crop the map to a region, in degrees. They are
+`double.NaN` by default, which keeps the default of the projection: `Mercator` goes from latitude -65 to 85, which
+leaves out the empty band around Antarctica and keeps Greenland, and `Default` shows the whole earth. Set
+`MinLatitude` to `-85` to show Antarctica on a Mercator map.
+
+Set the four bounds to focus on a region. These bounds frame Europe, from Iceland to the Caucasus and from the coast
+of North Africa to the North Cape:
 
 {{~ if xaml ~}}
-<pre><code>&lt;lvc:GeoMap
+```xml
+<lvc:GeoMap
     Series="{Binding Series}"
     MapProjection="Mercator"
-    MinLatitude="-85"
-    MaxLatitude="85"/&gt;&lt;!-- mark, full earth --></code></pre>
+    MinLatitude="35"
+    MaxLatitude="72"
+    MinLongitude="-25"
+    MaxLongitude="45"> <!-- mark -->
+</lvc:GeoMap>
+```
 {{~ end ~}}
 
 {{~ if blazor ~}}
-<pre><code>&lt;GeoMap
-    Series="series"
-    MapProjection="LiveChartsCore.Geo.MapProjection.Mercator"
-    MinLatitude="-85"
-    MaxLatitude="85"&gt;&lt;!-- mark, full earth -->
-&lt;/GeoMap></code></pre>
-{{~ end ~}}
-
-{{~ if winforms ~}}
-<pre><code>geoMap1.MinLatitude = -85; // mark
-geoMap1.MaxLatitude = 85;  // mark, full earth</code></pre>
-{{~ end ~}}
-
-Combine all four bounds to focus the map on a region — Iceland to the
-Caucasus, North Africa coast to North Cape gives a tight Europe frame:
-
-{{~ if xaml ~}}
-<pre><code>&lt;lvc:GeoMap
-    Series="{Binding Series}"
-    MapProjection="Mercator"
-    MinLatitude="35"&lt;!-- mark -->
-    MaxLatitude="72"&lt;!-- mark -->
-    MinLongitude="-25"&lt;!-- mark -->
-    MaxLongitude="45"/&gt;&lt;!-- mark --></code></pre>
-{{~ end ~}}
-
-{{~ if blazor ~}}
-<pre><code>&lt;GeoMap
+```xml
+<GeoMap
     Series="series"
     MapProjection="LiveChartsCore.Geo.MapProjection.Mercator"
     MinLatitude="35"
     MaxLatitude="72"
     MinLongitude="-25"
-    MaxLongitude="45"&gt;&lt;/GeoMap></code></pre>
+    MaxLongitude="45"> <!-- mark -->
+</GeoMap>
+```
 {{~ end ~}}
 
-{{~ if winforms ~}}
-<pre><code>geoMap1.MinLatitude  =  35; // mark
-geoMap1.MaxLatitude  =  72; // mark
+{{~ if winforms || eto ~}}
+```csharp
+geoMap1.MinLatitude = 35; // mark
+geoMap1.MaxLatitude = 72; // mark
 geoMap1.MinLongitude = -25; // mark
-geoMap1.MaxLongitude =  45; // mark</code></pre>
+geoMap1.MaxLongitude = 45; // mark
+```
 {{~ end ~}}
 
 ![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/refs/heads/master/tests/SnapshotTests/Snapshots/MapsTests_MercatorEuropeView.png)
 
-The same bounds work with `MapProjection.Default` (equirectangular),
-just without Mercator's poleward stretching:
+The same bounds work with the `Default` projection, without the stretching of Mercator:
 
 ![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/refs/heads/master/tests/SnapshotTests/Snapshots/MapsTests_DefaultProjectionEuropeView.png)
 
-`Orthographic` ignores these bounds — on a globe, viewpoint is set via
-`CoreChart.CenterLongitude` / `CenterLatitude` / `ZoomLevel` instead
-(see [Rotating the globe](#rotating-the-globe) below).
+The orthographic projection ignores the bounds, rotate the globe instead.
 
-### Orthographic
+## Rotate the globe
 
-`Orthographic` renders the map as a 3D globe — only the hemisphere facing
-the camera is drawn, lands that cross the horizon are clipped along the
-disc rim. Out of the box the globe is centered at 0° longitude / 0°
-latitude (the Gulf of Guinea):
+On the orthographic projection, `CenterLongitude` and `CenterLatitude` of the `CoreChart` set the point the globe
+faces. Setting them turns the globe at once; `RotateTo(longitude, latitude, durationMs)` animates the rotation, in
+800 ms by default, and takes the shortest way around the globe. The other projections do not use these properties.
 
-{{~ if xaml ~}}
-<pre><code>&lt;lvc:GeoMap
-    Series="{Binding Series}"
-    MapProjection="Orthographic"/&gt;&lt;!-- mark --></code></pre>
-{{~ end ~}}
-
-{{~ if blazor ~}}
-<pre><code>&lt;GeoMap
-    Series="series"
-    MapProjection="LiveChartsCore.Geo.MapProjection.Orthographic"&gt;&lt;/GeoMap></code></pre>
-{{~ end ~}}
-
-{{~ if winforms ~}}
-<pre><code>geoMap1.MapProjection = LiveChartsCore.Geo.MapProjection.Orthographic;</code></pre>
-{{~ end ~}}
-
-![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/refs/heads/master/tests/SnapshotTests/Snapshots/MapsTests_OrthographicDefault.png)
-
-#### Rotating the globe
-
-`CoreChart.CenterLongitude` and `CoreChart.CenterLatitude` control the
-center of view; setting them directly snaps, while
-`CoreChart.RotateTo(longitude, latitude, durationMs)` animates the
-transition. The example below snaps to `CenterLongitude = 15` /
-`CenterLatitude = 20` to center on Europe and Africa:
-
-{{~ if xaml ~}}
-<pre><code>&lt;lvc:GeoMap
-    x:Name="geoMap"
-    Series="{Binding Series}"
-    MapProjection="Orthographic"/&gt;</code></pre>
-
-<pre><code>// Code-behind / ViewModel: center the globe on Europe + Africa.
+```csharp
+// faces Europe and Africa at once
 geoMap.CoreChart.CenterLongitude = 15; // mark
-geoMap.CoreChart.CenterLatitude  = 20; // mark</code></pre>
-{{~ end ~}}
+geoMap.CoreChart.CenterLatitude = 20; // mark
 
-{{~ if blazor ~}}
-<pre><code>&lt;GeoMap
-    @ref="geoMap"
-    Series="series"
-    MapProjection="LiveChartsCore.Geo.MapProjection.Orthographic"&gt;&lt;/GeoMap>
-
-@code {
-    private GeoMap geoMap = null!;
-
-    protected override void OnAfterRender(bool firstRender)
-    {
-        if (!firstRender) return;
-        geoMap.CoreChart.CenterLongitude = 15; // mark
-        geoMap.CoreChart.CenterLatitude  = 20; // mark
-    }
-}</code></pre>
-{{~ end ~}}
-
-{{~ if winforms ~}}
-<pre><code>geoMap1.MapProjection = LiveChartsCore.Geo.MapProjection.Orthographic;
-geoMap1.CoreChart.CenterLongitude = 15; // mark
-geoMap1.CoreChart.CenterLatitude  = 20; // mark</code></pre>
-{{~ end ~}}
+// rotates to Tokyo
+geoMap.CoreChart.RotateTo(longitude: 139.69, latitude: 35.69); // mark
+```
 
 ![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/refs/heads/master/tests/SnapshotTests/Snapshots/MapsTests_OrthographicRotated.png)
 
-For an animated transition between viewpoints, use `RotateTo` instead
-of setting the properties directly:
+The rotating orthographic sample calls `RotateTo` every 5 seconds, from North America (`-95, 35`) to Asia
+(`100, 35`) and back. The view starts the loop when it is loaded, with
+`vm.Start((lon, lat) => geoMap.CoreChart.RotateTo(lon, lat))`, and stops it when it is unloaded; the view model posts
+each call to the UI thread:
 
-<pre><code>// Animate to Tokyo over 800 ms (the default).
-geoMap.CoreChart.RotateTo(longitude: 139.69, latitude: 35.69);</code></pre>
+{{ render_sample "maps/rotatingOrthographic" }}
 
-Mouse-wheel zoom is supported the same way as on the flat projections;
-pan is disabled by default — set `InteractionMode="Both"` to enable
-click-drag pan.
+## Custom maps
 
-## InteractionMode property
+`ActiveMap` is the map the control draws, the built-in world map by default. Load your own GeoJSON file with
+`Maps.GetMapFromDirectory(path)` or `Maps.GetMapFromStreamReader(reader)`, from the `LiveChartsCore.Geo` namespace,
+and assign the result to `ActiveMap`. `DrawnMap.GetMapFromDirectoryAsync(path)` and
+`DrawnMap.GetMapFromStreamReaderAsync(reader)` load the file on another thread.
 
-Controls which user interactions the map responds to. Defaults to
-`MapInteractionMode.None` — geo maps are most often embedded as static
-dashboard tiles, so the default is no interaction. Set it to `Zoom`
-for wheel-zoom only, `Pan` for click-drag pan only, or `Both` for both.
+The map reads the `Polygon` and `MultiPolygon` features of the file, other geometry types are skipped. Each feature
+needs a `name` property, shown in the tooltip, and should have a `shortName` property, the name the series use; when
+`shortName` is missing, the `name` is used instead. Both are read in lowercase.
 
-| Value  | Wheel zoom | Click-drag pan |
-| ------ | ---------- | -------------- |
-| `None` | ✗          | ✗ *(default)*  |
-| `Pan`  | ✗          | ✓              |
-| `Zoom` | ✓          | ✗              |
-| `Both` | ✓          | ✓              |
+This sample loads the states of Mexico from a file embedded in the assembly, gives a value to each state, and crops
+the map with the [map bounds](#map-bounds):
+
+{{ render_sample "maps/customMap" }}
+
+## Markers on the map
+
+The map draws its `VisualElements` on top of the lands, as the other charts do. Wrap a
+[Visual]({{ website_url }}/api/{{ version }}/LiveChartsCore.VisualElements.Visual) in a `GeoVisualElement` and set its
+`Longitude` and `Latitude` to pin it to a place: the map moves the visual to that place on every update, so it
+follows the zoom, the pan and the rotation of the globe. When the place is on the hidden side of the globe, the visual
+is not drawn.
+
+In this sample, `CityMarkerVisual` draws a circle, and a `GeoVisualElement` places one at each city. The visual must
+not set the position of its drawn element in `Measure`, because that is where the map writes the projected position;
+the `TranslateTransform` centers the circle on that point.
+{{~ if xaml ~}}
+`VisualElements` is not a bindable property of the map, so the view sets it in the code behind.
+{{~ end ~}}
+
+{{ render_sample "maps/markersOnMap" }}
+
+To place or hit-test something yourself, `geoMap.CoreChart.Project(longitude, latitude)` returns the pixel of a
+coordinate, or `null` when the coordinate is on the hidden side of the globe. `geoMap.CoreChart.Unproject(point)`
+returns the coordinate of a pixel, or `null` when the pixel is outside the disc of the globe.
+
+```csharp
+var coordinate = geoMap.CoreChart.Unproject(new LvcPoint(x, y));
+if (coordinate is null) return; // the pixel is outside the globe
+
+var (longitude, latitude) = coordinate.Value;
+```
+
+## Zooming and panning
+
+`InteractionMode` enables the zoom and the pan, it is `None` by default. It is a flag enum:
+
+| Value  | Wheel zoom | Drag to pan |
+| ------ | ---------- | ----------- |
+| `None` | no         | no          |
+| `Pan`  | no         | yes         |
+| `Zoom` | yes        | no          |
+| `Both` | yes        | yes         |
 
 {{~ if xaml ~}}
-<pre><code>&lt;lvc:GeoMap
+```xml
+<lvc:GeoMap
     Series="{Binding Series}"
-    InteractionMode="Both">&lt;!-- mark -->
-&lt;/lvc:GeoMap></code></pre>
+    InteractionMode="Both"> <!-- mark -->
+</lvc:GeoMap>
+```
 {{~ end ~}}
 
 {{~ if blazor ~}}
-<pre><code>&lt;GeoMap
+```xml
+<GeoMap
     Series="series"
-    InteractionMode="LiveChartsCore.Geo.MapInteractionMode.Both">&lt;!-- mark -->
-&lt;/GeoMap></code></pre>
+    InteractionMode="LiveChartsCore.Geo.MapInteractionMode.Both"> <!-- mark -->
+</GeoMap>
+```
 {{~ end ~}}
 
-{{~ if winforms ~}}
-<pre><code>geoMap1.InteractionMode = LiveChartsCore.Geo.MapInteractionMode.Both;</code></pre>
+{{~ if winforms || eto ~}}
+```csharp
+geoMap1.InteractionMode = LiveChartsCore.Geo.MapInteractionMode.Both; // mark
+```
 {{~ end ~}}
 
-## Tooltip placement and styling
+The wheel zooms around the pointer. `ZoomingSpeed` sets how much each step of the wheel zooms, from `0.1` to `0.95`,
+`0.2` by default. The zoom level goes from `MinZoomLevel` (`1` by default) to `MaxZoomLevel` (`100`). When the user
+releases the pointer, the map springs back to cover the control: it undoes a zoom below `MinZoomLevel` and a pan that
+leaves an empty band at an edge. Dragging an orthographic map moves the globe, it does not rotate it.
 
-The `TooltipPosition` property controls where the popup anchors relative to the
-hovered land's centroid. The map auto-flips between top and bottom when
-`Auto` is set and the popup would clip the chart edge.
+From code, the `CoreChart` of the map has `ZoomLevel` to read or set the zoom, `Zoom(pivot, direction)` to zoom around
+a pixel, `Pan(delta)` to move the map by a number of pixels, and `ResetViewport()` to go back to zoom `1` with no pan.
+They work whatever the `InteractionMode`.
 
-| Value    | Behavior                                            |
-| -------- | --------------------------------------------------- |
-| `Auto`   | Default — places above the land, flips below near the top edge. |
-| `Top`    | Always above the land (wedge points down).          |
-| `Bottom` | Always below the land (wedge points up).            |
-| `Hidden` | Disables the tooltip entirely.                      |
+## Title and legend
+
+`Title` draws a visual above the map, and the map leaves room for it. A `DrawnLabelVisual` draws a text; when its paint
+is not set, the theme picks it. For a heat map, set `Legend` to an `SKHeatLegend` and `LegendPosition` to a side,
+`LegendPosition` is `Hidden` by default. The legend draws the `HeatMap` of the first series as a gradient, with the
+lowest and highest values at its ends; set `IsVisibleAtLegend` to `false` on a series to skip it.
+
+```csharp
+geoMap.Title = new DrawnLabelVisual(
+    new LabelGeometry
+    {
+        Text = "World population by country",
+        TextSize = 20,
+        Padding = new LiveChartsCore.Drawing.Padding(12)
+    });
+geoMap.LegendPosition = LiveChartsCore.Measure.LegendPosition.Right;
+geoMap.Legend = new SKHeatLegend();
+```
+
+![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/refs/heads/master/tests/SnapshotTests/Snapshots/MapsTests_BasicWithTitleAndLegend.png)
 
 {{~ if xaml ~}}
-<pre><code>&lt;lvc:GeoMap
+These are plain properties of the map, not bindable ones: set them in the code behind, or declare them inside the
+control, where the `draw` prefix maps to the `LiveChartsCore.SkiaSharpView.SKCharts` namespace:
+
+```xml
+<lvc:GeoMap
     Series="{Binding Series}"
-    TooltipPosition="Top"&gt;&lt;!-- mark -->
-&lt;/lvc:GeoMap></code></pre>
+    LegendPosition="Right">
+    <lvc:GeoMap.Title>
+        <lvc:XamlDrawnLabelVisual Text="World population by country" TextSize="20"/>
+    </lvc:GeoMap.Title>
+    <lvc:GeoMap.Legend>
+        <draw:SKHeatLegend/>
+    </lvc:GeoMap.Legend>
+</lvc:GeoMap>
+```
 {{~ end ~}}
 
 {{~ if blazor ~}}
-<pre><code>&lt;GeoMap
-    Series="series"
-    TooltipPosition="LiveChartsCore.Measure.TooltipPosition.Top"&gt;&lt;!-- mark -->
-&lt;/GeoMap></code></pre>
+These are plain properties of the map, not component parameters: set them through a reference to the control
+(`@ref`).
 {{~ end ~}}
 
-{{~ if winforms ~}}
-<pre><code>geoMap1.TooltipPosition = LiveChartsCore.Measure.TooltipPosition.Top;</code></pre>
-{{~ end ~}}
+The map does not redraw when `Title`, `Legend` or `LegendPosition` change; set them before the map is shown, or call
+`geoMap.CoreChart.Update()` after changing them. `LegendTextSize` and `LegendBackgroundPaint` style the legend, see
+the [legends article]({{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Legends#heat-legend).
 
-`TooltipTextSize`, `TooltipTextPaint`, and `TooltipBackgroundPaint` style the
-default tooltip without replacing it. `TooltipTextSize` defaults to the active
-theme; `TooltipTextPaint` and `TooltipBackgroundPaint` fall back to theme
-paints when null.
+## Tooltips
 
-{{~ if xaml ~}}
-<pre><code>&lt;lvc:GeoMap
-    Series="{Binding Series}"
-    TooltipTextSize="16"&gt;&lt;!-- mark -->
-&lt;/lvc:GeoMap></code></pre>
-{{~ end ~}}
+The tooltip opens when the pointer is over a land. It shows the name of the land and one line per series that has a
+value for it, in the order of the `Series` collection; each line is `Name: Value` with two decimals, or only the
+value when the series has no `Name`.
 
-{{~ if blazor ~}}
-<pre><code>&lt;GeoMap
-    Series="series"
-    TooltipTextSize="16"&gt;&lt;!-- mark -->
-&lt;/GeoMap></code></pre>
-{{~ end ~}}
+`TooltipPosition` places it relative to the center of the land:
 
-{{~ if winforms ~}}
-<pre><code>geoMap1.TooltipTextSize = 16;
-geoMap1.TooltipTextPaint = new SolidColorPaint(SKColors.White);
-geoMap1.TooltipBackgroundPaint = new SolidColorPaint(SKColors.Black);</code></pre>
-{{~ end ~}}
+| Value    | Placement                                                             |
+| -------- | --------------------------------------------------------------------- |
+| `Auto`   | The default. Above the land, or below it when there is no room above. |
+| `Top`    | Always above the land.                                                |
+| `Bottom` | Always below the land.                                                |
+| `Hidden` | No tooltip.                                                           |
 
-## Programmatic viewport control
+`TooltipTextSize` (`14` by default), `TooltipTextPaint` and `TooltipBackgroundPaint` style the default tooltip, as in
+the [tooltips article]({{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Tooltips%20and%20crosshairs#tooltip-style).
+`TooltipFormatter` replaces the text of each value line; it takes a `GeoTooltipValue`, with the `Series` and the
+`Value`. Like the title, it is a plain property of the map, set it from code:
 
-There are **two parallel ways** to control where the map is looking:
+```csharp
+geoMap.TooltipFormatter = v => $"{v.Series.Name}: {v.Value:C0}"; // mark
+```
 
-1. **Declarative bounds** on the view — `MinLatitude`, `MaxLatitude`,
-   `MinLongitude`, `MaxLongitude`. XAML-bindable, ideal for the
-   "frame on this region by default" use case. Honored by the
-   `Default` and `Mercator` projections.
-2. **Imperative center + zoom** on `CoreChart` — `CenterLongitude`,
-   `CenterLatitude`, `ZoomLevel`. Settable from code at any time
-   (responds to interactions, animations, business logic). Works for
-   every projection — for `Orthographic` it rotates the globe; for
-   the flat projections it pans within the bounds.
+For a different layout, inherit from `SKDefaultGeoTooltip` and override `GetLayout()`, or implement `IGeoMapTooltip`
+(its `Show()` and `Hide()` methods) from scratch, and assign it to the `Tooltip` property of the map.
 
-Setting `CenterLongitude` / `CenterLatitude` / `ZoomLevel` snaps; for
-animated transitions on the globe use
-`CoreChart.RotateTo(longitude, latitude, durationMs)`.
+```csharp
+public class MyTooltip : SKDefaultGeoTooltip
+{
+    protected override Layout<SkiaSharpDrawingContext> GetLayout(
+        GeoTooltipPoint point, GeoMapChart chart, Theme theme, PopUpPlacement placement)
+    {
+        // build your own layout here
+        return base.GetLayout(point, chart, theme, placement);
+    }
+}
 
-Other viewport methods:
+geoMap.Tooltip = new MyTooltip();
+```
 
-- `CoreChart.ResetViewport()` — snap back to zoom 1.0 / no pan.
-- `CoreChart.Pan(LvcPoint delta)` — pan by a screen-space offset
-  (in pixels, not lat/lon).
-- `CoreChart.Zoom(LvcPoint pivot, ZoomDirection direction)` — zoom in
-  / out around a screen point (the gesture form;
-  `CoreChart.ZoomLevel = …` is the value form).
+## Pointer events
 
-<pre><code>// Reset zoom and pan to defaults.
-geoMap.CoreChart.ResetViewport();
+`DataPointerDown` fires when the user clicks a land (a press and release that moves the pointer less than 5 pixels),
+and `HoveredPointsChanged` fires when the pointer enters a land, moves to another one or leaves it. Each `ChartPoint`
+in these events has the land as its `Context.DataSource`, a
+[LandDefinition]({{ website_url }}/api/{{ version }}/LiveChartsCore.Geo.LandDefinition) with the `Name` and `ShortName`
+of the land, and `TryGetValue` on a series returns its value for that land:
 
-// Snap the orthographic globe to look at Tokyo.
-geoMap.CoreChart.CenterLongitude = 139.69;
-geoMap.CoreChart.CenterLatitude  =  35.69;
-
-// Or animate it over 800 ms.
-geoMap.CoreChart.RotateTo(longitude: 139.69, latitude: 35.69);</code></pre>
-
-## Finding lands on click or hover
-
-The map participates in the same `IChartView` pointer-event surface as the
-other charts. `DataPointerDown` fires once per land click, and
-`HoveredPointsChanged` fires when the pointer enters, transitions between, or
-leaves a land. Each `ChartPoint` carries the `LandDefinition` as its data
-source — unwrap it to read the land's name / short name and look up the
-per-series values yourself.
-
-<pre><code>using LiveChartsCore.Geo;
-using LiveChartsCore.Kernel;
+```csharp
+using System.Linq;
+using LiveChartsCore.Geo;
 
 geoMap.DataPointerDown += (sender, points) =>
 {
     if (points.FirstOrDefault()?.Context.DataSource is not LandDefinition land) return;
 
-    // Look up each series' value for this land.
     foreach (var series in geoMap.Series ?? [])
         if (series.TryGetValue(land.ShortName, out var value))
-            Console.WriteLine($"{series.Name}: {value}");
-};</code></pre>
-
-## Custom overlays at lat/lon (markers, callouts, etc.)
-
-The map's `VisualElements` collection accepts any `Visual` — the same
-class the cartesian charts use for custom elements, described in the
-[visual elements article]({{ website_url }}/docs/{{ platform }}/{{ version }}/samples.general.visualElements).
-Wrap one in a `GeoVisualElement(visual) { Longitude, Latitude }` to anchor
-it at a geographic coordinate; the wrapper re-projects on every measure so
-the overlay follows zoom, pan, and orthographic rotation.
-
-The marker below is an ordinary `Visual` whose `DrawnElement` is a circle.
-Note that `Measure` is empty: `GeoVisualElement` writes the projected pixel
-onto the drawn element itself, so a visual that positions itself would
-overwrite the very coordinate it is anchored to.
-
-```csharp
-{{~ render "~/../samples/ViewModelsSamples/Maps/MarkersOnMap/CityMarkerVisual.cs" ~}}
+            Console.WriteLine($"{land.Name}, {series.Name}: {value}");
+};
 ```
 
-Anchor one instance per coordinate and hand them to the map:
+`geoMap.GetPointsAt(new LvcPointD(x, y))` returns the land at a pixel in the same form, without an event.
 
-{{~ if xaml ~}}
-<pre><code>// In your ViewModel:
-public IChartElement[] CityMarkers { get; } = [
-    CityMarker(longitude: -74.00, latitude:  40.71), // New York
-    CityMarker(longitude: 139.69, latitude:  35.69), // Tokyo
-    CityMarker(longitude:  -3.70, latitude:  40.42), // Madrid
-];
+## Series, names and updates
 
-static GeoVisualElement CityMarker(double longitude, double latitude) =>
-    new(new CityMarkerVisual())
-    {
-        Longitude = longitude,
-        Latitude = latitude,
-    };</code></pre>
-
-<pre><code>&lt;lvc:GeoMap
-    Series="{Binding Series}"
-    VisualElements="{Binding CityMarkers}"/&gt;&lt;!-- mark --></code></pre>
-{{~ end ~}}
-
-{{~ if blazor ~}}
-<pre><code>&lt;GeoMap
-    Series="series"
-    VisualElements="markers"/&gt;
-
-@code {
-    private IChartElement[] markers = [
-        CityMarker(-74.00,  40.71),
-        CityMarker(139.69,  35.69),
-        CityMarker( -3.70,  40.42),
-    ];
-
-    static GeoVisualElement CityMarker(double lon, double lat) =>
-        new(new CityMarkerVisual())
-        {
-            Longitude = lon,
-            Latitude = lat,
-        };
-}</code></pre>
-{{~ end ~}}
-
-{{~ if winforms ~}}
-<pre><code>geoMap1.VisualElements = new IChartElement[]
-{
-    CityMarker(longitude: -74.00, latitude:  40.71),
-    CityMarker(longitude: 139.69, latitude:  35.69),
-    CityMarker(longitude:  -3.70, latitude:  40.42),
-};
-
-static GeoVisualElement CityMarker(double longitude, double latitude) =>
-    new(new CityMarkerVisual())
-    {
-        Longitude = longitude,
-        Latitude = latitude,
-    };</code></pre>
-{{~ end ~}}
-
-![image](https://raw.githubusercontent.com/Live-Charts/LiveCharts2/refs/heads/master/tests/SnapshotTests/Snapshots/MapsTests_MarkersOnMap.png)
-
-If you need the raw projector — to position something yourself, hit-test
-a click, etc. — use `GeoMapChart.Project(lon, lat)` and the inverse
-`GeoMapChart.Unproject(LvcPoint)`. Both return `null` when the
-coordinate / pixel is outside the visible region (e.g. the back
-hemisphere of the orthographic globe), so you can distinguish "clicked
-the void" from a real coordinate:
-
-<pre><code>// Pixel → coordinate (returns null off-disc on Orthographic).
-var coord = geoMap.CoreChart.Unproject(new LvcPoint(clickX, clickY));
-if (coord is null) return; // click was outside the projection's visible area
-
-Console.WriteLine($"clicked at {coord.Value.Longitude:0.00}°, {coord.Value.Latitude:0.00}°");
-
-// Coordinate → pixel (returns null if the coordinate isn't currently visible).
-var pixel = geoMap.CoreChart.Project(longitude: -74, latitude: 40.7);</code></pre>
-
-If you only need a synchronous lookup (e.g. on a custom gesture), call
-`geoMap.GetPointsAt(new LvcPointD(x, y))` — same `ChartPoint` shape, no event
-subscription needed.
-
-## Customizing the tooltip
-
-The default tooltip (`SKDefaultGeoTooltip`) renders the land name followed by
-one labeled line per heat series that has a value for it. For most cases the
-quickest knob is `TooltipFormatter` — a `Func<GeoTooltipValue, string>` that
-takes over the per-value line text:
-
-{{~ if xaml ~}}
-<pre><code>// In your ViewModel:
-public Func&lt;GeoTooltipValue, string> TooltipFormatter { get; }
-    = v => $"{v.Series.Name}: {v.Value:C0}"; // mark</code></pre>
-
-<pre><code>&lt;lvc:GeoMap
-    Series="{Binding Series}"
-    TooltipFormatter="{Binding TooltipFormatter}">&lt;!-- mark -->
-&lt;/lvc:GeoMap></code></pre>
-{{~ end ~}}
-
-{{~ if blazor ~}}
-<pre><code>&lt;GeoMap
-    Series="series"
-    TooltipFormatter="@(v => $"{v.Series.Name}: {v.Value:C0}")">&lt;!-- mark -->
-&lt;/GeoMap></code></pre>
-{{~ end ~}}
-
-{{~ if winforms ~}}
-<pre><code>geoMap1.TooltipFormatter = v => $"{v.Series.Name}: {v.Value:C0}"; // mark</code></pre>
-{{~ end ~}}
-
-The default format is `"{Series.Name}: {Value:N2}"` (or just `"{Value:N2}"`
-when the series has no `Name`). When several series cover the same land, you
-get one line per series in the order they appear in `Series`.
-
-For deeper customization (layout, multiple paints, icons, etc.), subclass
-`SKDefaultGeoTooltip` or implement `IGeoMapTooltip` from scratch and assign
-it to the `Tooltip` property:
-
-<pre><code>public class MyTooltip : SKDefaultGeoTooltip
-{
-    protected override Layout&lt;SkiaSharpDrawingContext> GetLayout(
-        GeoTooltipPoint point, GeoMapChart chart, Theme theme, PopUpPlacement placement)
-    {
-        // build and return your own layout
-    }
-}
-
-geoMap.Tooltip = new MyTooltip();</code></pre>
+- `Lands` takes any `ICollection<HeatLand>`. `HeatLand` notifies when its `Value` changes and the map is updated;
+  replacing `Lands`, or adding and removing items of an `ObservableCollection`, updates it too, see
+  [automatic updates]({{ website_url }}/docs/{{ platform }}/{{ version }}/Overview.Automatic%20updates).
+- To use your own type instead of `HeatLand`, implement `IWeigthedMapLand` and use `HeatLandSeries<TModel>`.
+- `Name`{{ if xaml }} (set it in code, the series has no XAML version){{ end }} is shown in the tooltip.
+- A map can have several series. When two series give a value to the same land, the land takes the color of the last
+  one, and the tooltip shows both values.
