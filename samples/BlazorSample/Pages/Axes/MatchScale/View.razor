@@ -6,7 +6,7 @@
 @using LiveChartsCore.SkiaSharpView.Painting;
 @using SkiaSharp;
 
-<div style="background-color: #333333; padding: 20px">
+<div>
     <CartesianChart
         Series="@series"
         XAxes="@xAxes"
@@ -49,7 +49,7 @@
             }
         };
 
-        var separatorColor = new SKColor(119, 148, 180, 100); // #64b4b4b4 with alpha 100
+        var separatorColor = new SKColor(180, 180, 180, 100); // #64b4b4b4
 
         // we are forcing the step to 0.1 to highlight that
         // both axes take the same amount of pixels per unit of data,

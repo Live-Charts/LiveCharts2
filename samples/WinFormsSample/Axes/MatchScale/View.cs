@@ -41,7 +41,7 @@ public partial class View : UserControl
             }
         };
 
-        var separatorColor = new SKColor(119, 148, 180, 100); // #64b4b4b4 with alpha 100
+        var separatorColor = new SKColor(180, 180, 180, 100); // #64b4b4b4
 
         // we are forcing the step to 0.1 to highlight that
         // both axes take the same amount of pixels per unit of data,
