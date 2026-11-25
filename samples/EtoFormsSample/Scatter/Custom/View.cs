@@ -12,6 +12,8 @@ namespace EtoFormsSample.Scatter.Custom;
 
 public class View : Panel
 {
+    private readonly System.Random _random = new();
+
     public View()
     {
         var values1 = Fetch();
@@ -48,15 +50,14 @@ public class View : Panel
         Content = cartesianChart;
     }
 
-    private static ObservablePoint[] Fetch()
+    private ObservablePoint[] Fetch()
     {
-        var r = new System.Random();
         var length = 10;
         var values = new ObservablePoint[length];
         for (var i = 0; i < length; i++)
         {
-            var x = r.Next(0, 20);
-            var y = r.Next(0, 20);
+            var x = _random.Next(0, 20);
+            var y = _random.Next(0, 20);
             values[i] = new ObservablePoint(x, y);
         }
         return values;
