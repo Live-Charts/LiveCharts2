@@ -37,8 +37,11 @@ the low, a tick to the left at the open price and a tick to the right at the clo
 
 ## Date time X axis
 
-Each candle is as wide as the `UnitWidth` of the X axis, measured in pixels. With dates on the X axis, the unit is a
-number of ticks, so it must match the distance between your points, one day in the samples above. A `DateTimeAxis`
+Each candle is as wide as the `UnitWidth` of the X axis, a distance in the units of the axis, up to `MaxBarWidth`
+pixels. With dates on the X axis, the unit is a number of ticks, so it must match the distance between your points,
+one day in the samples above. See
+[the unit]({{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Time%20and%20logarithmic%20scales#the-unit)
+for more. A `DateTimeAxis`
 does that for you: `new DateTimeAxis(TimeSpan.FromDays(1), date => date.ToString("yyyy MMM dd"))` sets the
 `UnitWidth` and the `MinStep` of the axis to one day, and formats the labels with the given function.{{ if xaml }}
 In XAML, the `XamlDateTimeAxis` takes the unit in its `Interval` property (one day by default) and the format
