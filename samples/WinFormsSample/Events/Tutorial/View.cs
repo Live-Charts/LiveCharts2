@@ -31,13 +31,11 @@ public partial class View : UserControl
             new ColumnSeries<double>
             {
                 Values = [1, 5, 4, 3],
-                Name = "Series 1",
                 Stroke = new SolidColorPaint(SKColors.Transparent)
             },
             new ColumnSeries<double>
             {
                 Values = [3, 2, 6, 2],
-                Name = "Series 2",
                 Stroke = new SolidColorPaint(SKColors.Transparent)
             }
         ];
