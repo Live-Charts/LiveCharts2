@@ -309,7 +309,7 @@ on a dark gray background in the dark theme).
 
 @code {
     private SolidColorPaint tooltipBackgroundPaint = new(new SKColor(72, 0, 50));
-    private SolidColorPaint tooltipTextPaint = new(new SKColor(242, 244, 255)) { FontFamily = "Courier New" };
+    private SolidColorPaint tooltipTextPaint = new(new SKColor(242, 244, 255)) { SKTypeface = SKTypeface.FromFamilyName("Courier New") };
     // ...
 }
 ```
@@ -319,7 +319,7 @@ on a dark gray background in the dark theme).
 ```csharp
 cartesianChart1.TooltipPosition = LiveChartsCore.Measure.TooltipPosition.Left;
 cartesianChart1.TooltipBackgroundPaint = new SolidColorPaint(new SKColor(72, 0, 50)); // mark
-cartesianChart1.TooltipTextPaint = new SolidColorPaint(new SKColor(242, 244, 255)) { FontFamily = "Courier New" }; // mark
+cartesianChart1.TooltipTextPaint = new SolidColorPaint(new SKColor(242, 244, 255)) { SKTypeface = SKTypeface.FromFamilyName("Courier New") }; // mark
 cartesianChart1.TooltipTextSize = 16; // mark
 ```
 {{~ end ~}}
