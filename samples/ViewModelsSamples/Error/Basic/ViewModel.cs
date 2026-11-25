@@ -20,9 +20,9 @@ public class ViewModel
 
     public ErrorPoint[] Values2 { get; set; } =
         [
-            // (X, Y, Y+- error, Y+- error) // mark
+            // (X, Y, X+- error, Y+- error) // mark
             new(0, 50, 0.2, 8),
-            // (X, Y, X- error, X+ erorr, Y+ error, Y- error) // mark
+            // (X, Y, X- error, X+ error, Y+ error, Y- error) // mark
             new(1, 45, 0.1, 0.3, 15, 4),
             new(2, 25, 0.3, 4),
             new(3, 30, 0.2, 6),
@@ -33,9 +33,9 @@ public class ViewModel
 
     public ErrorDateTimePoint[] Values3 { get; set; } =
         [
-            // (X, Y, Y+- error, Y+- error) // mark
+            // (X, Y, X+- error, Y+- error) // mark
             new(DateTime.Today.AddDays(0), 50, 0.2, 8),
-            // (X, Y, X- error, X+ erorr, Y+ error, Y- error) // mark
+            // (X, Y, X- error, X+ error, Y+ error, Y- error) // mark
             new(DateTime.Today.AddDays(1), 45, 0.1, 0.3, 15, 4),
             new(DateTime.Today.AddDays(2), 25, 0.3, 4),
             new(DateTime.Today.AddDays(3), 30, 0.2, 6),
