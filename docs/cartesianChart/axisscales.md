@@ -147,8 +147,8 @@ YAxes = new[]
 };
 ```
 
-`Math.Log` returns `double.NegativeInfinity` for `0` and `double.NaN` for negative values, and LiveCharts does not turn
-them into gaps. Map them to `Coordinate.Empty` if your data can contain them, see
+`Math.Log` returns `double.NaN` for negative values, which LiveCharts draws as a gap, and `double.NegativeInfinity`
+for `0`, which it does not. Map zeros to `Coordinate.Empty` if your data can contain them, see
 [NaN and Infinity]({{ website_url }}/docs/{{ platform }}/{{ version }}/Overview.Mappers#nan-and-infinity).
 
 ## Log labels and subseparators
