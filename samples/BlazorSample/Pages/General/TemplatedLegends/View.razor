@@ -11,17 +11,17 @@
 </CartesianChart>
 
 @code {
-    private double[] RogerValues = new double[] { 2, 4, 6, 8, 10 };
-    private double[] SusanValues = new double[] { 1, 3, 5, 7, 9 };
     private ISeries[] series;
     public CustomLegend CustomLegend { get; set; } = new();
 
     protected override void OnInitialized()
     {
+        var viewModel = new ViewModel();
+
         series = new ISeries[]
         {
-            new ColumnSeries<double> { Values = RogerValues, Name = "Roger" },
-            new ColumnSeries<double> { Values = SusanValues, Name = "Susan" }
+            new ColumnSeries<double> { Values = viewModel.RogerValues, Name = "Roger" },
+            new ColumnSeries<double> { Values = viewModel.SusanValues, Name = "Susan" }
         };
     }
 }
