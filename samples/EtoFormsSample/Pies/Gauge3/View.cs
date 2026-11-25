@@ -4,6 +4,7 @@ using LiveChartsCore.Measure;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Extensions;
 using LiveChartsCore.SkiaSharpView.Eto;
+using ViewModelsSamples.Pies.Gauge3;
 
 namespace EtoFormsSample.Pies.Gauge3;
 
@@ -13,12 +14,14 @@ public class View : Panel
 
     public View()
     {
+        var viewModel = new ViewModel();
+
         pieChart = new PieChart
         {
             Series = GaugeGenerator.BuildSolidGauge(
-                new GaugeItem(30, series => SetStyle("Vanessa", series)),
-                new GaugeItem(50, series => SetStyle("Charles", series)),
-                new GaugeItem(70, series => SetStyle("Ana", series)),
+                new GaugeItem(viewModel.Vanesa, series => SetStyle("Vanesa", series)),
+                new GaugeItem(viewModel.Charles, series => SetStyle("Charles", series)),
+                new GaugeItem(viewModel.Ana, series => SetStyle("Ana", series)),
                 new GaugeItem(GaugeItem.Background, series =>
                 {
                     series.InnerRadius = 20;

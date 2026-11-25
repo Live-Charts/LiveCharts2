@@ -5,6 +5,7 @@
 @using LiveChartsCore.SkiaSharpView
 @using LiveChartsCore.Defaults
 @using LiveChartsCore.Measure
+@using ViewModelsSamples.Pies.Gauge3
 
 <style>
 	.sample-wrap {
@@ -29,10 +30,12 @@
 
     protected override void OnInitialized()
     {
+        var viewModel = new ViewModel();
+
         Series = GaugeGenerator.BuildSolidGauge(
-            new GaugeItem(30, series => SetStyle("Vanessa", series)),
-            new GaugeItem(50, series => SetStyle("Charles", series)),
-            new GaugeItem(70, series => SetStyle("Ana", series)),
+            new GaugeItem(viewModel.Vanesa, series => SetStyle("Vanesa", series)),
+            new GaugeItem(viewModel.Charles, series => SetStyle("Charles", series)),
+            new GaugeItem(viewModel.Ana, series => SetStyle("Ana", series)),
             new GaugeItem(GaugeItem.Background, series =>
             {
                 series.InnerRadius = 20;
