@@ -50,7 +50,7 @@ middle of each bar when `ShowDataLabels` is `true`.
 Every point of a stacked series has a `StackedValue` property with the `Start`, `End` and `Total` of the stack, and
 its `Share`: the part of the point in the total of its sign at that X coordinate, from `0` to `1`. This sample shows
 the share in the tooltip with `YToolTipLabelFormatter`, see the
-[tooltips article]({{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Tooltips) for more.
+[tooltips article]({{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Tooltips%20and%20crosshairs#stacked-values) for more.
 
 {{ render_sample "stackedBars/basic" }}
 

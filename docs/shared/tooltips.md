@@ -16,7 +16,7 @@ Tooltips are popups that help the user to read a chart as the pointer moves.
 This is a brief sample about how to use the main features of the `IChartTooltip<T>` interface, you can find a more detailed article at the button below or at the 
 [API explorer]({{ website_url }}/api/{{ version }}/LiveChartsCore.Kernel.Sketches.IChartTooltip).
 
-<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Tooltips" class="btn btn-outline-primary mb-3">
+<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Tooltips%20and%20crosshairs" class="btn btn-outline-primary mb-3">
 <b>Go to the full tooltips article</b>
 </a>
 
