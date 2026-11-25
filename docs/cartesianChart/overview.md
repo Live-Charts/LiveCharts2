@@ -148,21 +148,21 @@ any image below is a link to an article explaining more about them.
 </div>
 </a>
 
-<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Stacked%20Line%20Series%20properties">
+<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Stacked%20series#stacked-area">
 <div class="series-miniature">
 <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/samples/stackedArea/basic/result.png" alt="series"/>
 <div class="text-center"><b>Stacked line series</b></div>
 </div>
 </a>
 
-<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Stacked%20Column%20Series%20properties">
+<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Stacked%20series#stacked-columns">
 <div class="series-miniature">
 <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/samples/stackedBars/basic/result.png" alt="series"/>
 <div class="text-center"><b>Stacked column series</b></div>
 </div>
 </a>
 
-<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Stacked%20Step%20Line%20Series%20properties">
+<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Stacked%20series#stacked-step-area">
 <div class="series-miniature">
 <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/samples/stackedArea/stepArea/result.png" alt="series"/>
 <div class="text-center"><b>Stacked step line series</b></div>
