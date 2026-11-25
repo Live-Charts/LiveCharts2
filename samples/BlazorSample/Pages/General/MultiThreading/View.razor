@@ -2,63 +2,34 @@
 @using LiveChartsCore.SkiaSharpView.Blazor
 @using LiveChartsCore;
 @using LiveChartsCore.SkiaSharpView;
-@using System.Collections.ObjectModel
-@using System.Threading
+@using ViewModelsSamples.General.MultiThreading
 
+@* the chart locks the view model's Sync object while it reads the values *@
 <CartesianChart
     @ref="_chart"
     Series="@series"
-    SyncContext="_sync">
+    SyncContext="_viewModel.Sync">
 </CartesianChart>
 
 @code {
     private CartesianChart _chart;
-    private ObservableCollection<int> _values;
-    private object _sync = new object();
-    private int _current;
-    private bool _isReading = true;
+
+    // the view model adds points from 10 background tasks,
+    // it locks the Sync object every time it changes the values.
+    private readonly ViewModel _viewModel = new();
     private ISeries[] series;
 
     protected override void OnInitialized()
     {
-        var items = new List<int>();
-        for (var i = 0; i < 1500; i++)
-        {
-            _current += new Random().Next(-9, 10);
-            items.Add(_current);
-        }
-        _values = new ObservableCollection<int>(items);
         series = new ISeries[]
         {
             new LineSeries<int>
             {
-                Values = _values,
+                Values = _viewModel.Values,
                 GeometryFill = null,
-                GeometryStroke = null
+                GeometryStroke = null,
+                LineSmoothness = 0
             }
         };
-        for (var i = 0; i < 10; i++)
-        {
-            _ = Task.Run(ReadData);
-        }
-    }
-
-    private async Task ReadData()
-    {
-        var r = new Random();
-        await Task.Delay(1000);
-        while (_isReading)
-        {
-            await Task.Delay(1);
-            _current = Interlocked.Add(ref _current, r.Next(-9, 10));
-            lock (_sync)
-            {
-                if (_values.Count > 0)
-                {
-                    _values.Add(_current);
-                    _values.RemoveAt(0);
-                }
-            }
-        }
     }
 }
