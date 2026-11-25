@@ -34,7 +34,7 @@ public partial class View : UserControl
             },
             new ColumnSeries<ObservableValue>
             {
-                Name = "Mary",
+                Name = "La cubana",
                 Values = [new(5), new(4), new(1)]
             }
         ];

@@ -31,7 +31,7 @@ public class View : Panel
             },
             new ColumnSeries<ObservableValue>
             {
-                Name = "Mary",
+                Name = "La cubana",
                 Values = new ObservableCollection<ObservableValue>
                 {
                     new ObservableValue(5), new ObservableValue(4), new ObservableValue(1)
