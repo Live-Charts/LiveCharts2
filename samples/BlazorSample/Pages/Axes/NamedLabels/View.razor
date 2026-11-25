@@ -10,8 +10,8 @@
         background-color: #480032 !important;
     }
     .lvc-tooltip-item {
-        font-family: SFMono-Regular,Menlo,Monaco,Consolas !important;
-        color: #F2F4C3 !important;
+        font-family: "Courier New", monospace !important;
+        color: #F2F4FF !important;
     }
 </style>
 
@@ -47,5 +47,5 @@
     };
 
     private SolidColorPaint tooltipBackgroundPaint = new SolidColorPaint(new SKColor(72, 0, 50));
-    private SolidColorPaint tooltipTextPaint = new SolidColorPaint(new SKColor(242, 244, 195));
+    private SolidColorPaint tooltipTextPaint = new SolidColorPaint(new SKColor(242, 244, 255)) { SKTypeface = SKTypeface.FromFamilyName("Courier New") };
 }
