@@ -15,14 +15,26 @@ public partial class View : UserControl
 
         var series = new ISeries[]
         {
-            new LineSeries<double> { Name = "Series 1", Values = [2, 4, 6, 8, 10] },
-            new LineSeries<double> { Name = "Series 2", Values = [1, 3, 5, 7, 9] }
+            new ColumnSeries<double> { Name = "Peru", Values = [3, 7, 3] },
+            new ColumnSeries<double> { Name = "Colombia", Values = [4, 6, 2] },
+            new ColumnSeries<double> { Name = "Mexico", Values = [5, 5, 5] },
+            new ColumnSeries<double> { Name = "Argentina", Values = [6, 4, 6] },
+            new ColumnSeries<double> { Name = "Chile", Values = [7, 3, 7] },
+            new ColumnSeries<double> { Name = "Ecuador", Values = [8, 2, 8] },
+            new ColumnSeries<double> { Name = "Bolivia", Values = [9, 1, 9] },
+            new ColumnSeries<double> { Name = "Venezuela", Values = [10, 0, 10] },
+            new ColumnSeries<double> { Name = "Uruguay", Values = [11, 1, 11] },
+            new ColumnSeries<double> { Name = "Paraguay", Values = [12, 2, 12] },
+            new ColumnSeries<double> { Name = "Brazil", Values = [13, 3, 13] },
+            new ColumnSeries<double> { Name = "Costa Rica", Values = [14, 4, 14] },
+            new ColumnSeries<double> { Name = "Panama", Values = [15, 5, 15] },
+            new ColumnSeries<double> { Name = "Honduras", Values = [16, 6, 16] }
         };
 
         var cartesianChart = new CartesianChart
         {
             Series = series,
-            LegendPosition = LegendPosition.Right,
+            LegendPosition = LegendPosition.Left,
             Location = new System.Drawing.Point(0, 50),
             Size = new System.Drawing.Size(400, 300),
             Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom
@@ -30,7 +42,7 @@ public partial class View : UserControl
 
         Controls.Add(cartesianChart);
 
-        var b1 = new ComboBox { Text = "hidden", Location = new System.Drawing.Point(0, 0), Width = 120 };
+        var b1 = new ComboBox { Text = "left", Location = new System.Drawing.Point(0, 0), Width = 120 };
         b1.Items.AddRange(["hidden", "top", "left", "right", "bottom"]);
         b1.SelectedValueChanged += (sender, e) =>
         {
