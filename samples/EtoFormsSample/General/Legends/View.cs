@@ -1,8 +1,9 @@
-﻿using Eto.Forms;
-using LiveChartsCore;
+﻿using System.Linq;
+using Eto.Forms;
 using LiveChartsCore.Measure;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Eto;
+using ViewModelsSamples.General.Legends;
 
 namespace EtoFormsSample.General.Legends;
 
@@ -12,29 +13,22 @@ public class View : Panel
 
     public View()
     {
-        var series = new ISeries[]
-        {
-            new LineSeries<double> { Name = "Series 1", Values = [2, 4, 6, 8, 10] },
-            new LineSeries<double> { Name = "Series 2", Values = [1, 3, 5, 7, 9] }
-        };
+        var viewModel = new ViewModel();
+
+        var series = viewModel.Data
+            .Select(data => new ColumnSeries<double> { Name = data.Name, Values = data.Values })
+            .ToArray();
 
         cartesianChart = new CartesianChart
         {
             Series = series,
-            LegendPosition = LegendPosition.Right,
+            LegendPosition = viewModel.SelectedPosition,
         };
 
-        var b1 = new DropDown();
-        b1.Items.AddRange(new ListItem[] { "hidden", "top", "left", "right", "bottom" });
+        var b1 = new DropDown { DataStore = viewModel.Positions.Cast<object>() };
+        b1.SelectedValue = viewModel.SelectedPosition;
         b1.SelectedValueChanged += (object sender, System.EventArgs e) =>
-        {
-            if (b1.SelectedKey == "hidden") cartesianChart.LegendPosition = LegendPosition.Hidden;
-            if (b1.SelectedKey == "top") cartesianChart.LegendPosition = LegendPosition.Top;
-            if (b1.SelectedKey == "bottom") cartesianChart.LegendPosition = LegendPosition.Bottom;
-            if (b1.SelectedKey == "left") cartesianChart.LegendPosition = LegendPosition.Left;
-            if (b1.SelectedKey == "right") cartesianChart.LegendPosition = LegendPosition.Right;
-        };
-        b1.SelectedIndex = 0;
+            cartesianChart.LegendPosition = (LegendPosition)b1.SelectedValue;
 
         Content = new DynamicLayout(
             new DynamicRow(new DynamicControl { Control = b1, XScale = true }),

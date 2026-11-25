@@ -3,15 +3,15 @@
 @using LiveChartsCore;
 @using LiveChartsCore.Measure;
 @using LiveChartsCore.SkiaSharpView;
+@using ViewModelsSamples.General.Legends
 
 <h2>@_legendPosition</h2>
 
 <select @bind="_legendPosition">
-    <option value="Hidden">hidden</option>
-    <option value="Top">top</option>
-    <option value="Left">left</option>
-    <option value="Right">right</option>
-    <option value="Bottom">bottom</option>
+    @foreach (var position in _viewModel.Positions)
+    {
+        <option value="@position">@position</option>
+    }
 </select>
 
 <CartesianChart
@@ -20,10 +20,16 @@
 </CartesianChart>
 
 @code {
-    private LegendPosition _legendPosition = LegendPosition.Right;
-    private ISeries[] series = new ISeries[]
+    private readonly ViewModel _viewModel = new();
+    private LegendPosition _legendPosition;
+    private ISeries[] series;
+
+    protected override void OnInitialized()
     {
-        new LineSeries<double> { Name = "Series 1", Values = new double[] { 2, 4, 6, 8, 10 } },
-        new LineSeries<double> { Name = "Series 2", Values = new double[] { 1, 3, 5, 7, 9 } }
-    };
+        _legendPosition = _viewModel.SelectedPosition;
+
+        series = _viewModel.Data
+            .Select(data => new ColumnSeries<double> { Name = data.Name, Values = data.Values })
+            .ToArray();
+    }
 }

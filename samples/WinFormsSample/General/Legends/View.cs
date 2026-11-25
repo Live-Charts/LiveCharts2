@@ -1,8 +1,9 @@
-﻿using System.Windows.Forms;
-using LiveChartsCore;
+﻿using System.Linq;
+using System.Windows.Forms;
 using LiveChartsCore.Measure;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.WinForms;
+using ViewModelsSamples.General.Legends;
 
 namespace WinFormsSample.General.Legends;
 
@@ -13,16 +14,16 @@ public partial class View : UserControl
         InitializeComponent();
         Size = new System.Drawing.Size(400, 350);
 
-        var series = new ISeries[]
-        {
-            new LineSeries<double> { Name = "Series 1", Values = [2, 4, 6, 8, 10] },
-            new LineSeries<double> { Name = "Series 2", Values = [1, 3, 5, 7, 9] }
-        };
+        var viewModel = new ViewModel();
+
+        var series = viewModel.Data
+            .Select(data => new ColumnSeries<double> { Name = data.Name, Values = data.Values })
+            .ToArray();
 
         var cartesianChart = new CartesianChart
         {
             Series = series,
-            LegendPosition = LegendPosition.Right,
+            LegendPosition = viewModel.SelectedPosition,
             Location = new System.Drawing.Point(0, 50),
             Size = new System.Drawing.Size(400, 300),
             Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom
@@ -30,16 +31,16 @@ public partial class View : UserControl
 
         Controls.Add(cartesianChart);
 
-        var b1 = new ComboBox { Text = "hidden", Location = new System.Drawing.Point(0, 0), Width = 120 };
-        b1.Items.AddRange(["hidden", "top", "left", "right", "bottom"]);
-        b1.SelectedValueChanged += (sender, e) =>
+        var b1 = new ComboBox
         {
-            if (b1.SelectedItem.ToString() == "hidden") cartesianChart.LegendPosition = LegendPosition.Hidden;
-            if (b1.SelectedItem.ToString() == "top") cartesianChart.LegendPosition = LegendPosition.Top;
-            if (b1.SelectedItem.ToString() == "bottom") cartesianChart.LegendPosition = LegendPosition.Bottom;
-            if (b1.SelectedItem.ToString() == "left") cartesianChart.LegendPosition = LegendPosition.Left;
-            if (b1.SelectedItem.ToString() == "right") cartesianChart.LegendPosition = LegendPosition.Right;
+            DropDownStyle = ComboBoxStyle.DropDownList,
+            Location = new System.Drawing.Point(0, 0),
+            Width = 120
         };
+        b1.Items.AddRange([.. viewModel.Positions.Cast<object>()]);
+        b1.SelectedItem = viewModel.SelectedPosition;
+        b1.SelectedValueChanged += (sender, e) =>
+            cartesianChart.LegendPosition = (LegendPosition)b1.SelectedItem;
         Controls.Add(b1);
     }
 }
