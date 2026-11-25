@@ -52,12 +52,14 @@ public partial class View : UserControl
                 new ColumnSeries<ErrorValue>
                 {
                     Values = values1,
-                    ShowError = true
+                    ShowError = true,
+                    Padding = 0
                 },
                 new ColumnSeries<ErrorPoint>
                 {
                     Values = values2,
-                    ShowError = true
+                    ShowError = true,
+                    Padding = 0
                 }
             ],
             Location = new System.Drawing.Point(10, 10),
@@ -70,7 +72,9 @@ public partial class View : UserControl
                 new LineSeries<ErrorValue>
                 {
                     Values = values1,
-                    ShowError = true
+                    ShowError = true,
+                    GeometrySize = 4,
+                    Fill = null
                 }
             ],
             Location = new System.Drawing.Point(10, 200),
@@ -83,7 +87,8 @@ public partial class View : UserControl
                 new ScatterSeries<ErrorDateTimePoint>
                 {
                     Values = values3,
-                    ShowError = true
+                    ShowError = true,
+                    GeometrySize = 10
                 }
             ],
             XAxes = [
