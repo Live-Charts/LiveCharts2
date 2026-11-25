@@ -14,28 +14,26 @@ public class View : Panel
 {
     public View()
     {
-        var values1 = Fetch();
-        var values2 = Fetch();
-        var values3 = Fetch();
+        var viewModel = new ViewModel();
         var pinPath = SVGPoints.Pin;
 
         var series = new ISeries[]
         {
             new ScatterSeries<ObservablePoint, HeartGeometry>
             {
-                Values = values1,
+                Values = viewModel.Values1,
                 Stroke = null,
                 GeometrySize = 40
             },
             new ScatterSeries<ObservablePoint, VariableSVGPathGeometry>
             {
-                Values = values2,
+                Values = viewModel.Values2,
                 GeometrySvg = pinPath,
                 GeometrySize = 40
             },
             new ScatterSeries<ObservablePoint, MyGeometry>
             {
-                Values = values3,
+                Values = viewModel.Values3,
                 GeometrySize = 40
             }
         };
@@ -46,19 +44,5 @@ public class View : Panel
         };
 
         Content = cartesianChart;
-    }
-
-    private static ObservablePoint[] Fetch()
-    {
-        var r = new System.Random();
-        var length = 10;
-        var values = new ObservablePoint[length];
-        for (var i = 0; i < length; i++)
-        {
-            var x = r.Next(0, 20);
-            var y = r.Next(0, 20);
-            values[i] = new ObservablePoint(x, y);
-        }
-        return values;
     }
 }

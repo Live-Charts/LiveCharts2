@@ -17,9 +17,7 @@ public partial class View : UserControl
         InitializeComponent();
         Size = new System.Drawing.Size(50, 50);
 
-        var values1 = Fetch();
-        var values2 = Fetch();
-        var values3 = Fetch();
+        var viewModel = new ViewModel();
         var pinPath = SVGPoints.Pin;
 
         var series = new ISeries[]
@@ -27,7 +25,7 @@ public partial class View : UserControl
             // the second type argument is the geometry to draw.
             new ScatterSeries<ObservablePoint, HeartGeometry>
             {
-                Values = values1,
+                Values = viewModel.Values1,
                 Stroke = null,
                 GeometrySize = 40
             },
@@ -35,7 +33,7 @@ public partial class View : UserControl
             // the variable SVG path geometry can change the path at runtime.
             new ScatterSeries<ObservablePoint, VariableSVGPathGeometry>
             {
-                Values = values2,
+                Values = viewModel.Values2,
                 GeometrySvg = pinPath,
                 GeometrySize = 40
             },
@@ -43,7 +41,7 @@ public partial class View : UserControl
             // finally you can use skiasharp to draw your own geometries.
             new ScatterSeries<ObservablePoint, MyGeometry>
             {
-                Values = values3,
+                Values = viewModel.Values3,
                 GeometrySize = 40
             }
         };
@@ -57,19 +55,5 @@ public partial class View : UserControl
         };
 
         Controls.Add(cartesianChart);
-    }
-
-    private static ObservablePoint[] Fetch()
-    {
-        var r = new System.Random();
-        var length = 10;
-        var values = new ObservablePoint[length];
-        for (var i = 0; i < length; i++)
-        {
-            var x = r.Next(0, 20);
-            var y = r.Next(0, 20);
-            values[i] = new ObservablePoint(x, y);
-        }
-        return values;
     }
 }
