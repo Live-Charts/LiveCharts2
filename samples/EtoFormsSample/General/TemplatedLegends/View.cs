@@ -12,12 +12,10 @@ public class View : Panel
 
     public View()
     {
-        var viewModel = new ViewModel();
-
         var series = new ISeries[]
         {
-            new ColumnSeries<double> { Values = viewModel.RogerValues, Name = "Roger" },
-            new ColumnSeries<double> { Values = viewModel.SusanValues, Name = "Susan" }
+            new ColumnSeries<double> { Values = [2, 1, 3, 5, 3, 4, 6], Name = "Roger" },
+            new ColumnSeries<double> { Values = [1, 3, 2, 7, 3, 5, 2], Name = "Susan" }
         };
 
         cartesianChart = new CartesianChart
