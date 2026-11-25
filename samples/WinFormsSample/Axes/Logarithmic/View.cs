@@ -45,8 +45,8 @@ public partial class View : UserControl
 
         var yAxis = new LogarithmicAxis(logBase)
         {
-            SeparatorsPaint = new SolidColorPaint(SkiaSharp.SKColors.LightSlateGray),
-            SubseparatorsPaint = new SolidColorPaint(SkiaSharp.SKColors.LightSlateGray) { StrokeThickness = 0.5f },
+            SeparatorsPaint = new SolidColorPaint(new SkiaSharp.SKColor(180, 180, 180, 100)),
+            SubseparatorsPaint = new SolidColorPaint(new SkiaSharp.SKColor(180, 180, 180, 100)) { StrokeThickness = 0.5f },
             SubseparatorsCount = 9
         };
 
