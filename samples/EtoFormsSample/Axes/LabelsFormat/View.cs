@@ -2,6 +2,8 @@
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Eto;
+using LiveChartsCore.SkiaSharpView.Painting;
+using SkiaSharp;
 
 namespace EtoFormsSample.Axes.LabelsFormat;
 
@@ -33,8 +35,14 @@ public class View : Panel
             Name = "Sales",
             NamePadding = new LiveChartsCore.Drawing.Padding(0, 15),
             Labeler = Labeler,
-            LabelsPaint = new LiveChartsCore.SkiaSharpView.Painting.SolidColorPaint(SkiaSharp.SKColors.Blue)
-            // FontFamily, FontWeight, FontWidth, FontSlant can be set if needed
+            LabelsPaint = new SolidColorPaint(SKColors.Blue)
+            {
+                SKTypeface = SKTypeface.FromFamilyName(
+                    "Times New Roman",
+                    SKFontStyleWeight.ExtraBold,
+                    SKFontStyleWidth.Normal,
+                    SKFontStyleSlant.Italic)
+            }
         };
 
         cartesianChart = new CartesianChart
