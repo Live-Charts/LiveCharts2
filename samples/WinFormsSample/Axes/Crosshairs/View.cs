@@ -29,26 +29,24 @@ public partial class View : UserControl
             new LineSeries<double> { Values = values }
         };
 
-        var crosshairColor = new SKColor(255, 0, 51);
-        var crosshairBackground = new LiveChartsCore.Drawing.LvcColor(255, 0, 51);
+        var crosshairColor = new SKColor(0xFF, 0x8C, 0x00); // #FF8C00
+        var crosshairLabelsColor = new SKColor(0x8B, 0x00, 0x00); // #8B0000
+        var crosshairBackground = new LiveChartsCore.Drawing.LvcColor(0xFF, 0x8C, 0x00);
 
         var xAxis = new Axis
         {
-            Name = "X Axis",
-            CrosshairPaint = new SolidColorPaint(crosshairColor, 2),
-            CrosshairLabelsPaint = new SolidColorPaint(SKColors.White),
-            CrosshairLabelsBackground = crosshairBackground,
-            CrosshairPadding = new LiveChartsCore.Drawing.Padding(6)
+            Labeler = labelFormatter,
+            CrosshairPaint = new SolidColorPaint(crosshairColor),
+            CrosshairLabelsPaint = new SolidColorPaint(crosshairLabelsColor),
+            CrosshairLabelsBackground = crosshairBackground
         };
 
         var yAxis = new Axis
         {
-            Name = "Y Axis",
             Labeler = labelFormatter,
-            CrosshairPaint = new SolidColorPaint(crosshairColor, 2),
-            CrosshairLabelsPaint = new SolidColorPaint(SKColors.White),
+            CrosshairPaint = new SolidColorPaint(crosshairColor),
+            CrosshairLabelsPaint = new SolidColorPaint(crosshairLabelsColor),
             CrosshairLabelsBackground = crosshairBackground,
-            CrosshairPadding = new LiveChartsCore.Drawing.Padding(6),
             CrosshairSnapEnabled = true
         };
 
