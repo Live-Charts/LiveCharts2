@@ -20,13 +20,13 @@
 
 @code {
     private ObservableCollection<ISeries> seriesCollection;
-    private ObservableCollection<ObservableValue> juanaValues;
+    private ObservableCollection<ObservableValue> anaValues;
     private Random _random = new Random();
     private bool? _isStreaming = false;
 
     protected override void OnInitialized()
     {
-        juanaValues = new ObservableCollection<ObservableValue>
+        anaValues = new ObservableCollection<ObservableValue>
         {
             new ObservableValue(2), new ObservableValue(5), new ObservableValue(4)
         };
@@ -34,8 +34,8 @@
         {
             new LineSeries<ObservableValue>
             {
-                Name = "Juana",
-                Values = juanaValues
+                Name = "Ana",
+                Values = anaValues
             },
             new LineSeries<ObservableValue>
             {
@@ -64,20 +64,20 @@
     private void AddItem()
     {
         var newPoint = new ObservableValue { Value = _random.Next(0, 10) };
-        juanaValues.Add(newPoint);
+        anaValues.Add(newPoint);
     }
 
     private void RemoveItem()
     {
-        if (juanaValues.Count < 2) return;
-        juanaValues.RemoveAt(0);
+        if (anaValues.Count < 2) return;
+        anaValues.RemoveAt(0);
     }
 
     private void ReplaceItem()
     {
-        if (juanaValues.Count < 2) return;
-        var randomIndex = _random.Next(0, juanaValues.Count - 1);
-        juanaValues[randomIndex] = new ObservableValue(_random.Next(1, 10));
+        if (anaValues.Count < 2) return;
+        var randomIndex = _random.Next(0, anaValues.Count - 1);
+        anaValues[randomIndex] = new ObservableValue(_random.Next(1, 10));
     }
 
     private ObservableCollection<ObservableValue> FetchValues()
