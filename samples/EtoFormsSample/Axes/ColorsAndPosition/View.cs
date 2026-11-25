@@ -25,16 +25,22 @@ public class View : Panel
             new ColumnSeries<double> { Values = [2, 3, 8] }
         ];
 
-        // Axis with initial position and color
+        // both axes start at the end, painted red
         xAxis = new Axis
         {
+            Name = "X axis",
+            TextSize = 20,
             Position = AxisPosition.End,
-            Name = "X Axis",
-            LabelsPaint = new SolidColorPaint(SKColors.Red)
+            LabelsPaint = new SolidColorPaint(SKColors.Red),
+            SeparatorsPaint = new SolidColorPaint(SKColors.Red)
         };
         yAxis = new Axis
         {
-            Name = "Y Axis"
+            Name = "Y axis",
+            TextSize = 20,
+            Position = AxisPosition.End,
+            LabelsPaint = new SolidColorPaint(SKColors.Red),
+            SeparatorsPaint = new SolidColorPaint(SKColors.Red)
         };
 
         cartesianChart = new CartesianChart
@@ -47,9 +53,12 @@ public class View : Panel
         var b1 = new Button { Text = "toggle position" };
         b1.Click += (sender, e) =>
         {
-            xAxis.Position = xAxis.Position == AxisPosition.End
-                ? AxisPosition.Start
-                : AxisPosition.End;
+            foreach (var axis in new[] { xAxis, yAxis })
+            {
+                axis.Position = axis.Position == AxisPosition.End
+                    ? AxisPosition.Start
+                    : AxisPosition.End;
+            }
         };
 
         var b2 = new Button { Text = "new color" };
@@ -58,7 +67,11 @@ public class View : Panel
             var r = (byte)random.Next(0, 255);
             var g = (byte)random.Next(0, 255);
             var b = (byte)random.Next(0, 255);
-            xAxis.LabelsPaint = new SolidColorPaint(new SKColor(r, g, b));
+            foreach (var axis in new[] { xAxis, yAxis })
+            {
+                axis.LabelsPaint = new SolidColorPaint(new SKColor(r, g, b));
+                axis.SeparatorsPaint = new SolidColorPaint(new SKColor(r, g, b));
+            }
         };
 
         var buttons = new StackLayout(b1, b2) { Orientation = Orientation.Horizontal, Padding = 2, Spacing = 4 };
