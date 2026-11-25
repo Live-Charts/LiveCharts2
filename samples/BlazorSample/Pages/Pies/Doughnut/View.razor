@@ -1,7 +1,7 @@
 ﻿@page "/Pies/Doughnut"
 @using LiveChartsCore
+@using LiveChartsCore.SkiaSharpView
 @using LiveChartsCore.SkiaSharpView.Blazor
-@using LiveChartsCore.SkiaSharpView.Extensions
 
 <PieChart
 	Series="Series">
@@ -12,10 +12,13 @@
 
     protected override void OnInitialized()
     {
-        Series = new[] { 2, 4, 1, 4, 3 }
-            .AsPieSeries((value, series) =>
-            {
-                series.MaxRadialColumnWidth = 60;
-            });
+        Series = new ISeries[]
+        {
+            new PieSeries<double> { Name = "Mary", Values = new double[] { 10 }, MaxRadialColumnWidth = 60 },
+            new PieSeries<double> { Name = "John", Values = new double[] { 20 }, MaxRadialColumnWidth = 60 },
+            new PieSeries<double> { Name = "Alice", Values = new double[] { 30 }, MaxRadialColumnWidth = 60 },
+            new PieSeries<double> { Name = "Bob", Values = new double[] { 40 }, MaxRadialColumnWidth = 60 },
+            new PieSeries<double> { Name = "Charlie", Values = new double[] { 50 }, MaxRadialColumnWidth = 60 }
+        };
     }
 }
