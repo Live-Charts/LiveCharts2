@@ -31,7 +31,7 @@ public class View : Panel
             new LineSeries<double>
             {
                 Values = values,
-                YToolTipLabelFormatter = tooltipFormat
+                XToolTipLabelFormatter = tooltipFormat
             }
         };
 
@@ -40,14 +40,13 @@ public class View : Panel
             Labeler = labeler,
             MinStep = 1,
             LabelsRotation = 45,
-            SeparatorsPaint = new SolidColorPaint(SKColors.LightGray, 2)
+            SeparatorsPaint = new SolidColorPaint(new SKColor(238, 238, 238), 2)
         };
 
         yAxis = new Axis
         {
             LabelsRotation = 15, // initial value
-            Labeler = Labelers.Currency,
-            SeparatorsPaint = new SolidColorPaint(SKColors.LightGray, 2)
+            SeparatorsPaint = new SolidColorPaint(new SKColor(238, 238, 238), 2)
         };
 
         cartesianChart = new CartesianChart
