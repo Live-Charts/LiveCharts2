@@ -1,10 +1,12 @@
-﻿using Eto.Forms;
+﻿using System.Linq;
+using Eto.Forms;
+using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Drawing.Geometries;
-using LiveChartsCore.SkiaSharpView.Extensions;
 using LiveChartsCore.SkiaSharpView.Painting;
 using LiveChartsCore.SkiaSharpView.VisualElements;
 using LiveChartsCore.SkiaSharpView.Eto;
 using SkiaSharp;
+using ViewModelsSamples.Pies.Basic;
 
 namespace EtoFormsSample.Pies.Basic;
 
@@ -14,9 +16,17 @@ public class View : Panel
 
     public View()
     {
+        var viewModel = new ViewModel();
+
         Chart = new PieChart
         {
-            Series = new[] { 2, 4, 1, 4, 3 }.AsPieSeries(),
+            Series = viewModel.Data
+                .Select(data => new PieSeries<double>
+                {
+                    Name = data.Name,
+                    Values = data.Values
+                })
+                .ToArray(),
             Title = new DrawnLabelVisual(
                 new LabelGeometry
                 {

@@ -1,11 +1,12 @@
 ﻿@page "/Pies/Basic"
 @using LiveChartsCore
+@using LiveChartsCore.SkiaSharpView
 @using LiveChartsCore.SkiaSharpView.Blazor
 @using LiveChartsCore.SkiaSharpView.Drawing.Geometries
-@using LiveChartsCore.SkiaSharpView.Extensions
 @using LiveChartsCore.SkiaSharpView.VisualElements
 @using LiveChartsCore.SkiaSharpView.Painting
 @using SkiaSharp
+@using ViewModelsSamples.Pies.Basic
 
 <PieChart
     @ref="Chart"
@@ -19,7 +20,15 @@
 
     protected override void OnInitialized()
     {
-        Series = new[] { 2, 4, 1, 4, 3 }.AsPieSeries();
+        var viewModel = new ViewModel();
+
+        Series = viewModel.Data
+            .Select(data => new PieSeries<double>
+            {
+                Name = data.Name,
+                Values = data.Values
+            })
+            .ToArray();
         
         Title = new DrawnLabelVisual(
             new LabelGeometry
