@@ -3,6 +3,9 @@
 @using LiveChartsCore.Geo;
 @using LiveChartsCore.SkiaSharpView;
 @using LiveChartsCore.SkiaSharpView.Drawing.Geometries
+@using LiveChartsCore.Measure
+@using LiveChartsCore.SkiaSharpView.SKCharts
+@using LiveChartsCore.SkiaSharpView.VisualElements
 
 <GeoMap
     @ref="Chart"
@@ -39,6 +42,28 @@
             new HeatLandSeries { Lands = lands }
         };
         _ = DoRandomChanges(series[0]);
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+        if (!firstRender) return;
+
+        // the map title and legend are not component parameters,
+        // so set them on the control.
+        Chart.LegendPosition = LegendPosition.Right;
+        Chart.Title = new DrawnLabelVisual(
+            new LabelGeometry
+            {
+                Text = "World population by country",
+                TextSize = 20,
+                Padding = new LiveChartsCore.Drawing.Padding(12)
+            });
+        Chart.Legend = new SKHeatLegend
+        {
+            BadgePadding = new LiveChartsCore.Drawing.Padding(20, 16, 8, 16)
+        };
+        Chart.CoreChart?.Update();
     }
 
     private async Task DoRandomChanges(HeatLandSeries series)

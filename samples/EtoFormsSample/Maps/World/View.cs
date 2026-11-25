@@ -5,6 +5,9 @@ using Eto.Forms;
 using LiveChartsCore.Geo;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Drawing.Geometries;
+using LiveChartsCore.Measure;
+using LiveChartsCore.SkiaSharpView.SKCharts;
+using LiveChartsCore.SkiaSharpView.VisualElements;
 using LiveChartsCore.SkiaSharpView.Eto;
 
 namespace EtoFormsSample.Maps.World;
@@ -41,7 +44,19 @@ public class View : Panel
         var chart = new GeoMap
         {
             Series = series,
-            MapProjection = MapProjection.Mercator
+            MapProjection = MapProjection.Mercator,
+            LegendPosition = LegendPosition.Right,
+            Title = new DrawnLabelVisual(
+                new LabelGeometry
+                {
+                    Text = "World population by country",
+                    TextSize = 20,
+                    Padding = new LiveChartsCore.Drawing.Padding(12)
+                }),
+            Legend = new SKHeatLegend
+            {
+                BadgePadding = new LiveChartsCore.Drawing.Padding(20, 16, 8, 16)
+            }
         };
 
         Content = chart;
