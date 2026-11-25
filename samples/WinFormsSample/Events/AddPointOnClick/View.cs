@@ -4,6 +4,7 @@ using LiveChartsCore;
 using LiveChartsCore.Defaults;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.WinForms;
+using ViewModelsSamples.Events.AddPointOnClick;
 
 namespace WinFormsSample.Events.AddPointOnClick;
 
@@ -17,18 +18,15 @@ public partial class View : UserControl
         InitializeComponent();
         Size = new System.Drawing.Size(400, 400);
 
-        _data = [
-            new(2, 3),
-            new(4, 5),
-            new(6, 2)
-        ];
+        var viewModel = new ViewModel();
+        _data = viewModel.Points;
 
         var series = new ISeries[]
         {
             new LineSeries<ObservablePoint>
             {
                 Values = _data,
-                GeometrySize = 18,
+                Fill = null,
                 DataPadding = new LiveChartsCore.Drawing.LvcPoint(5,5)
             }
         };
@@ -36,6 +34,7 @@ public partial class View : UserControl
         _cartesianChart = new CartesianChart
         {
             Series = series,
+            TooltipPosition = LiveChartsCore.Measure.TooltipPosition.Hidden,
             Location = new System.Drawing.Point(0, 0),
             Size = new System.Drawing.Size(400, 400),
             Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom

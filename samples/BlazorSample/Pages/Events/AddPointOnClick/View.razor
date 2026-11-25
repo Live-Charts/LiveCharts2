@@ -5,6 +5,7 @@
 @using LiveChartsCore.SkiaSharpView.Blazor;
 @using LiveChartsCore;
 @using System.Collections.ObjectModel;
+@using ViewModelsSamples.Events.AddPointOnClick
 
 <CartesianChart
     @ref="_chart"
@@ -15,22 +16,20 @@
 
 @code {
     private CartesianChart _chart;
-    private ObservableCollection<ObservablePoint> _data = new ObservableCollection<ObservablePoint>
-    {
-        new ObservablePoint(2, 3),
-        new ObservablePoint(4, 5),
-        new ObservablePoint(6, 2)
-    };
+    private ObservableCollection<ObservablePoint> _data;
     private ISeries[] series;
 
     protected override void OnInitialized()
     {
+        var viewModel = new ViewModel();
+        _data = viewModel.Points;
+
         series = new ISeries[]
         {
             new LineSeries<ObservablePoint>
             {
                 Values = _data,
-                GeometrySize = 18,
+                Fill = null,
                 DataPadding = new LiveChartsCore.Drawing.LvcPoint(5,5)
             }
         };

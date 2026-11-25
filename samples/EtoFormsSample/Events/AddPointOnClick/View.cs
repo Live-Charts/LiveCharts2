@@ -4,6 +4,7 @@ using LiveChartsCore;
 using LiveChartsCore.Defaults;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Eto;
+using ViewModelsSamples.Events.AddPointOnClick;
 
 namespace EtoFormsSample.Events.AddPointOnClick;
 
@@ -13,18 +14,15 @@ public class View : Panel
 
     public View()
     {
-        _data = [
-            new(2, 3),
-            new(4, 5),
-            new(6, 2)
-        ];
+        var viewModel = new ViewModel();
+        _data = viewModel.Points;
 
         var series = new ISeries[]
         {
             new LineSeries<ObservablePoint>
             {
                 Values = _data,
-                GeometrySize = 18,
+                Fill = null,
                 DataPadding = new LiveChartsCore.Drawing.LvcPoint(5, 5)
             }
         };
@@ -32,6 +30,7 @@ public class View : Panel
         var cartesianChart = new CartesianChart
         {
             Series = series,
+            TooltipPosition = LiveChartsCore.Measure.TooltipPosition.Hidden
         };
 
         cartesianChart.MouseDown += CartesianChart_Click;
