@@ -3,28 +3,19 @@
 @using LiveChartsCore;
 @using LiveChartsCore.Defaults;
 @using LiveChartsCore.SkiaSharpView;
+@using ViewModelsSamples.General.NullPoints
 
 <CartesianChart
     Series="@series">
 </CartesianChart>
 
 @code {
-    private static double?[] values1 = new double?[] { 5, 4, null, 3, 2, 6, 5, 6, 2 };
-    private static double?[] values2 = new double?[] { 2, 6, 5, 3, null, 5, 2, 4, null };
-    private static ObservablePoint?[] values3 = new ObservablePoint?[]
-    {
-        new ObservablePoint { X = 0, Y = 1 },
-        new ObservablePoint { X = 1, Y = 4 },
-        null,
-        new ObservablePoint { X = 4, Y = 5 },
-        new ObservablePoint { X = 6, Y = 1 },
-        new ObservablePoint { X = 8, Y = 6 }
-    };
+    private static ViewModel viewModel = new();
 
     private ISeries[] series = new ISeries[]
     {
-        new LineSeries<double?> { Name = "Series 1", Values = values1 },
-        new LineSeries<double?> { Name = "Series 2", Values = values2 },
-        new LineSeries<ObservablePoint?> { Name = "Series 3", Values = values3 }
+        new LineSeries<double?> { Values = viewModel.Values1 },
+        new LineSeries<double?> { Values = viewModel.Values2 },
+        new LineSeries<ObservablePoint?> { Values = viewModel.Values3 }
     };
 }
