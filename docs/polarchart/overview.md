@@ -1,18 +1,29 @@
 <!--
 To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/master/docs/readme.md
+Samples are pulled from the repository with render_sample, the code shown always matches the samples.
 -->
 
-# The Polar Chart Control
+# Polar charts
+
+The `PolarChart` control plots data in the
+[polar coordinate system](https://en.wikipedia.org/wiki/Polar_coordinate_system): every point has an angle and a
+radius. It draws `PolarLineSeries`, a line series whose points go around a circle instead of along an X axis, and
+it has two kinds of axes: the angle axes, around the circle, and the radius axes, from the center out. This article
+covers the control, the series and the axes together.
 
 :::info
-This article is a quick guide to use the `PolarChart` control, you can explore all the properties and the source code 
-at the [ApiExplorer]({{ website_url }}/api/{{ version }}/LiveChartsCore.SkiaSharpView.{{ platform }}.PolarChart).
+This article highlights the most used features. Every property is listed in the API explorer:
+[PolarChart]({{ website_url }}/api/{{ version }}/LiveChartsCore.SkiaSharpView.{{ platform }}.PolarChart),
+[PolarLineSeries]({{ website_url }}/api/{{ version }}/LiveChartsCore.SkiaSharpView.PolarLineSeries-3) and
+[PolarAxis]({{ website_url }}/api/{{ version }}/LiveChartsCore.SkiaSharpView.PolarAxis).
+{{~ if xaml ~}}
+In XAML, declare them as `XamlPolarLineSeries` and `XamlPolarAxis`.
+{{~ end ~}}
 :::
 
-The `PolarChart` control is a 'ready to go' control to create plots using the 
-[Polar coordinate system](https://en.wikipedia.org/wiki/Polar_coordinate_system),
-To get started all you need to do is assign the `Series` property with a collection of 
-[`IPolarSeries`]({{ website_url }}/api/{{ version }}/LiveChartsCore.Kernel.Sketches.IPolarSeries).
+## Add the control
+
+Assign the `Series` property with a collection of series:
 
 {{~ if xaml ~}}
 ```csharp
@@ -41,6 +52,8 @@ namespace ViewModelsSamples.Polar.Basic
     Series="{Binding Series}">
 </lvc:PolarChart>
 ```
+
+The series can also be declared inside the chart in XAML, as `XamlPolarLineSeries`; the samples below do it that way.
 {{~ end ~}}
 
 {{~ if blazor ~}}
@@ -67,7 +80,7 @@ private ISeries[] series = new[]
 Drag a new `PolarChart` control from your toolbox, then in the code behind assign the `Series` property:
 
 ```csharp
-PolarChart1.Series = new[]
+polarChart1.Series = new[]
 {
     new PolarLineSeries<double>
     {
@@ -79,263 +92,180 @@ PolarChart1.Series = new[]
 ```
 {{~ end ~}}
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/polar-mvp.png)
-
-The main components of this control are:
-
-- Series
-- Axes
-- Tooltip
-- Legend
-
-But notice in the previous code snippet we did not specify the Axes, Tooltip, Legend or the series colors, this is because LiveCharts will
-decide them based on the current theme of the library, you can also customize any of these properties when you require it, this article will
-cover the most common scenarios.
-
-## Series
-
-There are ~multiple~ series available in the library, you can add one or mix them all in the same chart, every series has unique properties,
-any image below is a link to an article explaining more about them.
-
-<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/PolarChart.Polar%20Line%20Series">
-<div class="series-miniature">
-<img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/samples/polarLines/basic/result.png" alt="series"/>
-<div class="text-center"><b>Polar Line series</b></div>
-</div>
-</a>
-
-## InitialRotation property
-
-Defines an offset to establish where the 0 angle is.
-
-{{~ if xaml ~}}
-```xml
-<lvc:PolarChart
-    Series="{Binding Series}"
-    InitialRotation="-90">
-</lvc:PolarChart>
-```
-{{~ end ~}}
-
-{{~ if blazor ~}}
-```xml
-<PolarChart
-    Series="series"
-    InitialRotation="-90">
-</PolarChart>
-```
-
-{{~ end ~}}
-
-{{~ if winforms ~}}
-Drag a new `PolarChart` control from your toolbox, then in the code behind assign the `Series` property:
-
+{{~ if eto ~}}
 ```csharp
-polarChart1.InitialRotation = -90;
-```
-{{~ end ~}}
-
-Notice a change in the `InitialRotation` property is animated automatically based on the chart animations settings:
-
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/polar-rotation.gif)
-
-## InnerRadius property
-
-Defines the inner radius in pixels of the chart.
-
-{{~ if xaml ~}}
-```xml
-<lvc:PolarChart
-    Series="{Binding Series}"
-    InnerRadius="50">
-</lvc:PolarChart>
-```
-{{~ end ~}}
-
-{{~ if blazor ~}}
-```xml
-<PolarChart
-    Series="Series"
-    InnerRadius="50">
-</PolarChart>
-```
-
-{{~ end ~}}
-
-{{~ if winforms ~}}
-Drag a new `PolarChart` control from your toolbox, then in the code behind assign the `Series` property:
-
-```csharp
-polarChart1.InnerRadius = 50;
-```
-{{~ end ~}}
-
-Notice a change in the `InnerRadius` property is animated automatically based on the chart animations settings:
-
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/polar-innerRadius.gif)
-
-## TotalAngle property
-
-Defines the total circumference angle in degrees, from 0 to 360, default is 360.
-
-{{~ if xaml ~}}
-```xml
-<lvc:PolarChart
-    Series="{Binding Series}"
-    TotalAngle="270">
-</lvc:PolarChart>
-```
-{{~ end ~}}
-
-{{~ if blazor ~}}
-```xml
-<PolarChart
-    Series="Series"
-    TotalAngle="270">
-</PolarChart>
-```
-
-{{~ end ~}}
-
-{{~ if winforms ~}}
-Drag a new `PolarChart` control from your toolbox, then in the code behind assign the `Series` property:
-
-```csharp
-polarChart1.TotalAngle = 270;
-```
-{{~ end ~}}
-
-Notice a change in the `TotalAngle` property is animated automatically based on the chart animations settings:
-
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/polar-totalangle.gif)
-
-## PolarAxis.LabelsPaint and PolarAxis.SeparatorsPaint properties
-
-You can set the color, use dashed lines, build gradients for the axis name, labels and separators, if you need help using `Paint` instances take 
-a look at the [Paints article]({{ website_url }}/docs/{{ platform }}/{{ version }}/Overview.Paints).
-
-{{~ if xaml ~}}
-```csharp
-using LiveChartsCore;
-using LiveChartsCore.SkiaSharpView;
-using LiveChartsCore.SkiaSharpView.Painting;
-using LiveChartsCore.SkiaSharpView.Painting.Effects;
-using SkiaSharp;
-
-namespace ViewModelsSamples.Bars.Basic
+Content = new PolarChart
 {
-    public class ViewModel
+    Series = new[]
     {
-        public ISeries[] Series { get; set; } = new ISeries[] { ... };
-
-        public PolarAxis[] RadiusAxes { get; set; }
-            = new PolarAxis[]
-            {
-                new PolarAxis
-                {
-                    TextSize = 10,
-                    LabelsPaint = new SolidColorPaint(SKColors.Blue), // mark
-
-                    SeparatorsPaint = new SolidColorPaint(SKColors.LightSlateGray) { StrokeThickness = 2 }  // mark
-                }
-            };
-
-        public PolarAxis[] AngleAxes { get; set; }
-            = new PolarAxis[]
-            {
-                new PolarAxis
-                {
-                    LabelsPaint = new SolidColorPaint(SKColors.Green), // mark
-                    TextSize = 20,
-
-                    SeparatorsPaint = new SolidColorPaint(SKColors.LightSlateGray) // mark
-                    { // mark
-                        StrokeThickness = 2, // mark
-                        PathEffect = new DashEffect(new float[] { 3, 3 }) // mark
-                    } // mark
-                }
-            };
+        new PolarLineSeries<double>
+        {
+            Values = new double[] { 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 },
+            Fill = null,
+            IsClosed = false
+        }
     }
-}
-```
-
-```xml
-<lvc:CartesianChart
-    Series="{Binding Series}"
-    RadiusAxes="{Binding RadiusAxes}"
-    AngleAxes="{Binding AngleAxes}">
-</lvc:CartesianChart>
+};
 ```
 {{~ end ~}}
 
-{{~ if blazor ~}}
+The snippet does not set the axes, the tooltip, the legend or the colors of the series: LiveCharts picks them from
+the current theme. Set them only when you need something different.
+
+## Polar line series
+
+Each value of a `PolarLineSeries` is the radius of a point, and its position in the collection is the angle. The angle
+axis goes from the first index to one past the last one, so the points are spread evenly around the circle and the
+last point does not land on the first one. The first point is at the top and the next ones follow clockwise.
+
+This sample also draws a label on each point (see [data labels](#data-labels)), sets the `MaxLimit` of the radius
+axis and the angle of its labels, and rotates the labels of the angle axis (see
+[labels position and rotation](#labels-position-and-rotation)).
+
+{{ render_sample "polar/basic" }}
+
+The second generic argument of the series changes the geometry drawn at each point, as in a line series:
+`PolarLineSeries<double, StarGeometry>`.
+
+## Closed and open lines
+
+`IsClosed` is `true` by default: when the series has more than two points, the line goes back from the last point to
+the first one. Set it to `false` to leave the line open:
+
 ```csharp
-@using LiveChartsCore;
-@using LiveChartsCore.SkiaSharpView;
-@using LiveChartsCore.SkiaSharpView.Painting;
-@using LiveChartsCore.SkiaSharpView.Painting.Effects;
-@using SkiaSharp;
+Series = new ISeries[]
+{
+    new PolarLineSeries<double>
+    {
+        Values = new double[] { 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 },
+        Fill = null,
+        IsClosed = false // mark
+    }
+};
+```
 
-<CartesianChart
-    Series="series"
-    RadiusAxes="radiusAxes"
-    AngleAxes="angleAxes">
-</CartesianChart>
+## Radial area
 
-@code {
-    private ISeries[] series { get; set; } = new ISeries[] {  };
+The default theme fills the area inside the line with the color of the series, mostly transparent. Set `Fill` to use
+your own paint, or to `null` to draw only the line. `LineSmoothness` goes from `0` to `1`, `0.65` by default: `0`
+draws straight segments between the points and `1` the most curved line. This sample compares both, with no point
+geometries (`GeometrySize` is `0`), and names each angle with the `Labels` of the angle axis.
 
-    private PolarAxis[] radiusAxes { get; set; }
-        = new PolarAxis[]
-        {
-            new PolarAxis
-            {
-                TextSize = 10,
-                LabelsPaint = new SolidColorPaint(SKColors.Blue), // mark
+{{ render_sample "polar/radialArea" }}
 
-                SeparatorsPaint = new SolidColorPaint(SKColors.LightSlateGray) { StrokeThickness = 2 }  // mark
-            }
-        };
+The sample also sets `InitialRotation` to `-45`, see [initial rotation](#initial-rotation).
 
-    private PolarAxis[] angleAxes { get; set; }
-        = new PolarAxis[]
-        {
-            new PolarAxis
-            {
-                LabelsPaint = new SolidColorPaint(SKColors.Green), // mark
-                TextSize = 20,
+## Polar coordinates
 
-                SeparatorsPaint = new SolidColorPaint(SKColors.LightSlateGray) // mark
-                { // mark
-                    StrokeThickness = 2, // mark
-                    PathEffect = new DashEffect(new float[] { 3, 3 }) // mark
-                } // mark
-            }
-        };
+To set both the angle and the radius of each point, use `ObservablePolarPoint`; its `Angle` and `Radius` properties
+notify the chart when they change. The angle is in the scale of the angle axis, so this sample sets the `MinLimit` of
+the angle axis to `0` and its `MaxLimit` to `360` to read the angles as degrees. `MinStep` and `ForceStepToMin` draw a
+label every 30 degrees, and the `Labeler` adds the degree sign.
+
+{{ render_sample "polar/coordinates" }}
+
+To plot your own types, see [mappers]({{ website_url }}/docs/{{ platform }}/{{ version }}/Overview.Mappers): in a
+polar series the X of the coordinate is the angle and the Y is the radius.
+
+## Stroke and fill paints
+
+When `Stroke`, `Fill`, `GeometryStroke` or `GeometryFill` are not set, LiveCharts picks them from the current theme,
+based on the position of the series in the chart's series collection. A polar line series takes the same paints,
+point geometries and `GeometrySize` as a line series; the
+[line series article]({{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Line%20and%20step%20line%20series#stroke-and-fill-paints)
+explains them in detail.
+
+```csharp
+Series = new ISeries[]
+{
+    new PolarLineSeries<int>
+    {
+        Values = new [] { 4, 4, 7, 2, 8 },
+        Stroke = new SolidColorPaint(SKColors.Blue) { StrokeThickness = 4 }, // mark
+        Fill = new SolidColorPaint(SKColors.Blue.WithAlpha(90)), // mark
+        GeometryFill = new SolidColorPaint(SKColors.AliceBlue), // mark
+        GeometryStroke = new SolidColorPaint(SKColors.Gray) { StrokeThickness = 4 }, // mark
+        GeometrySize = 10 // mark
+    },
+    new PolarLineSeries<int>
+    {
+        Values = new [] { 7, 5, 3, 2, 6 },
+        Stroke = new SolidColorPaint(SKColors.Red) { StrokeThickness = 8 },
+        Fill = null,
+        GeometryFill = null,
+        GeometryStroke = null
+    }
+};
+```
+
+## Gaps
+
+A `null` value creates a gap in the line. This is controlled by `EnableNullSplitting`, which is `true` by default.
+`IsClosed` applies to each piece of the line, so this snippet sets it to `false` to keep the pieces open:
+
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/polarlinesnullsplit.png)
+
+```csharp
+Series = new ISeries[]
+{
+    new PolarLineSeries<int?>
+    {
+        Values = new int?[] { 5, 4, 2, null, 3, 8, 6 }, // mark
+        LineSmoothness = 0,
+        IsClosed = false
+    }
+};
+```
+
+## Data labels
+
+`ShowDataLabels` draws a label on every point, with a paint from the theme; setting `DataLabelsPaint` also turns them
+on. `DataLabelsPosition` places them: `Middle` centers the label on the point, `End` moves it away from the center of
+the chart and `Start` moves it toward the center.
+
+`DataLabelsRotation` rotates the labels, in degrees. Two constants make the labels follow the circle:
+`LiveCharts.TangentAngle` turns each label along the tangent of the circle at its point, and
+`LiveCharts.CotangentAngle` along the line from the center to the point, as in the
+[polar line series](#polar-line-series) sample. Add degrees to them to rotate further:
+
+```csharp
+new PolarLineSeries<double>
+{
+    Values = new double[] { 15, 14, 13, 12, 11, 10, 9, 8 },
+    DataLabelsPaint = new SolidColorPaint(SKColors.Black),
+    DataLabelsSize = 10,
+    // all the positions:
+    // {{ website_url }}/api/{{ version }}/LiveChartsCore.Measure.PolarLabelsPosition
+    DataLabelsPosition = PolarLabelsPosition.End,
+    DataLabelsRotation = LiveCharts.TangentAngle + 30, // the tangent + 30 degrees
+    DataLabelsFormatter = point => point.Coordinate.PrimaryValue.ToString("N1")
 }
 ```
-{{~ end ~}}
 
-{{~ if winforms ~}}
+## Angle and radius axes
+
+The chart has the `AngleAxes` and `RadiusAxes` properties, each a collection of `PolarAxis`. When a collection is not
+set or is empty, the chart uses one default axis. The separators of an angle axis are lines from the center, the
+separators of a radius axis are circles. `LabelsPaint` and `SeparatorsPaint` set their paints, and `TextSize` the size
+of the labels:
+
 ```csharp
-polarChart1.RadiusAxes = new PolarAxis[]
+RadiusAxes = new PolarAxis[]
 {
     new PolarAxis
     {
         TextSize = 10,
         LabelsPaint = new SolidColorPaint(SKColors.Blue), // mark
-
-        SeparatorsPaint = new SolidColorPaint(SKColors.LightSlateGray) { StrokeThickness = 2 }  // mark
+        SeparatorsPaint = new SolidColorPaint(SKColors.LightSlateGray) { StrokeThickness = 2 } // mark
     }
 };
 
-polarChart1.AngleAxes = new PolarAxis[]
+AngleAxes = new PolarAxis[]
 {
     new PolarAxis
     {
-        LabelsPaint = new SolidColorPaint(SKColors.Green), // mark
         TextSize = 20,
-
+        LabelsPaint = new SolidColorPaint(SKColors.Green), // mark
         SeparatorsPaint = new SolidColorPaint(SKColors.LightSlateGray) // mark
         { // mark
             StrokeThickness = 2, // mark
@@ -344,213 +274,104 @@ polarChart1.AngleAxes = new PolarAxis[]
     }
 };
 ```
-{{~ end ~}}
-
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/polar-axes-style.png)
-
-## PolarAxis.Labels vs PolarAxis.Labeler properties
-
-There are 2 ways to format and axis labels, using the `Labels` property and using the `Labeler` property,
-you must normally use the `Labels` property to indicate names, and the `Labeler` property to give format to the current label.
-
-The labels property is a collection of string, if this property is not `null`, then the axis label will be pulled from the labels 
-collection, the label is mapped to the chart based on the position of the label and the position of the point, both integers,
-if the axis requires a label outside the bounds of the labels collection, then the index will be returned as the label,
-default value is null.
 
 {{~ if xaml ~}}
-```csharp
-using LiveChartsCore;
-using LiveChartsCore.SkiaSharpView;
-using LiveChartsCore.SkiaSharpView.Painting;
-using LiveChartsCore.SkiaSharpView.Painting.Effects;
-using SkiaSharp;
-
-namespace ViewModelsSamples.Bars.Basic
-{
-    public class ViewModel
-    {
-        public ISeries[] Series { get; set; } 
-            = new ObservableCollection<ISeries>
-            {
-                new PolarLineSeries<double>
-                {
-                    Values = new ObservableCollection<double> { 5, 2, 1, 4, 3, 3 },
-                    GeometryFill = null,
-                    GeometryStroke = null,
-                    LineSmoothness = 0.2,
-                    Stroke = null,
-                    IsClosed = true,
-                },
-                new PolarLineSeries<double>
-                {
-                    Values = new ObservableCollection<double> { 3, 5, 2, 3, 4, 5 },
-                    GeometryFill = null,
-                    GeometryStroke = null,
-                    LineSmoothness = 0.2,
-                    Stroke = null,
-                    IsClosed = true,
-                }
-            };
-
-        public PolarAxis[] RadiusAxes { get; set; }
-            = new PolarAxis[]
-            {
-                new PolarAxis
-                {
-                    // formats the value as a number with 2 decimals.
-                    Labeler = value => value.ToString("N2")
-                }
-            };
-
-        public PolarAxis[] AngleAxes { get; set; }
-            = new PolarAxis[]
-            {
-                new PolarAxis
-                {
-                    Labels = new[] { "strength", "stamina", "resistance", "power", "hit points", "mana" },
-                    MinStep = 1,
-                    ForceStepToMin = true
-                }
-            };
-    }
-}
-```
-
 ```xml
-<lvc:CartesianChart
+<lvc:PolarChart
     Series="{Binding Series}"
     RadiusAxes="{Binding RadiusAxes}"
     AngleAxes="{Binding AngleAxes}">
-</lvc:CartesianChart>
+</lvc:PolarChart>
 ```
 {{~ end ~}}
 
 {{~ if blazor ~}}
-```csharp
-@using LiveChartsCore;
-@using LiveChartsCore.SkiaSharpView;
-@using LiveChartsCore.SkiaSharpView.Painting;
-@using LiveChartsCore.SkiaSharpView.Painting.Effects;
-@using SkiaSharp;
-
-<CartesianChart
+```xml
+<PolarChart
     Series="series"
     RadiusAxes="radiusAxes"
     AngleAxes="angleAxes">
-</CartesianChart>
-
-@code {
-    private ISeries[] series { get; set; } 
-        = new ObservableCollection<ISeries>
-        {
-            new PolarLineSeries<double>
-            {
-                Values = new ObservableCollection<double> { 5, 2, 1, 4, 3, 3 },
-                GeometryFill = null,
-                GeometryStroke = null,
-                LineSmoothness = 0.2,
-                Stroke = null,
-                IsClosed = true,
-            },
-            new PolarLineSeries<double>
-            {
-                Values = new ObservableCollection<double> { 3, 5, 2, 3, 4, 5 },
-                GeometryFill = null,
-                GeometryStroke = null,
-                LineSmoothness = 0.2,
-                Stroke = null,
-                IsClosed = true,
-            }
-        };
-
-    private PolarAxis[] radiusAxes { get; set; }
-        = new PolarAxis[]
-        {
-            new PolarAxis
-            {
-                // formats the value as a number with 2 decimals.
-                Labeler = value => value.ToString("N2")
-            }
-        };
-
-    private PolarAxis[] angleAxes { get; set; }
-        = new PolarAxis[]
-        {
-            new PolarAxis
-            {
-                Labels = new[] { "strength", "stamina", "resistance", "power", "hit points", "mana" },
-                MinStep = 1,
-                ForceStepToMin = true
-            }
-        };
-}
+</PolarChart>
 ```
 {{~ end ~}}
 
-{{~ if winforms ~}}
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/polar-axes-style.png)
+
+A polar axis shares most of its properties with a Cartesian axis: `Labels`, `Labeler`, `MinLimit`, `MaxLimit`,
+`MinStep`, `ForceStepToMin`, `CustomSeparators`, `ShowSeparatorLines`, `IsInverted` and `IsVisible` work as described
+in the [axes article]({{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Axes). With more than one
+axis, `ScalesAngleAt` and `ScalesRadiusAt` set the index of the axes a series uses, `0` by default.
+
+## Labels and labelers
+
+`Labels` names each position of the axis: the label at index `i` is drawn at the value `i`, and values outside the
+collection get no label. With `Labels` the axis step is at least `1`; `ForceStepToMin` makes it exactly `1`, so every
+label is drawn. `Labeler` formats the values instead. This radar chart names the angles and formats the radius with
+two decimals:
+
 ```csharp
-polarChart1.Series = new ObservableCollection<ISeries>
+Series = new ISeries[]
 {
     new PolarLineSeries<double>
     {
-        Values = new ObservableCollection<double> { 5, 2, 1, 4, 3, 3 },
+        Values = new double[] { 5, 2, 1, 4, 3, 3 },
         GeometryFill = null,
         GeometryStroke = null,
         LineSmoothness = 0.2,
-        Stroke = null,
-        IsClosed = true,
+        Stroke = null
     },
     new PolarLineSeries<double>
     {
-        Values = new ObservableCollection<double> { 3, 5, 2, 3, 4, 5 },
+        Values = new double[] { 3, 5, 2, 3, 4, 5 },
         GeometryFill = null,
         GeometryStroke = null,
         LineSmoothness = 0.2,
-        Stroke = null,
-        IsClosed = true,
+        Stroke = null
     }
 };
-        
-polarChart1.RadiusAxes = new PolarAxis[]
+
+RadiusAxes = new PolarAxis[]
 {
     new PolarAxis
     {
         // formats the value as a number with 2 decimals.
-        Labeler = value => value.ToString("N2")
+        Labeler = value => value.ToString("N2") // mark
     }
 };
 
-polarChart1.AngleAxes = new PolarAxis[]
+AngleAxes = new PolarAxis[]
 {
     new PolarAxis
     {
-        Labels = new[] { "strength", "stamina", "resistance", "power", "hit points", "mana" },
-        MinStep = 1,
+        Labels = new[] { "strength", "stamina", "resistance", "power", "hit points", "mana" }, // mark
         ForceStepToMin = true
     }
 };
 ```
-{{~ end ~}}
 
 ![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/polar-star.png)
 
-## PolarAxis.LabelsRotation property
+## Labels position and rotation
 
-Indicates the axis labels rotation in degrees, in the following image we have a rotation of 45 degrees in the Radius axis,
-and for the angle axis the labels rotation will follow the tangent line.
+The labels of a radius axis are drawn along a line from the center. `LabelsAngle` sets the angle of that line in
+degrees, `0` by default, which points right; the angle grows clockwise and `InitialRotation` does not change it. It
+has no effect on an angle axis.
+
+`LabelsRotation` rotates the labels, in degrees. On an angle axis, `LiveCharts.TangentAngle` and
+`LiveCharts.CotangentAngle` make each label follow the circle, as they do for [data labels](#data-labels). This
+snippet rotates the radius labels 45 degrees and the angle labels along the tangent:
 
 ```csharp
 RadiusAxes = new PolarAxis[]
 {
-    new PolarAxis    
+    new PolarAxis
     {
         LabelsRotation = 45 // mark
     }
 };
 AngleAxes = new PolarAxis[]
 {
-    new PolarAxis    
+    new PolarAxis
     {
         LabelsRotation = LiveCharts.TangentAngle // mark
     }
@@ -559,7 +380,7 @@ AngleAxes = new PolarAxis[]
 
 ![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/polar-labels-rotation.png)
 
-You can also place labels at the cotangent angle:
+With `LiveCharts.CotangentAngle` the angle labels point to the center:
 
 ```csharp
 AngleAxes = new PolarAxis[]
@@ -573,34 +394,126 @@ AngleAxes = new PolarAxis[]
 
 ![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/polar-labels-rotation2.png)
 
-Finally notice that you can combine the `LiveCharts.CotangentAngle` and `LiveCharts.TangentAngle` with decimal degrees,
-the following expressions are valid also:
+Both constants also take extra degrees: `LiveCharts.TangentAngle + 30` is the tangent plus 30 degrees.
 
-```csharp
-Series { get; set; } = new PolarAxis[]
-{
-    new PolarAxis
-    {
-        LabelsRotation = 30, // in degrees
-    },
-    new PolarAxis
-    {
-        LabelsRotation = LiveCharts.TangentAngle + 30, // the tangent + 30 degrees
-    },
-    new PolarAxis
-    {
-        LabelsRotation = LiveCharts.CotangentAngle + 30, // the cotangent + 30 degrees
-    }
-};
+## Initial rotation
+
+`InitialRotation` sets, in degrees, where the angle axis starts. It is `-90` by default, the top of the circle; `0` is
+the right side, and positive values turn clockwise.
+
+{{~ if xaml ~}}
+```xml
+<lvc:PolarChart
+    Series="{Binding Series}"
+    InitialRotation="-45"><!-- mark -->
+</lvc:PolarChart>
 ```
+{{~ end ~}}
 
-## PolarAxis.Visible property
+{{~ if blazor ~}}
+```xml
+<PolarChart
+    Series="series"
+    InitialRotation="-45"><!-- mark -->
+</PolarChart>
+```
+{{~ end ~}}
 
-When the `Visible` property is set to `false` the axis will not be drawn and also it will not take any space in the chart
-default is `true`.
+{{~ if winforms || eto ~}}
+```csharp
+polarChart1.InitialRotation = -45;
+```
+{{~ end ~}}
 
-{{ render "~/shared/chart.md" }}
+Changes to `InitialRotation`, `InnerRadius` and `TotalAngle` are animated like any other update:
 
-{{ render "~/shared/tooltips.md" }}
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/polar-rotation.gif)
 
-{{ render "~/shared/legends.md" }}
+## Inner radius
+
+`InnerRadius` leaves an empty circle at the center of the chart, in pixels, `0` by default. The radius axis starts at
+its edge.
+
+{{~ if xaml ~}}
+```xml
+<lvc:PolarChart
+    Series="{Binding Series}"
+    InnerRadius="50"><!-- mark -->
+</lvc:PolarChart>
+```
+{{~ end ~}}
+
+{{~ if blazor ~}}
+```xml
+<PolarChart
+    Series="series"
+    InnerRadius="50"><!-- mark -->
+</PolarChart>
+```
+{{~ end ~}}
+
+{{~ if winforms || eto ~}}
+```csharp
+polarChart1.InnerRadius = 50;
+```
+{{~ end ~}}
+
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/polar-innerRadius.gif)
+
+## Total angle
+
+`TotalAngle` is the angle, in degrees, that the whole angle axis covers, `360` by default. A smaller value draws the
+chart on part of the circle.
+
+{{~ if xaml ~}}
+```xml
+<lvc:PolarChart
+    Series="{Binding Series}"
+    TotalAngle="270"><!-- mark -->
+</lvc:PolarChart>
+```
+{{~ end ~}}
+
+{{~ if blazor ~}}
+```xml
+<PolarChart
+    Series="series"
+    TotalAngle="270"><!-- mark -->
+</PolarChart>
+```
+{{~ end ~}}
+
+{{~ if winforms || eto ~}}
+```csharp
+polarChart1.TotalAngle = 270;
+```
+{{~ end ~}}
+
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/polar-totalangle.gif)
+
+`FitToBounds`, `false` by default, moves the center of the chart and scales it so the series fill the control, which
+helps when they use only part of the circle.
+
+## Tooltips and legends
+
+Tooltips and legends work as in a Cartesian chart, see the
+[tooltips and crosshairs]({{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Tooltips%20and%20crosshairs)
+and [legends]({{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Legends) articles. What differs:
+
+- The tooltip shows the points under the pointer; the area of each point is at least 16 pixels wide. There is no
+  finding strategy to set.
+- Each row shows the radius, formatted with the `Labels` or the `Labeler` of the radius axis. The header shows the
+  angle only when the angle axis has `Labels` or a `Labeler`.
+- `RadiusToolTipLabelFormatter` and `AngleToolTipLabelFormatter` on the series build those two texts; they take the
+  point and return a string.
+
+`Name`{{ if xaml }} (`SeriesName` in XAML){{ end }} is shown in tooltips and legends. A polar chart has no zooming or
+panning.
+
+## Data, names and updates
+
+- `Values` takes any `IEnumerable<T>`. Use an `ObservableCollection<T>` and the chart animates every added, removed or
+  replaced value, see [automatic updates]({{ website_url }}/docs/{{ platform }}/{{ version }}/Overview.Automatic%20updates).
+- `Title`, `AnimationsSpeed`, `EasingFunction` and `DrawMargin` work as in the
+  [Cartesian chart control]({{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Cartesian%20chart%20control).
+- `ZIndex` sets which series draws on top, and `IsVisible` shows or hides the series.
