@@ -120,7 +120,7 @@ any image below is a link to an article explaining more about them.
 </div>
 </a>
 
-<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Scatter%20Series%20properties">
+<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Scatter%20and%20bubble%20series">
 <div class="series-miniature">
 <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/samples/scatter/basic/result.png"  alt="series"/>
 <div class="text-center"><b>Scatter series</b></div>
@@ -183,7 +183,7 @@ any image below is a link to an article explaining more about them.
 </div>
 </a>
 
-<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/samples.scatter.bubbles">
+<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Scatter%20and%20bubble%20series#bubbles">
 <div class="series-miniature">
 <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/samples/scatter/bubbles/result.png" alt="series"/>
 <div class="text-center"><b>Bubble series</b></div>
