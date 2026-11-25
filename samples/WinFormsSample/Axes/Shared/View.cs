@@ -14,6 +14,8 @@ namespace WinFormsSample.Axes.Shared;
 
 public partial class View : UserControl
 {
+    private readonly Random _random = new();
+
     public View()
     {
         InitializeComponent();
@@ -31,17 +33,21 @@ public partial class View : UserControl
         {
             Labeler = labeler,
             MaxLimit = max,
-            CrosshairPaint = new SolidColorPaint(SKColors.Red, 2),
-            CrosshairLabelsBackground = SKColors.Red.AsLvcColor(),
+            CrosshairPaint = new SolidColorPaint(new SKColor(0xFF, 0x45, 0x00, 0x40)), // #40FF4500
+            CrosshairLabelsBackground = new SKColor(0xFF, 0x45, 0x00).AsLvcColor(), // #FF4500
             CrosshairLabelsPaint = new SolidColorPaint(SKColors.White)
         };
         var sharedXAxis2 = new Axis
         {
-            Labeler = labeler,
             MaxLimit = max,
-            CrosshairPaint = new SolidColorPaint(SKColors.Red, 2)
+            CrosshairPaint = new SolidColorPaint(new SKColor(0xFF, 0x45, 0x00, 0x40)) // #40FF4500
         };
         // Optionally, set MinLimit/MaxLimit to align axes if needed
+
+        // force the left margin in both charts to align the axes
+        // no matter the size of the labels on each axis
+        var auto = LiveChartsCore.Measure.Margin.Auto;
+        var drawMargin = new Margin(70, auto, auto, auto);
 
         // Set axes as shared
         SharedAxes.Set(sharedXAxis, sharedXAxis2);
@@ -53,6 +59,7 @@ public partial class View : UserControl
             ],
             ZoomMode = ZoomAndPanMode.X,
             XAxes = [sharedXAxis],
+            DrawMargin = drawMargin,
             Location = new System.Drawing.Point(0, 0),
             Size = new System.Drawing.Size(50, 50),
             Dock = DockStyle.Fill
@@ -66,6 +73,7 @@ public partial class View : UserControl
             ],
             ZoomMode = ZoomAndPanMode.X,
             XAxes = [sharedXAxis2],
+            DrawMargin = drawMargin,
             Location = new System.Drawing.Point(0, 0),
             Size = new System.Drawing.Size(50, 50),
             Dock = DockStyle.Fill
@@ -82,14 +90,13 @@ public partial class View : UserControl
         Controls.Add(splitContainer);
     }
 
-    private static int[] Fetch(int length = 50)
+    private int[] Fetch(int length = 50)
     {
         var values = new int[length];
-        var r = new Random();
         var t = 0;
         for (var i = 0; i < length; i++)
         {
-            t += r.Next(-90, 100);
+            t += _random.Next(-90, 100);
             values[i] = t;
         }
         return values;
