@@ -1,8 +1,8 @@
-﻿using Eto.Forms;
-using LiveChartsCore.SkiaSharpView.Extensions;
-using LiveChartsCore.SkiaSharpView.Painting;
+﻿using System.Linq;
+using Eto.Forms;
+using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Eto;
-using SkiaSharp;
+using ViewModelsSamples.Pies.Custom;
 
 namespace EtoFormsSample.Pies.Custom;
 
@@ -12,37 +12,19 @@ public class View : Panel
 
     public View()
     {
-        var outer = 0;
-        var data = new[] { 6, 5, 4, 3 };
+        var viewModel = new ViewModel();
 
-        var seriesCollection = data.AsPieSeries((value, series) =>
-        {
-            series.OuterRadiusOffset = outer;
-            outer += 50;
-
-            series.DataLabelsPaint = new SolidColorPaint(SKColors.White)
+        var seriesCollection = viewModel.Data
+            .Select(data => new PieSeries<double>
             {
-                SKTypeface = SKTypeface.FromFamilyName("Arial", SKFontStyle.Bold)
-            };
-
-            series.ToolTipLabelFormatter =
-                point =>
-                {
-                    var pv = point.Coordinate.PrimaryValue;
-                    var sv = point.StackedValue!;
-                    var a = $"{pv}/{sv.Total}{System.Environment.NewLine}{sv.Share:P2}";
-                    return a;
-                };
-
-            series.DataLabelsFormatter =
-                point =>
-                {
-                    var pv = point.Coordinate.PrimaryValue;
-                    var sv = point.StackedValue!;
-                    var a = $"{pv}/{sv.Total}{System.Environment.NewLine}{sv.Share:P2}";
-                    return a;
-                };
-        });
+                Name = data.Name,
+                Values = data.Values,
+                OuterRadiusOffset = data.Offset,
+                ShowDataLabels = true,
+                ToolTipLabelFormatter = data.Formatter,
+                DataLabelsFormatter = data.Formatter
+            })
+            .ToArray();
 
         pieChart = new PieChart
         {
