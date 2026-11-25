@@ -1,57 +1,44 @@
 ﻿@page "/Maps/World"
 @using LiveChartsCore.SkiaSharpView.Blazor
 @using LiveChartsCore.Geo;
+@using LiveChartsCore.Measure;
 @using LiveChartsCore.SkiaSharpView;
 @using LiveChartsCore.SkiaSharpView.Drawing.Geometries
+@using LiveChartsCore.SkiaSharpView.SKCharts
+@using LiveChartsCore.SkiaSharpView.VisualElements
+@using ViewModelsSamples.Maps.World
 
 <GeoMap
     @ref="Chart"
-    Series="@series"
+    Series="@viewModel.Series"
     MapProjection="LiveChartsCore.Geo.MapProjection.Mercator">
 </GeoMap>
 
 @code {
     public GeoMap Chart;
 
-    private HeatLand[] lands = new HeatLand[]
-    {
-        new() { Name = "bra", Value = 13 },
-        new() { Name = "mex", Value = 10 },
-        new() { Name = "usa", Value = 15 },
-        new() { Name = "can", Value = 8 },
-        new() { Name = "ind", Value = 12 },
-        new() { Name = "deu", Value = 13 },
-        new() { Name= "jpn", Value = 15 },
-        new() { Name = "chn", Value = 14 },
-        new() { Name = "rus", Value = 11 },
-        new() { Name = "fra", Value = 8 },
-        new() { Name = "esp", Value = 7 },
-        new() { Name = "kor", Value = 10 },
-        new() { Name = "zaf", Value = 12 },
-        new() { Name = "are", Value = 13 }
-    };
-    private HeatLandSeries[] series;
+    // the view model changes the values every 500ms
+    private readonly ViewModel viewModel = new();
 
-    protected override void OnInitialized()
+    protected override void OnAfterRender(bool firstRender)
     {
-        series = new HeatLandSeries[]
-        {
-            new HeatLandSeries { Lands = lands }
-        };
-        _ = DoRandomChanges(series[0]);
-    }
+        base.OnAfterRender(firstRender);
+        if (!firstRender) return;
 
-    private async Task DoRandomChanges(HeatLandSeries series)
-    {
-        var r = new Random();
-        await Task.Delay(1000);
-        while (true)
-        {
-            foreach (var shape in series.Lands ?? Enumerable.Empty<IWeigthedMapLand>())
+        // the map title and legend are not component parameters,
+        // so set them on the control.
+        Chart.LegendPosition = LegendPosition.Right;
+        Chart.Title = new DrawnLabelVisual(
+            new LabelGeometry
             {
-                shape.Value = r.Next(0, 20);
-            }
-            await Task.Delay(500);
-        }
+                Text = "World population by country",
+                TextSize = 20,
+                Padding = new LiveChartsCore.Drawing.Padding(12)
+            });
+        Chart.Legend = new SKHeatLegend
+        {
+            BadgePadding = new LiveChartsCore.Drawing.Padding(20, 16, 8, 16)
+        };
+        Chart.CoreChart.Update();
     }
 }
