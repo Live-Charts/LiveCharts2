@@ -1,7 +1,6 @@
 ﻿using System.Windows.Forms;
 using LiveChartsCore.SkiaSharpView.SKCharts;
 using LiveChartsCore.SkiaSharpView.WinForms;
-using ViewModelsSamples.General.ChartToImage;
 
 namespace WinFormsSample.General.ChartToImage;
 
@@ -15,15 +14,13 @@ public partial class View : UserControl
         InitializeComponent();
         Size = new System.Drawing.Size(420, 620);
 
-        var viewModel = new ViewModel();
-
         // Adding a cartesian chart to the UI...
         _cartesian = new CartesianChart
         {
             Series =
             [
-                new LiveChartsCore.SkiaSharpView.ColumnSeries<double> { Values = viewModel.Values1 },
-                new LiveChartsCore.SkiaSharpView.LineSeries<double> { Values = viewModel.Values2 }
+                new LiveChartsCore.SkiaSharpView.LineSeries<double> { Values = [1, 5, 4, 6] },
+                new LiveChartsCore.SkiaSharpView.ColumnSeries<double> { Values = [4, 8, 2, 4] }
             ],
             Location = new System.Drawing.Point(10, 10),
             Size = new System.Drawing.Size(400, 180)
@@ -35,9 +32,9 @@ public partial class View : UserControl
         {
             Series =
             [
-                new LiveChartsCore.SkiaSharpView.PieSeries<double> { Values = viewModel.PieValues1 },
-                new LiveChartsCore.SkiaSharpView.PieSeries<double> { Values = viewModel.PieValues2 },
-                new LiveChartsCore.SkiaSharpView.PieSeries<double> { Values = viewModel.PieValues3 }
+                new LiveChartsCore.SkiaSharpView.PieSeries<double> { Values = [10] },
+                new LiveChartsCore.SkiaSharpView.PieSeries<double> { Values = [6] },
+                new LiveChartsCore.SkiaSharpView.PieSeries<double> { Values = [4] }
             ],
             Location = new System.Drawing.Point(10, 210),
             Size = new System.Drawing.Size(400, 180)
