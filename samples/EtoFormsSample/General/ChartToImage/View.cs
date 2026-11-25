@@ -21,8 +21,8 @@ public class View : Panel
         {
             Series =
             [
-                new ColumnSeries<double> { Values = viewModel.Values1 },
-                new LineSeries<double> { Values = viewModel.Values2 }
+                new LineSeries<double> { Values = viewModel.Values1 },
+                new ColumnSeries<double> { Values = viewModel.Values2 }
             ]
         };
 

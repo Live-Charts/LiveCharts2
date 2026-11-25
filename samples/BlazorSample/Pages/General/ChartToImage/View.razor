@@ -3,6 +3,7 @@
 @using LiveChartsCore.SkiaSharpView.Blazor
 @using LiveChartsCore.SkiaSharpView;
 @using LiveChartsCore.SkiaSharpView.SKCharts;
+@using ViewModelsSamples.General.ChartToImage
 
 <div style="max-height: 400px">
     <CartesianChart
@@ -22,23 +23,19 @@
     private CartesianChart _cartesianChart = null!;
     private PieChart _pieChart = null!;
 
-    private double[] values1 = new double[] { 2, 5, 4 };
-    private double[] values2 = new double[] { 3, 1, 6 };
-    private double[] pieValues1 = new double[] { 2 };
-    private double[] pieValues2 = new double[] { 4 };
-    private double[] pieValues3 = new double[] { 1 };
+    private readonly ViewModel viewModel = new();
 
     private ISeries[] cartesianSeries => new ISeries[]
     {
-        new ColumnSeries<double> { Values = values1 },
-        new LineSeries<double> { Values = values2 }
+        new LineSeries<double> { Values = viewModel.Values1 },
+        new ColumnSeries<double> { Values = viewModel.Values2 }
     };
 
     private ISeries[] pieSeries => new ISeries[]
     {
-        new PieSeries<double> { Values = pieValues1 },
-        new PieSeries<double> { Values = pieValues2 },
-        new PieSeries<double> { Values = pieValues3 }
+        new PieSeries<double> { Values = viewModel.PieValues1 },
+        new PieSeries<double> { Values = viewModel.PieValues2 },
+        new PieSeries<double> { Values = viewModel.PieValues3 }
     };
 
     protected override void OnAfterRender(bool firstRender)

@@ -22,8 +22,8 @@ public partial class View : UserControl
         {
             Series =
             [
-                new LiveChartsCore.SkiaSharpView.ColumnSeries<double> { Values = viewModel.Values1 },
-                new LiveChartsCore.SkiaSharpView.LineSeries<double> { Values = viewModel.Values2 }
+                new LiveChartsCore.SkiaSharpView.LineSeries<double> { Values = viewModel.Values1 },
+                new LiveChartsCore.SkiaSharpView.ColumnSeries<double> { Values = viewModel.Values2 }
             ],
             Location = new System.Drawing.Point(10, 10),
             Size = new System.Drawing.Size(400, 180)
