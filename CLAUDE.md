@@ -57,7 +57,9 @@ dotnet run --project samples/AvaloniaSample/AvaloniaSample.csproj
 dotnet run --project samples/ConsoleSample/ConsoleSample.csproj
 ```
 
-Sample ViewModels live in `samples/ViewModelsSamples/` and are shared across all platform samples. Each platform sample creates its own views. `samples/ViewModelsSamples/Index.cs` lists all available sample paths.
+Sample ViewModels live in `samples/ViewModelsSamples/` and are shared by the MVVM platforms (WPF, Avalonia, MAUI, WinUI, Uno), whose XAML views bind to them. Each platform sample creates its own views. `samples/ViewModelsSamples/Index.cs` lists all available sample paths.
+
+**WinForms, Eto and Blazor samples do not use the view model.** Those platforms are not MVVM: their views are plain, self-contained code with the data written inline (arrays, collections, series with `Name` and `Values` set directly), never `new ViewModel()` to copy data out of it. They must still draw the same chart as the XAML sample, with the same values, series names and visible options, because the docs show one image per sample next to each platform's code. Shared classes in `ViewModelsSamples` that are not the view model (a custom tooltip, legend or geometry, a resource file) may be used. `Test/` and `VisualTest/` samples are UI test fixtures and follow their own needs.
 
 ## Architecture Details
 
