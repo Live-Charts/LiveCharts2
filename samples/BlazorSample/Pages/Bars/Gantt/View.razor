@@ -1,6 +1,7 @@
 @page "/Bars/Gantt"
 @using System
 @using LiveChartsCore
+@using LiveChartsCore.Defaults
 @using LiveChartsCore.SkiaSharpView
 @using LiveChartsCore.SkiaSharpView.Blazor
 
@@ -11,34 +12,49 @@
 </CartesianChart>
 
 @code {
-    // Blazor is code-only — no XAML wrappers. Reuse the same VM for raw data
-    // + formatters and instantiate the chart objects locally.
-    private readonly ViewModelsSamples.Bars.Gantt.ViewModel vm = new();
-
     private ISeries[] series;
     private Axis[] xAxes;
     private Axis[] yAxes;
 
     protected override void OnInitialized()
     {
+        var projectStart = new DateTime(2026, 6, 1);
+
+        // each task is a RangeValue from its start date to its end date, in ticks.
+        RangeValue MakeTask(int startDay, int endDay) =>
+            new(projectStart.AddDays(startDay).Ticks, projectStart.AddDays(endDay).Ticks);
+
         series =
         [
-            new RangeRowSeries<LiveChartsCore.Defaults.RangeValue>
+            new RangeRowSeries<RangeValue>
             {
                 Name = "Project",
-                Values = vm.Tasks,
-                YToolTipLabelFormatter = vm.TaskTooltipFormatter,
-            },
+                Values =
+                [
+                    MakeTask(0, 5),   // Design
+                    MakeTask(3, 8),   // Backend API
+                    MakeTask(5, 12),  // Frontend
+                    MakeTask(7, 14),  // Integration
+                    MakeTask(10, 18), // Testing
+                    MakeTask(14, 20)  // Deploy
+                ],
+                YToolTipLabelFormatter = point =>
+                {
+                    var start = new DateTime((long)point.Coordinate.TertiaryValue);
+                    var end = new DateTime((long)point.Coordinate.PrimaryValue);
+                    return $"from {start:MMM dd} to {end:MMM dd}";
+                }
+            }
         ];
 
         xAxes =
         [
-            new DateTimeAxis(TimeSpan.FromDays(2), vm.DateFormatter) { Name = "Date" },
+            new DateTimeAxis(TimeSpan.FromDays(2), date => date.ToString("MMM dd")) { Name = "Date" },
         ];
 
         yAxes =
         [
-            new Axis { Labels = vm.TaskNames },
+            new Axis { Labels = ["Design", "Backend API", "Frontend", "Integration", "Testing", "Deploy"] },
         ];
     }
 }
