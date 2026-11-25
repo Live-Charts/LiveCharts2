@@ -288,7 +288,7 @@ The space of a category is shared by the stack groups, not by the series.
   replaced value, see [automatic updates]({{ website_url }}/docs/{{ platform }}/{{ version }}/Overview.Automatic%20updates).
 - Points stack when they have the same X coordinate (Y on rows). To plot your own types, or set both X and Y, see
   [mappers]({{ website_url }}/docs/{{ platform }}/{{ version }}/Overview.Mappers).
-- `Name`{{ if xaml }} (`SeriesName` in XAML){{ end }} is shown in tooltips and legends. When it is not set, the
-  series is named "Series 1", "Series 2" and so on.
+- `Name`{{ if xaml }} (`SeriesName` in XAML){{ end }} is shown in tooltips and legends. When it is not set, the tooltip shows the
+  values without a series name.
 - `IsVisible` shows or hides the series. `ZIndex` sets which series draws on top; when it is not set, the series of
   a stacked area draw from the top layer to the bottom one.

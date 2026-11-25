@@ -138,8 +138,8 @@ A name wider than 170 pixels wraps to the next line; the limit is `MaxTooltipsAn
 
 ## Which series appear
 
-The legend shows the `Name`{{ if xaml }} (`SeriesName` in XAML){{ end }} of each series. When it is not set, the
-series is named "Series 1", "Series 2" and so on. Set `IsVisibleAtLegend` to `false` to leave a series out of the
+The legend shows the `Name`{{ if xaml }} (`SeriesName` in XAML){{ end }} of each series, so set it on every
+series that appears in the legend. Set `IsVisibleAtLegend` to `false` to leave a series out of the
 legend, it is `true` by default:
 
 ```csharp

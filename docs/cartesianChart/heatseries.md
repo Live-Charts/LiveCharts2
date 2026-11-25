@@ -146,6 +146,6 @@ new HeatSeries<WeightedPoint>
   replaced value. `WeightedPoint` also updates the chart when its `X`, `Y` or `Weight` change, see
   [automatic updates]({{ website_url }}/docs/{{ platform }}/{{ version }}/Overview.Automatic%20updates).
 - To plot your own types, see [mappers]({{ website_url }}/docs/{{ platform }}/{{ version }}/Overview.Mappers).
-- `Name`{{ if xaml }} (`SeriesName` in XAML){{ end }} is shown in tooltips. When it is not set, the series is named
-  "Series 1", "Series 2" and so on.
+- `Name`{{ if xaml }} (`SeriesName` in XAML){{ end }} is shown in tooltips. When it is not set, the tooltip shows the
+  values without a series name.
 - `ZIndex` sets which series draws on top, and `IsVisible` shows or hides the series.
