@@ -55,7 +55,7 @@ public class View : Panel
         var cartesianChart = new CartesianChart
         {
             Series = [columnSeries],
-            TooltipPosition = LiveChartsCore.Measure.TooltipPosition.Left,
+            TooltipPosition = LiveChartsCore.Measure.TooltipPosition.Bottom,
         };
 
         Content = cartesianChart;
@@ -88,7 +88,7 @@ public class View : Panel
             await Task.Delay(3000);
             foreach (var item in _values)
             {
-                item.Value = _random.Next(1, 10);
+                item.Value = _random.Next(0, 10);
             }
         }
     }
