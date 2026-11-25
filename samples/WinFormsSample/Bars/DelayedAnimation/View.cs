@@ -1,11 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Windows.Forms;
 using LiveChartsCore;
 using LiveChartsCore.Drawing;
 using LiveChartsCore.Kernel;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.WinForms;
+using ViewModelsSamples.Bars.DelayedAnimation;
 
 namespace WinFormsSample.Bars.DelayedAnimation;
 
@@ -16,19 +16,19 @@ public partial class View : UserControl
         InitializeComponent();
         Size = new System.Drawing.Size(50, 50);
 
-        var values1 = FetchValues(0);
-        var values2 = FetchValues(-0.15f);
+        var viewModel = new ViewModel();
 
         var series1 = new ColumnSeries<float>
         {
-            Values = values1
+            Values = viewModel.Values1
         };
 
         series1.PointMeasured += OnPointMeasured;
 
         var series2 = new ColumnSeries<float>
         {
-            Values = values2
+            Values = viewModel.Values2,
+            Padding = 0
         };
 
         series2.PointMeasured += OnPointMeasured;
@@ -61,18 +61,5 @@ public partial class View : UserControl
                     : baseEasingFunction((progress - d) / (1 - d));
             },
             TimeSpan.FromMilliseconds(speed)));
-    }
-
-    private static float[] FetchValues(float offset)
-    {
-        var values = new List<float>();
-        var fx = EasingFunctions.BounceInOut;
-        var x = 0f;
-        while (x <= 1)
-        {
-            values.Add(fx(x + offset));
-            x += 0.025f;
-        }
-        return [.. values];
     }
 }
