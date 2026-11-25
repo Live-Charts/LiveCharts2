@@ -28,7 +28,7 @@ The second generic argument changes the geometry, the second series in this samp
 ## Straight or smooth lines
 
 `LineSmoothness` goes from `0` to `1`: `0` draws straight segments between the points and `1` draws the most curved
-line. Values outside that range are ignored. Setting `GeometrySize` to `0` hides the points.
+line. Values outside that range are clamped to it. Setting `GeometrySize` to `0` hides the points.
 
 {{ render_sample "lines/straight" }}
 
