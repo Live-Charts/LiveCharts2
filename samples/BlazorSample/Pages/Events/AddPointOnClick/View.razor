@@ -17,9 +17,9 @@
     private CartesianChart _chart;
     private ObservableCollection<ObservablePoint> _data = new ObservableCollection<ObservablePoint>
     {
-        new ObservablePoint(2, 3),
-        new ObservablePoint(4, 5),
-        new ObservablePoint(6, 2)
+        new ObservablePoint(0, 5),
+        new ObservablePoint(3, 8),
+        new ObservablePoint(7, 9)
     };
     private ISeries[] series;
 
@@ -30,7 +30,7 @@
             new LineSeries<ObservablePoint>
             {
                 Values = _data,
-                GeometrySize = 18,
+                Fill = null,
                 DataPadding = new LiveChartsCore.Drawing.LvcPoint(5,5)
             }
         };
