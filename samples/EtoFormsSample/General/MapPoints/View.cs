@@ -1,10 +1,12 @@
 ﻿using Eto.Forms;
 using LiveChartsCore;
 using LiveChartsCore.Kernel;
+using LiveChartsCore.Measure;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Eto;
 using LiveChartsCore.SkiaSharpView.Painting;
 using SkiaSharp;
+using ViewModelsSamples.General.MapPoints;
 
 namespace EtoFormsSample.General.MapPoints;
 
@@ -14,9 +16,13 @@ public class View : Panel
 
     public View()
     {
+        var viewModel = new ViewModel();
+
         var columnSeries = new ColumnSeries<int>
         {
-            Values = [2, 5, 4, 6, 8, 3, 2, 4, 6]
+            Values = viewModel.Values,
+            ShowDataLabels = true,
+            DataLabelsPosition = DataLabelsPosition.Top
         };
         columnSeries.PointMeasured += OnPointMeasured;
 
