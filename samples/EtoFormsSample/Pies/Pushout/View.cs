@@ -1,6 +1,8 @@
-﻿using Eto.Forms;
-using LiveChartsCore.SkiaSharpView.Extensions;
+﻿using System.Linq;
+using Eto.Forms;
+using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Eto;
+using ViewModelsSamples.Pies.Pushout;
 
 namespace EtoFormsSample.Pies.Pushout;
 
@@ -10,14 +12,18 @@ public class View : Panel
 
     public View()
     {
+        var viewModel = new ViewModel();
+
         pieChart = new PieChart
         {
-            Series = new[] { 6, 5, 4, 3, 2 }.AsPieSeries((value, series) =>
-            {
-                // pushes out the slice with the value of 6 to 30 pixels.
-                if (value != 6) return;
-                series.Pushout = 30;
-            })
+            Series = viewModel.Data
+                .Select(data => new PieSeries<double>
+                {
+                    Name = data.Name,
+                    Values = data.Values,
+                    Pushout = data.Pushout
+                })
+                .ToArray()
         };
 
         Content = pieChart;
