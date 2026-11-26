@@ -16,10 +16,10 @@ public partial class ViewModel : ObservableObject
     public ObservablePoint[] Values { get; } = Fetch();
 
     [ObservableProperty]
-    public partial double MinX { get; set; }
+    public partial double MinX { get; set; } = _defaultMin;
 
     [ObservableProperty]
-    public partial double MaxX { get; set; }
+    public partial double MaxX { get; set; } = _defaultMax;
 
     [ObservableProperty]
     public partial double MinXThumb { get; set; } = _defaultMin;
