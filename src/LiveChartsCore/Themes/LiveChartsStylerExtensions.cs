@@ -110,6 +110,18 @@ public static class LiveChartsthemeExtensions
     }
 
     /// <summary>
+    ///  Defines a style builder for <see cref="ITreemapSeries"/> objects.
+    /// </summary>
+    /// <param name="theme">The theme.</param>
+    /// <param name="predicate">The predicate.</param>
+    /// <returns></returns>
+    public static Theme HasRuleForTreemapSeries(this Theme theme, Action<ITreemapSeries> predicate)
+    {
+        theme.TreemapSeriesBuilder.Add(predicate);
+        return theme;
+    }
+
+    /// <summary>
     ///  Defines a style builder for <see cref="IPieSeries"/> objects when used as gauges.
     /// </summary>
     /// <param name="theme">The theme.</param>
