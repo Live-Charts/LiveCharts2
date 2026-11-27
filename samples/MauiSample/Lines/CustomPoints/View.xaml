@@ -16,9 +16,7 @@
             <lvc:SeriesCollection>
                 <lvc:XamlLineSeries
                     x:TypeArguments="vms:DataPoint, vms:ArrowGeometry"
-                    GeometrySize="50"
-                    GeometryStroke="{x:Null}"
-                    GeometryFill="{lvc:SolidColorPaint Color='#C71585'}"
+                    GeometrySize="34"
                     Fill="{x:Null}"
                     Values="{Binding Values}"
                     PointMeasuredCommand="{Binding PointMeasuredCommand}"/>

@@ -82,32 +82,10 @@ value, the bar always covers the space between both.
 A waterfall chart uses that: each bar goes from the previous total (`Low`) to the new total (`High`), so a step that
 lowers the total has a `Low` greater than its `High`. The first and last bars start at zero to show the totals.
 
-```csharp
-Series = new ISeries[]
-{
-    new RangeColumnSeries<RangeValue> // mark
-    {
-        Name = "Cash flow",
-        Values = new RangeValue[]
-        {
-            new(0, 100),   // Start
-            new(100, 150), // Sales, +50
-            new(150, 180), // Other income, +30
-            new(180, 130), // Costs, -50
-            new(130, 110), // Tax, -20
-            new(0, 110)    // End
-        }
-    }
-};
+The X axis names each step with `Labels`, and `YToolTipLabelFormatter` shows the change of each step in the tooltip,
+from `Low` to `High`:
 
-XAxes = new[]
-{
-    new Axis { Labels = new[] { "Start", "Sales", "Other income", "Costs", "Tax", "End" } }
-};
-```
-
-The complete sample, with a tooltip that shows the change of each step, is in the
-[waterfall sample]({{ website_url }}/docs/{{ platform }}/{{ version }}/samples.bars.waterfall).
+{{ render_sample "bars/waterfall" }}
 
 ## Range rows
 
@@ -115,36 +93,9 @@ A `RangeRowSeries` draws each bar from `Low` to `High` on the X axis. A Gantt ch
 stores the `Ticks` of its start and end dates, a `DateTimeAxis` on the X axis turns the ticks back into dates, and the
 Y axis names the tasks with `Labels`.
 
-```csharp
-var start = new DateTime(2026, 6, 1);
+The tooltip formatter turns both ends of the bar back into dates, so the first task reads "from Jun 01 to Jun 06":
 
-Series = new ISeries[]
-{
-    new RangeRowSeries<RangeValue> // mark
-    {
-        Name = "Project",
-        Values = new RangeValue[]
-        {
-            new(start.Ticks, start.AddDays(5).Ticks),             // Design
-            new(start.AddDays(3).Ticks, start.AddDays(8).Ticks),  // Backend API
-            new(start.AddDays(5).Ticks, start.AddDays(12).Ticks)  // Frontend
-        }
-    }
-};
-
-XAxes = new[]
-{
-    new DateTimeAxis(TimeSpan.FromDays(2), date => date.ToString("MMM dd"))
-};
-
-YAxes = new[]
-{
-    new Axis { Labels = new[] { "Design", "Backend API", "Frontend" } }
-};
-```
-
-The complete sample is in the
-[Gantt sample]({{ website_url }}/docs/{{ platform }}/{{ version }}/samples.bars.gantt).
+{{ render_sample "bars/gantt" }}
 
 ## Tooltips
 
