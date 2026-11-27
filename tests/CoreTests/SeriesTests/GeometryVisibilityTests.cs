@@ -107,6 +107,44 @@ public class GeometryVisibilityTests
     }
 
     [TestMethod]
+    public async Task TheGeometryHidesAgainWhenThePointerLeaves()
+    {
+        var series = Line();
+        var chart = Chart(series, width: 80);
+        chart.Tooltip = new SKDefaultTooltip();
+        _ = chart.GetImage();
+
+        var first = ((ISeries)series).Fetch(chart.CoreChart).First();
+        chart.CoreChart.InvokePointerMove(Center(first));
+        await chart.CoreChart.TooltipThrottlerUnlocked();
+        Assert.IsTrue(((IDrawnElement)first.Context.Visual!).Opacity > 0, "shown while hovered");
+
+        chart.CoreChart.InvokePointerLeft();
+
+        Assert.IsTrue(Opacities(series, chart).All(o => o == 0), "hidden again once the pointer left the chart");
+    }
+
+    [TestMethod]
+    public async Task OnlyThePointUnderThePointerShowsItsGeometry()
+    {
+        var series = Line();
+        var chart = Chart(series, width: 80);
+        chart.Tooltip = new SKDefaultTooltip();
+        _ = chart.GetImage();
+
+        var points = ((ISeries)series).Fetch(chart.CoreChart).ToArray();
+        chart.CoreChart.InvokePointerMove(Center(points[0]));
+        await chart.CoreChart.TooltipThrottlerUnlocked();
+        chart.CoreChart.InvokePointerMove(Center(points[5]));
+        await chart.CoreChart.TooltipThrottlerUnlocked();
+
+        var opacities = Opacities(series, chart);
+        Assert.AreEqual(0f, opacities[0], "the point the pointer left is hidden again");
+        Assert.IsTrue(opacities[5] > 0, "the point under the pointer shows its geometry");
+        Assert.IsTrue(opacities.Where((_, i) => i != 5).All(o => o == 0), "every other point is hidden");
+    }
+
+    [TestMethod]
     public void AutoHidesTheGeometriesOfADenseStepLine()
     {
         var series = new StepLineSeries<double>
@@ -195,6 +233,12 @@ public class GeometryVisibilityTests
         XAxes = [new Axis { IsVisible = false, MinLimit = 0, MaxLimit = Points - 1 }],
         YAxes = [new Axis { IsVisible = false }]
     };
+
+    private static LvcPoint Center(ChartPoint point)
+    {
+        var area = (RectangleHoverArea)point.Context.HoverArea!;
+        return new LvcPoint(area.X + area.Width / 2, area.Y + area.Height / 2);
+    }
 
     private static float[] Opacities(ISeries series, SKCartesianChart chart) =>
         series.Fetch(chart.CoreChart).Select(p => ((IDrawnElement)p.Context.Visual!).Opacity).ToArray();
