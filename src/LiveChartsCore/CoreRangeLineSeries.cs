@@ -66,6 +66,12 @@ public abstract class CoreRangeLineSeries<TModel, TVisual, TLabel, TStrokePathGe
     /// <inheritdoc cref="ILineSeries.GeometrySize"/>
     public double GeometrySize { get => _geometrySize; set => SetProperty(ref _geometrySize, (float)value); }
 
+    /// <inheritdoc cref="ILineSeries.GeometryVisibility"/>
+    public GeometryVisibility GeometryVisibility { get; set => SetProperty(ref field, value); } = GeometryVisibility.Auto;
+
+    // hides the geometries while the points are too close, see GeometryVisibility.Auto
+    private readonly AutoGeometryVisibility _autoGeometries = new();
+
     /// <inheritdoc cref="ILineSeries.LineSmoothness"/>
     public double LineSmoothness
     {
@@ -289,11 +295,15 @@ public abstract class CoreRangeLineSeries<TModel, TVisual, TLabel, TStrokePathGe
         }
 
         var segmentI = 0;
+        _autoGeometries.Begin();
 
         foreach (var segment in segments)
         {
             var hasPaths = false;
             var isSegmentEmpty = true;
+            // a segment of a single point has no line, see AutoGeometryVisibility.KeepVisible
+            var segmentPoints = 0;
+            RangeCubicSegmentVisualPoint? segmentVisual = null;
             VectorManager? highStrokeVm = null;
             VectorManager? lowStrokeVm = null;
             VectorManager? bandHighVm = null;
@@ -323,8 +333,8 @@ public abstract class CoreRangeLineSeries<TModel, TVisual, TLabel, TStrokePathGe
                 }
 
                 visual ??= EnsureVisualForPoint(point, highData, lowData, in ctx);
-                visual.HighGeometry.Opacity = 1;
-                visual.LowGeometry.Opacity = 1;
+                _autoGeometries.Apply(visual.HighGeometry, GeometryVisibility);
+                _autoGeometries.Apply(visual.LowGeometry, GeometryVisibility);
 
                 _ = everFetched.Add(point);
 
@@ -392,6 +402,7 @@ public abstract class CoreRangeLineSeries<TModel, TVisual, TLabel, TStrokePathGe
                 visual.LowGeometry.RemoveOnCompleted = false;
 
                 var x = ctx.SecondaryScale.ToPixels(coordinate.SecondaryValue);
+                _autoGeometries.Add(x, 0, alongPath: false);
                 var highY = ctx.PrimaryScale.ToPixels(coordinate.PrimaryValue);
                 var lowY = ctx.PrimaryScale.ToPixels(coordinate.TertiaryValue);
                 var minY = Math.Min(highY, lowY);
@@ -408,6 +419,14 @@ public abstract class CoreRangeLineSeries<TModel, TVisual, TLabel, TStrokePathGe
                 MeasureDataLabel(point, x, (highY + lowY) * 0.5f, in ctx);
 
                 OnPointMeasured(point);
+                segmentPoints++;
+                segmentVisual = visual;
+            }
+
+            if (segmentPoints == 1)
+            {
+                _autoGeometries.KeepVisible(segmentVisual!.HighGeometry, GeometryVisibility);
+                _autoGeometries.KeepVisible(segmentVisual.LowGeometry, GeometryVisibility);
             }
 
             if (GeometryFill is not null && GeometryFill != Paint.Default)
@@ -435,6 +454,17 @@ public abstract class CoreRangeLineSeries<TModel, TVisual, TLabel, TStrokePathGe
         {
             cartesianChart.Canvas.AddDrawableTask(DataLabelsPaint, zone: CanvasZone.DrawMargin);
             DataLabelsPaint.ZIndex = ctx.ActualZIndex + PaintConstants.SeriesDataLabelsZIndexOffset;
+        }
+
+        // the geometries that were measured before the visibility changed take the new opacity
+        if (_autoGeometries.End(GeometryVisibility, GetGeometryDiameter(), alongPath: false))
+        {
+            foreach (var point in everFetched)
+            {
+                if (point.Context.AdditionalVisuals is not RangeCubicSegmentVisualPoint v) continue;
+                _autoGeometries.Apply(v.HighGeometry, GeometryVisibility);
+                _autoGeometries.Apply(v.LowGeometry, GeometryVisibility);
+            }
         }
 
         pointsCleanup.CollectPoints(
@@ -902,4 +932,15 @@ public abstract class CoreRangeLineSeries<TModel, TVisual, TLabel, TStrokePathGe
     private static SeriesProperties GetProperties() =>
         SeriesProperties.Line | SeriesProperties.PrimaryAxisVerticalOrientation |
         SeriesProperties.Sketch | SeriesProperties.PrefersXStrategyTooltips;
+
+    /// <inheritdoc cref="Series{TModel, TVisual, TLabel}.OnPointerEnter(ChartPoint)"/>
+    protected override void OnPointerEnter(ChartPoint point)
+    {
+        base.OnPointerEnter(point);
+        _autoGeometries.OnPointerEnter(point.Context.Visual as Animatable, GeometryVisibility);
+    }
+
+    // the size of a geometry, its stroke included
+    private float GetGeometryDiameter() =>
+        _geometrySize + (GeometryStroke is null || GeometryStroke == Paint.Default ? 0 : GeometryStroke.StrokeThickness);
 }

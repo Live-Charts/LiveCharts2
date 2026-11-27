@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+using LiveChartsCore.Measure;
 using LiveChartsCore.Painting;
 
 namespace LiveChartsCore.Kernel.Sketches;
@@ -36,6 +37,13 @@ public interface ILineSeries : ICartesianSeries, IStrokedAndFilled, IErrorSeries
     /// The size of the geometry.
     /// </value>
     double GeometrySize { get; set; }
+
+    /// <summary>
+    /// Gets or sets when the geometries (the markers on the points) are drawn, default is
+    /// <see cref="GeometryVisibility.Auto"/>: they are hidden while the points are so close that they would overlap,
+    /// and the point under the pointer always shows its geometry.
+    /// </summary>
+    GeometryVisibility GeometryVisibility { get; set; }
 
     /// <summary>
     /// Gets or sets the line smoothness, where 0 is a straight line, and 1 the most curved line, default is 0.65
