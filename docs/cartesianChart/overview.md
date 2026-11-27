@@ -106,84 +106,84 @@ cover the most common scenarios.
 There are multiple series available in the library, you can add one or mix them all in the same chart, every series has unique properties,
 any image below is a link to an article explaining more about them.
 
-<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Line%20Series%20properties">
+<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Line%20and%20step%20line%20series">
 <div class="series-miniature">
 <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/samples/lines/basic/result.png" alt="series"/>
 <div class="text-center"><b>Line series</b></div>
 </div>
 </a>
 
-<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Column%20Series%20properties">
+<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Column%20and%20row%20series">
 <div class="series-miniature">
 <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/samples/bars/basic/result.png"  alt="series"/>
 <div class="text-center"><b>Column series</b></div>
 </div>
 </a>
 
-<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Scatter%20Series%20properties">
+<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Scatter%20and%20bubble%20series">
 <div class="series-miniature">
 <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/samples/scatter/basic/result.png"  alt="series"/>
 <div class="text-center"><b>Scatter series</b></div>
 </div>
 </a>
 
-<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Step%20line%20Series%20properties">
+<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Line%20and%20step%20line%20series#step-lines">
 <div class="series-miniature">
 <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/samples/steplines/basic/result.png" alt="series"/>
 <div class="text-center"><b>Step line series</b></div>
 </div>
 </a>
 
-<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Heat%20Series%20properties">
+<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Heat%20series">
 <div class="series-miniature">
 <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/samples/heat/basic/result.png" alt="series"/>
 <div class="text-center"><b>Heat series</b></div>
 </div>
 </a>
 
-<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Candle%20Sticks%20Series%20properties">
+<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Financial%20series">
 <div class="series-miniature">
 <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/samples/financial/basicCandlesticks/result.png" alt="series"/>
 <div class="text-center"><b>Candle sticks series</b></div>
 </div>
 </a>
 
-<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Stacked%20Line%20Series%20properties">
+<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Stacked%20series#stacked-area">
 <div class="series-miniature">
 <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/samples/stackedArea/basic/result.png" alt="series"/>
 <div class="text-center"><b>Stacked line series</b></div>
 </div>
 </a>
 
-<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Stacked%20Column%20Series%20properties">
+<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Stacked%20series#stacked-columns">
 <div class="series-miniature">
 <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/samples/stackedBars/basic/result.png" alt="series"/>
 <div class="text-center"><b>Stacked column series</b></div>
 </div>
 </a>
 
-<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Stacked%20Step%20Line%20Series%20properties">
+<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Stacked%20series#stacked-step-area">
 <div class="series-miniature">
 <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/samples/stackedArea/stepArea/result.png" alt="series"/>
 <div class="text-center"><b>Stacked step line series</b></div>
 </div>
 </a>
 
-<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/samples.box.basic">
+<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Box%20series%20and%20error%20bars#box-series">
 <div class="series-miniature">
 <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/samples/box/basic/result.png" alt="series"/>
 <div class="text-center"><b>Box series</b></div>
 </div>
 </a>
 
-<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/samples.error.basic">
+<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Box%20series%20and%20error%20bars#error-bars">
 <div class="series-miniature">
 <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/samples/error/basic/result.png" alt="series"/>
 <div class="text-center"><b>Error series</b></div>
 </div>
 </a>
 
-<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/samples.scatter.bubbles">
+<a href="{{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Scatter%20and%20bubble%20series#bubbles">
 <div class="series-miniature">
 <img src="https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/samples/scatter/bubbles/result.png" alt="series"/>
 <div class="text-center"><b>Bubble series</b></div>

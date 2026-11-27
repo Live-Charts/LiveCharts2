@@ -6,7 +6,7 @@ public class ViewModel
 {
     public BoxValue[] Values1 { get; set; } =
         [
-            // max, upper quartile, median, lower quartile, min
+            // max, third quartile, first quartile, min, median
             new(100, 80, 60, 20, 70),
             new(90, 70, 50, 30, 60),
             new(80, 60, 40, 10, 50)

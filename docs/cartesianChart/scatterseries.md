@@ -1,76 +1,33 @@
 <!--
 To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/master/docs/readme.md
+Samples are pulled from the repository with render_sample, the code shown always matches the samples.
 -->
 
-# {{ name | to_title_case }}
+# Scatter and bubble series
 
-{{ render "~/shared/series.md" }}
-
-{{ render "~/shared/datalabels.md" }}
-
-## Stroke property
-
-If the stroke property is not set, then LiveCharts will create it based on the series position in your series collection
-and the current theme.
-
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/scatterstroke.png)
-
-```csharp
-Series = new ISeries[]
-{
-    new ScatterSeries<ObservablePoint>
-    {
-        Stroke = new SolidColorPaint(SKColors.Blue) { StrokeThickness = 4 }, // mark
-        Fill = null,
-        Values = new ObservableCollection<ObservablePoint>
-        {
-            new ObservablePoint(2.2, 5.4),
-            new ObservablePoint(4.5, 2.5),
-            new ObservablePoint(4.2, 7.4),
-            ...
-        }
-    }
-};
-```
+A `ScatterSeries` draws a geometry at the X and Y coordinates of each point, a circle by default, without joining the
+points. When the points also carry a weight, the size of each geometry follows that weight and the series becomes a
+bubble chart. Both cases use the same series, so this article covers them together.
 
 :::info
-Paints can create gradients, dashed lines and more, if you need help using the `Paint` instances take 
-a look at the [Paints article]({{ website_url }}/docs/{{ platform }}/{{ version }}/Overview.Paints).
+This article highlights the most used features. Every property is listed in the API explorer:
+[ScatterSeries]({{ website_url }}/api/{{ version }}/LiveChartsCore.SkiaSharpView.ScatterSeries-3).
+{{~ if xaml ~}}
+In XAML, declare it as `XamlScatterSeries`.
+{{~ end ~}}
 :::
 
-## Fill property
+## Basic scatter
 
-If the fill property is not set, then LiveCharts will create it based on the series position in your series collection
-and the current theme.
+Set the `Values` of the series and add it to the chart. An `ObservablePoint` sets both coordinates of a point, `X`
+and `Y`. Plain numbers also work, then the index of each value in the collection is used as X. The tooltip shows the
+X and Y of the point.
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/scatterfill.png)
+{{ render_sample "scatter/basic" }}
 
-```csharp
-Series = new ISeries[]
-{
-    new ScatterSeries<ObservablePoint>
-    {
-        Fill = new SolidColorPaint(SKColors.Blue), // mark
-        Stroke = null,
-        Values = new ObservableCollection<ObservablePoint>
-        {
-            new ObservablePoint(2.2, 5.4),
-            new ObservablePoint(4.5, 2.5),
-            new ObservablePoint(4.2, 7.4),
-            ...
-        }
-    }
-};
-```
+## Geometry size
 
-:::info
-Paints can create gradients, dashed lines and more, if you need help using the `Paint` instances take 
-a look at the [Paints article]({{ website_url }}/docs/{{ platform }}/{{ version }}/Overview.Paints).
-:::
-
-## GeometrySize property
-
-Determines the size of the geometry, if this property is not set, then the library will decide it based on the theme.
+`GeometrySize` sets the width and height of the geometry, in pixels. It is `24` by default.
 
 ![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/scattergeometrysize.png)
 
@@ -100,18 +57,14 @@ Series = new ISeries[]
 };
 ```
 
-## MinGeometrySize property
+## Bubbles
 
-This property specifies the minimum size a geometry can take when the `Weight` plane is enabled, to enable this plane
-you could use the `WeightedPoint` class, the library is ready to plot this instance, alternatively you can register 
-a new type using mappers, and use the `TertiaryValue` property of the `ChartPoint` instance to specify
-the weight of each point.
+A `WeightedPoint` has `X`, `Y` and `Weight`. When the weights of a series are not all equal, the size of each
+geometry is interpolated linearly between two properties: the point with the smallest weight gets
+`MinGeometrySize` (`6` by default) and the point with the largest weight gets `GeometrySize` (`24` by default). A
+`null` weight counts as `0`. The tooltip of a weighted series also shows the weight, as `W`.
 
-Notice in the following image how every shape has a different size, the size of each geometry represents the `Weight` 
-of each point, in this case the weight takes a random integer from 0 to 20, so when the `Weight` is `0` the 
-size of the geometry will be `15` pixels as specified in the `MinGeometrySize` property, when the `Weight` is `20`
-the geometry size will be `40` defined by the `GeometrySize` property, for any `Weight` between this range the library
-will interpolate lineally to determine the corresponding size.
+In the next example the geometries of both series go from `15` to `40` pixels:
 
 ![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/scattermgs.png)
 
@@ -144,4 +97,111 @@ Series = new ObservableCollection<ISeries>
 };
 ```
 
-{{ render "~/shared/series2.md" }}
+By default each series scales its weights on its own, so the largest weight of every series gets the same size. Series
+that share a `StackGroup` share one scale instead. In this sample the weights of the second and third series are ten
+times larger than the weights of the first one. The first series has its own scale, the second and third share
+`StackGroup` `1`, so their sizes can be compared with each other.
+
+{{ render_sample "scatter/bubbles" }}
+
+To use your own type as a weighted point, return `new Coordinate(x, y, weight)` from the mapping, see
+[mappers]({{ website_url }}/docs/{{ platform }}/{{ version }}/Overview.Mappers).
+
+## Stroke and fill paints
+
+When `Stroke` or `Fill` are not set, LiveCharts picks them from the current theme, based on the position of the
+series in the chart's series collection. The default theme draws the geometries with a semi-transparent `Fill` and
+no `Stroke`.
+
+`Stroke` draws the border of each geometry:
+
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/scatterstroke.png)
+
+```csharp
+Series = new ISeries[]
+{
+    new ScatterSeries<ObservablePoint>
+    {
+        Stroke = new SolidColorPaint(SKColors.Blue) { StrokeThickness = 4 }, // mark
+        Fill = null,
+        Values = new ObservableCollection<ObservablePoint>
+        {
+            new ObservablePoint(2.2, 5.4),
+            new ObservablePoint(4.5, 2.5),
+            new ObservablePoint(4.2, 7.4),
+            // ...
+        }
+    }
+};
+```
+
+`Fill` paints the inside of each geometry:
+
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/scatterfill.png)
+
+```csharp
+Series = new ISeries[]
+{
+    new ScatterSeries<ObservablePoint>
+    {
+        Fill = new SolidColorPaint(SKColors.Blue), // mark
+        Stroke = null,
+        Values = new ObservableCollection<ObservablePoint>
+        {
+            new ObservablePoint(2.2, 5.4),
+            new ObservablePoint(4.5, 2.5),
+            new ObservablePoint(4.2, 7.4),
+            // ...
+        }
+    }
+};
+```
+
+:::info
+Paints can also draw gradients and dashed lines, see the
+[Paints article]({{ website_url }}/docs/{{ platform }}/{{ version }}/Overview.Paints).
+:::
+
+## Custom geometries
+
+The second generic argument of the series sets the geometry of each point, a `CircleGeometry` by default. This sample
+uses, in order, a predefined `HeartGeometry` (the `LiveChartsCore.SkiaSharpView.Drawing.Geometries` namespace has
+more, such as `StarGeometry`, `CrossGeometry`, `DiamondGeometry` and `RectangleGeometry`), an SVG path through
+`VariableSVGPathGeometry` and `GeometrySvg`, and a geometry drawn with the SkiaSharp API (`MyGeometry`).
+{{~ if xaml2006 ~}}
+The XAML parser of this platform does not take generic types, so the sample declares a non-generic class for each
+series in `CustomSeries.cs`.
+{{~ end ~}}
+
+{{ render_sample "scatter/custom" }}
+
+## Data labels
+
+Data labels draw a label next to every point, setting `DataLabelsPaint` turns them on. By default the label shows the
+Y value of the point:
+
+```csharp
+new ScatterSeries<ObservablePoint>
+{
+    Values = new ObservablePoint[] { new(2.2, 5.4), new(3.6, 9.6), new(9.9, 5.2) },
+    DataLabelsSize = 14,
+    DataLabelsPaint = new SolidColorPaint(SKColors.Blue),
+    // all the positions:
+    // {{ website_url }}/api/{{ version }}/LiveChartsCore.Measure.DataLabelsPosition
+    DataLabelsPosition = LiveChartsCore.Measure.DataLabelsPosition.Top,
+    // the formatter takes the point and returns the label text
+    DataLabelsFormatter = point => $"{point.Coordinate.SecondaryValue}, {point.Coordinate.PrimaryValue}"
+}
+```
+
+## Data, names and updates
+
+- `Values` takes any `IEnumerable<T>`. Use an `ObservableCollection<T>` and the chart animates every added, removed or
+  replaced value, see [automatic updates]({{ website_url }}/docs/{{ platform }}/{{ version }}/Overview.Automatic%20updates).
+- To plot your own types, see [mappers]({{ website_url }}/docs/{{ platform }}/{{ version }}/Overview.Mappers).
+- `Name`{{ if xaml }} (`SeriesName` in XAML){{ end }} is shown in tooltips and legends. When it is not set, the
+  series is named "Series 1", "Series 2" and so on.
+- `ZIndex` sets which series draws on top, and `IsVisible` shows or hides the series.
+- `DataPadding` leaves one axis tick of space on each side of the data by default.
+- A scatter series can also draw error bars, see
+  [box series and error bars]({{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Box%20series%20and%20error%20bars).
