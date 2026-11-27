@@ -176,9 +176,22 @@ Paints can also draw gradients and dashed lines, see the
 
 ## Node and link colors
 
-The paints color every node and every ribbon the same way. `NodeColorMapper` gives each node its own color: it
-receives the node and returns an `LvcColor`. The ribbons then take the color of their source node at half its
-opacity.
+By default each node takes the next color of the theme's palette, in the order of `Values`, and the ribbons take
+the color of their source node at half its opacity. When the series has a `Fill` of its own, every node takes that
+color instead. `NodeColors` sets the list the nodes take their colors from; when there are more nodes than colors,
+the list starts again:
+
+```csharp
+new SankeySeries<SankeyNode>
+{
+    Values = nodes,
+    Links = links,
+    NodeColors = [new(96, 138, 218), new(64, 175, 110), new(232, 105, 105)] // mark
+};
+```
+
+`NodeColorMapper` picks the color of each node by code and takes precedence over `NodeColors`: it receives the node
+and returns an `LvcColor`.
 
 `LinkColorMapper` gives each ribbon its own color instead: it receives the `SankeyLink` and returns the color,
 including its opacity. It takes precedence over the color of the source node.
@@ -199,8 +212,8 @@ new SankeySeries<SankeyNode>
 ```
 
 The colors replace the color of the paints, so the nodes need a `Fill` and the ribbons a `LinkFill` or a `Fill`;
-the theme sets both by default. `NodeColorMapper` needs a node geometry that supports a color per node, the default
-one does.
+the theme sets both by default. `NodeColors` and `NodeColorMapper` need a node geometry that supports a color per
+node, the default one does.
 
 ## Labels
 
