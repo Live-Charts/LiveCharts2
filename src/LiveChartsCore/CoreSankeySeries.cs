@@ -58,6 +58,7 @@ public abstract class CoreSankeySeries<TModel, TVisual, TLabel>(
     private readonly Dictionary<SankeyLink<TModel>, BaseSankeyChordRibbonGeometry> _chordLinkVisuals =
         new(ReferenceComparer<SankeyLink<TModel>>.Instance);
     private readonly Dictionary<TModel, TLabel> _nodeLabels = new(ReferenceComparer<TModel>.Instance);
+    private readonly Dictionary<TModel, int> _nodeIndexes = new(ReferenceComparer<TModel>.Instance);
     private readonly Dictionary<TModel, ChartPoint> _nodePoints = new(ReferenceComparer<TModel>.Instance);
     private Func<ChartPoint, string>? _tooltipLabelFormatter;
     // Implicit ribbon paint: a CloneTask() of Fill, allocated lazily when the
@@ -119,10 +120,14 @@ public abstract class CoreSankeySeries<TModel, TVisual, TLabel>(
     /// Per-node color override. When non-null, the returned <see cref="LvcColor"/>
     /// is applied to the node's visual — the visual must implement
     /// <see cref="IColoredGeometry"/> (the default
-    /// <c>ColoredRoundedRectangleGeometry</c> does). When null the series's
+    /// <c>ColoredRoundedRectangleGeometry</c> does). When null the nodes take
+    /// <see cref="NodeColors"/>, and when that is null too the series's
     /// <see cref="Fill"/> paint color flows through unchanged.
     /// </summary>
     public Func<TModel, LvcColor>? NodeColorMapper { get; set => SetProperty(ref field, value); }
+
+    /// <inheritdoc cref="ISankeySeries.NodeColors"/>
+    public IReadOnlyList<LvcColor>? NodeColors { get; set => SetProperty(ref field, value); }
 
     /// <summary>
     /// Per-link color override. When null, ribbons inherit the source node's
@@ -194,8 +199,8 @@ public abstract class CoreSankeySeries<TModel, TVisual, TLabel>(
         // Animate makes the property animate from Empty/Black to the target,
         // which under IsTesting reads as the start (= invisible/wrong color).
         // Same pattern CoreHeatSeries.EnsureVisualForPoint uses.
-        if (NodeColorMapper is not null && v is IColoredGeometry coloredInit)
-            coloredInit.Color = NodeColorMapper(node);
+        if (v is IColoredGeometry coloredInit && TryGetNodeColor(node, out var nodeColor))
+            coloredInit.Color = nodeColor;
 
         _nodeVisuals[node] = v;
         return v;
@@ -220,14 +225,32 @@ public abstract class CoreSankeySeries<TModel, TVisual, TLabel>(
         {
             v.Color = LinkColorMapper(link);
         }
-        else if (NodeColorMapper is not null)
+        else if (TryGetNodeColor(link.Source, out var srcColor))
         {
-            var srcColor = NodeColorMapper(link.Source);
             v.Color = new LvcColor(srcColor.R, srcColor.G, srcColor.B, (byte)(srcColor.A / 2));
         }
 
         _linkVisuals[link] = v;
         return v;
+    }
+
+    // NodeColorMapper wins, then NodeColors by the position of the node in Values
+    private bool TryGetNodeColor(TModel node, out LvcColor color)
+    {
+        if (NodeColorMapper is not null)
+        {
+            color = NodeColorMapper(node);
+            return true;
+        }
+
+        if (NodeColors is { Count: > 0 } colors && _nodeIndexes.TryGetValue(node, out var index))
+        {
+            color = colors[index % colors.Count];
+            return true;
+        }
+
+        color = default;
+        return false;
     }
 
     /// <summary>Factory hook — subclasses override to pick the ribbon visual concrete type (default RoundedRectangleGeometry-shaped sibling per platform).</summary>
@@ -252,11 +275,18 @@ public abstract class CoreSankeySeries<TModel, TVisual, TLabel>(
 
         InitializePaints(sankeyChart);
 
+        // the position of each node in Values, it picks its color from NodeColors; cleared first so the index
+        // never holds nodes that left the series
+        _nodeIndexes.Clear();
+
         if (Values is null || Values.Count == 0)
         {
             ReapAll();
             return;
         }
+
+        var index = 0;
+        foreach (var node in Values) _nodeIndexes[node] = index++;
 
         // Reap whichever-layout's stale visuals exist when the user toggles
         // Layout at runtime. ReapVerticalVisuals / ReapArcVisuals only act on
@@ -336,8 +366,8 @@ public abstract class CoreSankeySeries<TModel, TVisual, TLabel>(
 
             // Per-node color (requires an IColoredGeometry visual — true for
             // the default ColoredRoundedRectangleGeometry).
-            if (NodeColorMapper is not null && visual is IColoredGeometry coloredNode)
-                coloredNode.Color = NodeColorMapper(node);
+            if (visual is IColoredGeometry coloredNode && TryGetNodeColor(node, out var nodeColor))
+                coloredNode.Color = nodeColor;
 
             EnsureChartPointForRect(node, box, box.Value, sankeyChart);
             MeasureNodeLabel(node, box, incoming[node], outgoing[node], chartCenterX, anim, sankeyChart);
@@ -369,9 +399,8 @@ public abstract class CoreSankeySeries<TModel, TVisual, TLabel>(
             {
                 visual.Color = LinkColorMapper(rb.Link);
             }
-            else if (NodeColorMapper is not null)
+            else if (TryGetNodeColor(rb.Link.Source, out var srcColor))
             {
-                var srcColor = NodeColorMapper(rb.Link.Source);
                 visual.Color = new LvcColor(srcColor.R, srcColor.G, srcColor.B, (byte)(srcColor.A / 2));
             }
             visual.RemoveOnCompleted = false;
@@ -465,8 +494,8 @@ public abstract class CoreSankeySeries<TModel, TVisual, TLabel>(
             visual.CornerRadius = (float)NodeCornerRadius;
             visual.RemoveOnCompleted = false;
 
-            if (NodeColorMapper is not null)
-                visual.Color = NodeColorMapper(node);
+            if (TryGetNodeColor(node, out var nodeColor))
+                visual.Color = nodeColor;
 
             EnsureChartPointForArc(node, box, box.Value, sankeyChart);
             MeasureArcNodeLabel(node, box, anim, sankeyChart);
@@ -493,9 +522,8 @@ public abstract class CoreSankeySeries<TModel, TVisual, TLabel>(
             {
                 visual.Color = LinkColorMapper(rb.Link);
             }
-            else if (NodeColorMapper is not null)
+            else if (TryGetNodeColor(rb.Link.Source, out var srcColor))
             {
-                var srcColor = NodeColorMapper(rb.Link.Source);
                 visual.Color = new LvcColor(srcColor.R, srcColor.G, srcColor.B, (byte)(srcColor.A / 2));
             }
             visual.RemoveOnCompleted = false;
@@ -557,8 +585,8 @@ public abstract class CoreSankeySeries<TModel, TVisual, TLabel>(
         v.StartAngle = box.StartAngle + box.SweepAngle * 0.5f;
         v.SweepAngle = 0;
         v.CornerRadius = (float)NodeCornerRadius;
-        if (NodeColorMapper is not null)
-            v.Color = NodeColorMapper(node);
+        if (TryGetNodeColor(node, out var nodeColor))
+            v.Color = nodeColor;
         _arcNodeVisuals[node] = v;
         return v;
     }
@@ -579,9 +607,8 @@ public abstract class CoreSankeySeries<TModel, TVisual, TLabel>(
         {
             v.Color = LinkColorMapper(link);
         }
-        else if (NodeColorMapper is not null)
+        else if (TryGetNodeColor(link.Source, out var srcColor))
         {
-            var srcColor = NodeColorMapper(link.Source);
             v.Color = new LvcColor(srcColor.R, srcColor.G, srcColor.B, (byte)(srcColor.A / 2));
         }
         _chordLinkVisuals[link] = v;

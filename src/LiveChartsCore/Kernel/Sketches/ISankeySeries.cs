@@ -21,6 +21,8 @@
 // SOFTWARE.
 
 using System;
+using System.Collections.Generic;
+using LiveChartsCore.Drawing;
 using LiveChartsCore.Painting;
 
 namespace LiveChartsCore.Kernel.Sketches;
@@ -77,6 +79,15 @@ public interface ISankeySeries : ISeries, IStrokedAndFilled
     /// inherit <see cref="IStrokedAndFilled.Fill"/> directly.
     /// </summary>
     Paint? LinkFill { get; set; }
+
+    /// <summary>
+    /// Gets or sets the colors of the nodes: each node takes the color at its position in the values, and the
+    /// colors start again when there are more nodes than colors. The ribbons take the color of their source node at
+    /// half opacity. A node color mapper on the series wins over these colors; when both are null every node takes
+    /// the color of <see cref="IStrokedAndFilled.Fill"/>. The default theme sets them to its palette when the series
+    /// has no fill of its own.
+    /// </summary>
+    IReadOnlyList<LvcColor>? NodeColors { get; set; }
 
     /// <summary>
     /// Builds the tooltip text for a node. Receives the hovered node's

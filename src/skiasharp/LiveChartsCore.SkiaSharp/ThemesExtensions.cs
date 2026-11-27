@@ -339,9 +339,15 @@ public static class ThemesExtensions
                         // override per-node via NodeColorMapper or
                         // per-link via LinkColorMapper on the typed series.
                         var color = theme.GetSeriesColor(sankey).AsSKColor();
+                        var fill = new SolidColorPaint(color);
 
                         sankey.Stroke = null;
-                        sankey.Fill = new SolidColorPaint(color);
+                        sankey.Fill = fill;
+
+                        // each node takes the next color of the palette, unless the user picked a fill for the
+                        // series, the theme can not replace it, then every node keeps that color
+                        if (sankey.Fill == fill)
+                            sankey.NodeColors = theme.Colors;
                         if (sankey.LinkFill is null)
                             sankey.LinkFill = new SolidColorPaint(color.WithAlpha(90));
 
