@@ -136,6 +136,18 @@ internal sealed class AutoGeometryVisibility
         drawn.Opacity = 1f;
     }
 
+    /// <summary>
+    /// Hides again the geometry of the point the pointer left, when the geometries are hidden because they are too
+    /// close; the hover state does not restore it, it may not hold the opacity (the default theme's line hover only
+    /// scales the geometry).
+    /// </summary>
+    public void OnPointerLeft(Animatable? geometry, GeometryVisibility mode)
+    {
+        if (mode != GeometryVisibility.Auto || !_hidden || geometry is not IDrawnElement drawn) return;
+        if (_isolated.Count > 0 && _isolated.Contains(geometry)) return;
+        drawn.Opacity = 0f;
+    }
+
     private static bool IsHovered(Animatable geometry) =>
         geometry._statesTracker?.ActiveStates.Contains(HoverState) == true;
 }

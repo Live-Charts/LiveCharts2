@@ -940,6 +940,13 @@ public abstract class CoreRangeLineSeries<TModel, TVisual, TLabel, TStrokePathGe
         _autoGeometries.OnPointerEnter(point.Context.Visual as Animatable, GeometryVisibility);
     }
 
+    /// <inheritdoc cref="Series{TModel, TVisual, TLabel}.OnPointerLeft(ChartPoint)"/>
+    protected override void OnPointerLeft(ChartPoint point)
+    {
+        base.OnPointerLeft(point);
+        _autoGeometries.OnPointerLeft(point.Context.Visual as Animatable, GeometryVisibility);
+    }
+
     // the size of a geometry, its stroke included
     private float GetGeometryDiameter() =>
         _geometrySize + (GeometryStroke is null || GeometryStroke == Paint.Default ? 0 : GeometryStroke.StrokeThickness);

@@ -624,6 +624,7 @@ public abstract class CoreStepLineSeries<TModel, TVisual, TLabel, TPathGeometry,
         visual.ScaleTransform = new LvcPoint(1f, 1f);
 
         base.OnPointerLeft(point);
+        _autoGeometries.OnPointerLeft(visual, GeometryVisibility);
     }
 
     /// <inheritdoc cref="Series{TModel, TVisual, TLabel}.SetDefaultPointTransitions(ChartPoint)"/>
