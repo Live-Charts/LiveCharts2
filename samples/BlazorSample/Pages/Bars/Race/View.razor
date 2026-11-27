@@ -10,6 +10,7 @@
 
 <CartesianChart
     Series="@series"
+    XAxes="@xAxes"
     YAxes="@yAxes"
     TooltipPosition="LiveChartsCore.Measure.TooltipPosition.Hidden">
 </CartesianChart>
@@ -17,6 +18,7 @@
 @code {
     private RowSeries<PilotInfo> _series;
     private ISeries[] series;
+    private Axis[] xAxes;
     private Axis[] yAxes;
     private Random _r = new Random();
 
@@ -26,12 +28,15 @@
         {
             Values = Fetch(),
             DataLabelsTranslate = new LiveChartsCore.Drawing.LvcPoint(-1, 0),
-            DataLabelsPaint = new SolidColorPaint(SKColors.Black),
+            ShowDataLabels = true,
             DataLabelsPosition = LiveChartsCore.Measure.DataLabelsPosition.End,
+            MaxBarWidth = 50,
+            Padding = 10,
             DataLabelsFormatter = point => ((PilotInfo)point.Context.DataSource!).Name,
         };
         _series.PointMeasured += OnPointMeasured;
         series = new ISeries[] { _series };
+        xAxes = new Axis[] { new Axis { SeparatorsPaint = new SolidColorPaint(new SKColor(220, 220, 220)) } };
         yAxes = new Axis[] { new Axis { IsVisible = false } };
         _ = StartRace();
     }

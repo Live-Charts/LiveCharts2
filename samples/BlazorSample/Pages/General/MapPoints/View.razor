@@ -2,6 +2,7 @@
 @using LiveChartsCore.SkiaSharpView.Blazor
 @using LiveChartsCore;
 @using LiveChartsCore.Kernel;
+@using LiveChartsCore.Measure;
 @using LiveChartsCore.SkiaSharpView;
 @using LiveChartsCore.SkiaSharpView.Painting;
 @using SkiaSharp;
@@ -17,7 +18,9 @@
     {
         var columnSeries = new ColumnSeries<int>
         {
-            Values = new int[] { 2, 5, 4, 6, 8, 3, 2, 4, 6 }
+            Values = new int[] { 2, 5, 4, 6, 8, 3, 2, 4, 6 },
+            ShowDataLabels = true,
+            DataLabelsPosition = DataLabelsPosition.Top
         };
         columnSeries.PointMeasured += OnPointMeasured;
         series = new ISeries[] { columnSeries };

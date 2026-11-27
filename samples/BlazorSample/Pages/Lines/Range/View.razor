@@ -1,5 +1,6 @@
 @page "/Lines/Range"
 @using LiveChartsCore
+@using LiveChartsCore.Defaults
 @using LiveChartsCore.SkiaSharpView
 @using LiveChartsCore.SkiaSharpView.Blazor
 
@@ -10,34 +11,43 @@
 </CartesianChart>
 
 @code {
-    // Blazor is code-only — no XAML wrappers. Reuse the same VM for raw data
-    // + formatters and instantiate the chart objects locally.
-    private readonly ViewModelsSamples.Lines.Range.ViewModel vm = new();
-
-    private ISeries[] series;
-    private Axis[] xAxes;
-    private Axis[] yAxes;
-
-    protected override void OnInitialized()
-    {
-        series =
-        [
-            new RangeLineSeries<LiveChartsCore.Defaults.RangeValue>
+    private ISeries[] series =
+    [
+        new RangeLineSeries<RangeValue>
+        {
+            Name = "Temperature",
+            // average monthly temperatures (low / high)
+            Values = new RangeValue[]
             {
-                Name = "Temperature",
-                Values = vm.Temperatures,
-                YToolTipLabelFormatter = vm.TempTooltipFormatter,
+                new(low:  8, high: 16),  // Jan
+                new(low:  9, high: 17),  // Feb
+                new(low: 11, high: 20),  // Mar
+                new(low: 13, high: 23),  // Apr
+                new(low: 16, high: 27),  // May
+                new(low: 20, high: 31),  // Jun
+                new(low: 22, high: 33),  // Jul
+                new(low: 22, high: 33),  // Aug
+                new(low: 19, high: 29),  // Sep
+                new(low: 16, high: 24),  // Oct
+                new(low: 12, high: 20),  // Nov
+                new(low:  9, high: 17),  // Dec
             },
-        ];
+            // TertiaryValue is the low and PrimaryValue the high
+            YToolTipLabelFormatter = point =>
+                $"{point.Coordinate.TertiaryValue:0}°C → {point.Coordinate.PrimaryValue:0}°C",
+        },
+    ];
 
-        xAxes =
-        [
-            new Axis { Labels = vm.Months },
-        ];
+    private Axis[] xAxes =
+    [
+        new Axis
+        {
+            Labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+        }
+    ];
 
-        yAxes =
-        [
-            new Axis { Labeler = vm.TempLabeler },
-        ];
-    }
+    private Axis[] yAxes =
+    [
+        new Axis { Labeler = value => $"{value:0}°C" }
+    ];
 }

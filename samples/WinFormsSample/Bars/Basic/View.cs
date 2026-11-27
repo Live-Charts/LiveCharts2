@@ -39,7 +39,6 @@ public partial class View : UserControl
         {
             Series = series,
             XAxes = [xAxis],
-            LegendPosition = LiveChartsCore.Measure.LegendPosition.Right,
             Location = new System.Drawing.Point(0, 0),
             Size = new System.Drawing.Size(50, 50),
             Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom

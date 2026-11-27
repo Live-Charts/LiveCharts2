@@ -22,16 +22,16 @@
     private CartesianChart _cartesianChart = null!;
     private PieChart _pieChart = null!;
 
-    private double[] values1 = new double[] { 2, 5, 4 };
-    private double[] values2 = new double[] { 3, 1, 6 };
-    private double[] pieValues1 = new double[] { 2 };
-    private double[] pieValues2 = new double[] { 4 };
-    private double[] pieValues3 = new double[] { 1 };
+    private double[] values1 = new double[] { 1, 5, 4, 6 };
+    private double[] values2 = new double[] { 4, 8, 2, 4 };
+    private double[] pieValues1 = new double[] { 10 };
+    private double[] pieValues2 = new double[] { 6 };
+    private double[] pieValues3 = new double[] { 4 };
 
     private ISeries[] cartesianSeries => new ISeries[]
     {
-        new ColumnSeries<double> { Values = values1 },
-        new LineSeries<double> { Values = values2 }
+        new LineSeries<double> { Values = values1 },
+        new ColumnSeries<double> { Values = values2 }
     };
 
     private ISeries[] pieSeries => new ISeries[]

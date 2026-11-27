@@ -42,7 +42,7 @@
             new LineSeries<double>
             {
                 Values = values,
-                YToolTipLabelFormatter = tooltipFormat
+                XToolTipLabelFormatter = tooltipFormat
             }
         };
 
@@ -53,7 +53,7 @@
                 Labeler = labeler,
                 MinStep = 1,
                 LabelsRotation = 45,
-                SeparatorsPaint = new SolidColorPaint(SKColors.LightGray, 2)
+                SeparatorsPaint = new SolidColorPaint(new SKColor(238, 238, 238), 2)
             }
         };
 
@@ -62,8 +62,7 @@
             new Axis
             {
                 LabelsRotation = yLabelsRotation,
-                Labeler = Labelers.Currency,
-                SeparatorsPaint = new SolidColorPaint(SKColors.LightGray, 2)
+                SeparatorsPaint = new SolidColorPaint(new SKColor(238, 238, 238), 2)
             }
         };
     }

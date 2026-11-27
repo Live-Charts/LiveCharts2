@@ -8,6 +8,8 @@ namespace WinFormsSample.Scatter.Bubbles;
 
 public partial class View : UserControl
 {
+    private readonly System.Random _random = new();
+
     public View()
     {
         InitializeComponent();
@@ -52,16 +54,15 @@ public partial class View : UserControl
         Controls.Add(cartesianChart);
     }
 
-    private static WeightedPoint[] Fetch(int scale)
+    private WeightedPoint[] Fetch(int scale)
     {
-        var r = new System.Random();
         var length = 10;
         var values = new WeightedPoint[length];
         for (var i = 0; i < length; i++)
         {
-            var x = r.Next(0, 20);
-            var y = r.Next(0, 20);
-            var w = r.Next(0, 100) * scale;
+            var x = _random.Next(0, 20);
+            var y = _random.Next(0, 20);
+            var w = _random.Next(0, 100) * scale;
             values[i] = new WeightedPoint(x, y, w);
         }
         return values;

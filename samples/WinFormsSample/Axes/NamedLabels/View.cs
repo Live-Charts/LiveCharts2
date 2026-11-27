@@ -44,7 +44,7 @@ public partial class View : UserControl
             XAxes = [xAxis],
             YAxes = [yAxis],
             TooltipTextSize = 16,
-            TooltipTextPaint = new SolidColorPaint(new SKColor(242, 244, 255)),
+            TooltipTextPaint = new SolidColorPaint(new SKColor(242, 244, 255)) { SKTypeface = SKTypeface.FromFamilyName("Courier New") },
             TooltipBackgroundPaint = new SolidColorPaint(new SKColor(72, 0, 50)),
             TooltipPosition = LiveChartsCore.Measure.TooltipPosition.Left,
             Location = new System.Drawing.Point(0, 0),

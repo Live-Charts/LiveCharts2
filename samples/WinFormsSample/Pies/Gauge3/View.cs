@@ -19,7 +19,7 @@ public partial class View : UserControl
         pieChart = new PieChart
         {
             Series = GaugeGenerator.BuildSolidGauge(
-                new GaugeItem(30, series => SetStyle("Vanessa", series)),
+                new GaugeItem(30, series => SetStyle("Vanesa", series)),
                 new GaugeItem(50, series => SetStyle("Charles", series)),
                 new GaugeItem(70, series => SetStyle("Ana", series)),
                 new GaugeItem(GaugeItem.Background, series =>

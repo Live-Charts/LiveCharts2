@@ -28,7 +28,8 @@ public partial class View : UserControl
 
         var series2 = new ColumnSeries<float>
         {
-            Values = values2
+            Values = values2,
+            Padding = 0
         };
 
         series2.PointMeasured += OnPointMeasured;

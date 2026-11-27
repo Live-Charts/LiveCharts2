@@ -17,8 +17,8 @@ public class View : Panel
     {
         var seriesCollection = new ObservableCollection<ISeries>
         {
-            new PieSeries<int>{ Values= Fetch() },
-            new PieSeries<int>{ Values= Fetch() },
+            new PieSeries<int> { Name = "Ana", Values = new[] { 2 } },
+            new PieSeries<int> { Name = "Juan", Values = new[] { 8 } },
         };
 
         Chart = new PieChart

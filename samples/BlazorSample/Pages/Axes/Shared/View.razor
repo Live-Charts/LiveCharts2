@@ -10,6 +10,7 @@
     <CartesianChart
         Series="@series1"
         XAxes="@x1"
+        DrawMargin="@drawMargin"
         ZoomMode="LiveChartsCore.Measure.ZoomAndPanMode.X">
     </CartesianChart>
 </div>
@@ -18,12 +19,15 @@
     <CartesianChart
         Series="@series2"
         XAxes="@x2"
+        DrawMargin="@drawMargin"
         ZoomMode="LiveChartsCore.Measure.ZoomAndPanMode.X">
     </CartesianChart>
 </div>
 
 
 @code {
+    private readonly Random _random = new();
+    private readonly Margin drawMargin = new(70, Margin.Auto, Margin.Auto, Margin.Auto);
     private int[] values1;
     private int[] values2;
     private Axis sharedXAxis;
@@ -47,15 +51,14 @@
         {
             Labeler = labeler,
             MaxLimit = max,
-            CrosshairPaint = new SolidColorPaint(SKColors.Red, 2),
-            CrosshairLabelsBackground = SKColors.Red.AsLvcColor(),
+            CrosshairPaint = new SolidColorPaint(new SKColor(0xFF, 0x45, 0x00, 0x40)), // #40FF4500
+            CrosshairLabelsBackground = new SKColor(0xFF, 0x45, 0x00).AsLvcColor(), // #FF4500
             CrosshairLabelsPaint = new SolidColorPaint(SKColors.White)
         };
         sharedXAxis2 = new Axis
         {
-            Labeler = labeler,
             MaxLimit = max,
-            CrosshairPaint = new SolidColorPaint(SKColors.Red, 2)
+            CrosshairPaint = new SolidColorPaint(new SKColor(0xFF, 0x45, 0x00, 0x40)) // #40FF4500
         };
         LiveChartsCore.SharedAxes.Set(sharedXAxis, sharedXAxis2);
 
@@ -71,14 +74,13 @@
         };
     }
 
-    private static int[] Fetch(int length = 50)
+    private int[] Fetch(int length = 50)
     {
         var values = new int[length];
-        var r = new Random();
         var t = 0;
         for (var i = 0; i < length; i++)
         {
-            t += r.Next(-90, 100);
+            t += _random.Next(-90, 100);
             values[i] = t;
         }
         return values;

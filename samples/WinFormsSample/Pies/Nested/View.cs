@@ -82,6 +82,8 @@ public partial class View : UserControl
                 DataLabelsPosition = LiveChartsCore.Measure.PolarLabelsPosition.Outer,
                 IsVisibleAtLegend = x.IsTotal
             }).ToArray(),
+            InitialRotation = 120,
+            LegendPosition = LiveChartsCore.Measure.LegendPosition.Right,
             Location = new System.Drawing.Point(0, 0),
             Size = new System.Drawing.Size(50, 50),
             Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom

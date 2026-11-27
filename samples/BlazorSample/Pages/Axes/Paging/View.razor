@@ -53,9 +53,9 @@
         var random = new Random();
         var trend = 100;
         var values = new System.Collections.Generic.List<int>();
-        for (int i = 0; i < 31; i++)
+        for (var i = 0; i < 100; i++)
         {
-            trend += random.Next(-10, 11);
+            trend += random.Next(-30, 50);
             values.Add(trend);
         }
         return values.ToArray();

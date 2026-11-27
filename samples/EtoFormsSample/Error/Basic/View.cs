@@ -50,12 +50,14 @@ public class View : Panel
                 new ColumnSeries<ErrorValue>
                 {
                     Values = values1,
-                    ShowError = true
+                    ShowError = true,
+                    Padding = 0
                 },
                 new ColumnSeries<ErrorPoint>
                 {
                     Values = values2,
-                    ShowError = true
+                    ShowError = true,
+                    Padding = 0
                 }
             }
         };
@@ -67,7 +69,9 @@ public class View : Panel
                 new LineSeries<ErrorValue>
                 {
                     Values = values1,
-                    ShowError = true
+                    ShowError = true,
+                    GeometrySize = 4,
+                    Fill = null
                 }
             }
         };
@@ -79,7 +83,8 @@ public class View : Panel
                 new ScatterSeries<ErrorDateTimePoint>
                 {
                     Values = values3,
-                    ShowError = true
+                    ShowError = true,
+                    GeometrySize = 10
                 }
             },
             XAxes = new Axis[] { new DateTimeAxis(TimeSpan.FromDays(1), Formatter) }

@@ -18,9 +18,9 @@ public partial class View : UserControl
         Size = new System.Drawing.Size(400, 400);
 
         _data = [
-            new(2, 3),
-            new(4, 5),
-            new(6, 2)
+            new(0, 5),
+            new(3, 8),
+            new(7, 9)
         ];
 
         var series = new ISeries[]
@@ -28,7 +28,7 @@ public partial class View : UserControl
             new LineSeries<ObservablePoint>
             {
                 Values = _data,
-                GeometrySize = 18,
+                Fill = null,
                 DataPadding = new LiveChartsCore.Drawing.LvcPoint(5,5)
             }
         };
@@ -36,6 +36,7 @@ public partial class View : UserControl
         _cartesianChart = new CartesianChart
         {
             Series = series,
+            TooltipPosition = LiveChartsCore.Measure.TooltipPosition.Hidden,
             Location = new System.Drawing.Point(0, 0),
             Size = new System.Drawing.Size(400, 400),
             Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom

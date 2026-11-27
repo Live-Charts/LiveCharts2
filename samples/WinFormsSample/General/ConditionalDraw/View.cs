@@ -96,7 +96,7 @@ public partial class View : UserControl
             await Task.Delay(3000);
             foreach (var item in _values)
             {
-                item.Value = _random.Next(1, 10);
+                item.Value = _random.Next(0, 10);
             }
         }
     }

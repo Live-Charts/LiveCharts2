@@ -14,9 +14,9 @@ public class View : Panel
     public View()
     {
         _data = [
-            new(2, 3),
-            new(4, 5),
-            new(6, 2)
+            new(0, 5),
+            new(3, 8),
+            new(7, 9)
         ];
 
         var series = new ISeries[]
@@ -24,7 +24,7 @@ public class View : Panel
             new LineSeries<ObservablePoint>
             {
                 Values = _data,
-                GeometrySize = 18,
+                Fill = null,
                 DataPadding = new LiveChartsCore.Drawing.LvcPoint(5, 5)
             }
         };
@@ -32,6 +32,7 @@ public class View : Panel
         var cartesianChart = new CartesianChart
         {
             Series = series,
+            TooltipPosition = LiveChartsCore.Measure.TooltipPosition.Hidden,
         };
 
         cartesianChart.MouseDown += CartesianChart_Click;

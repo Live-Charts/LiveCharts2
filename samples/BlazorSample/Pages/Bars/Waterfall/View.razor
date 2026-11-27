@@ -1,5 +1,6 @@
 @page "/Bars/Waterfall"
 @using LiveChartsCore
+@using LiveChartsCore.Defaults
 @using LiveChartsCore.SkiaSharpView
 @using LiveChartsCore.SkiaSharpView.Blazor
 
@@ -10,8 +11,6 @@
 </CartesianChart>
 
 @code {
-    private readonly ViewModelsSamples.Bars.Waterfall.ViewModel vm = new();
-
     private ISeries[] series;
     private Axis[] xAxes;
     private Axis[] yAxes;
@@ -20,15 +19,30 @@
     {
         series =
         [
-            new RangeColumnSeries<LiveChartsCore.Defaults.RangeValue>
+            new RangeColumnSeries<RangeValue>
             {
                 Name = "Cash flow",
-                Values = vm.Steps,
-                YToolTipLabelFormatter = vm.StepTooltipFormatter,
-            },
+                Values =
+                [
+                    new(0, 100),    // Start balance
+                    new(100, 150),  // Sales (+50)
+                    new(150, 180),  // Other income (+30)
+                    new(180, 130),  // Costs (-50)
+                    new(130, 110),  // Tax (-20)
+                    new(0, 110)     // End balance
+                ],
+                YToolTipLabelFormatter = point =>
+                {
+                    var from = point.Coordinate.TertiaryValue;
+                    var to = point.Coordinate.PrimaryValue;
+                    var delta = to - from;
+                    var sign = delta >= 0 ? "+" : "−";
+                    return $"{from:N0} → {to:N0} ({sign}{Math.Abs(delta):N0})";
+                }
+            }
         ];
 
-        xAxes = [new Axis { Labels = vm.StepNames }];
+        xAxes = [new Axis { Labels = ["Start", "Sales", "Other income", "Costs", "Tax", "End"] }];
         yAxes = [new Axis { Name = "Balance", MinLimit = 0 }];
     }
 }

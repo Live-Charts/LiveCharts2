@@ -14,7 +14,7 @@ public partial class View : UserControl
         InitializeComponent();
         Size = new System.Drawing.Size(50, 50);
 
-        var values1 = new double[] { 10, 10, 10, 10, 10, 10, 10 };
+        var values1 = new double[] { 20, 50, 40, 20, 40, 30, 50, 20, 50, 40 };
         var values2 = new double[] { 3, 10, 5, 3, 7, 3, 8 };
 
         var series = new ISeries[]
