@@ -164,21 +164,11 @@ an arrow geometry to match it.
 
 ## Gaps
 
-A `null` value creates a gap in the line. This is controlled by `EnableNullSplitting`, which is `true` by default;
-disabling it saves some work when your data never contains nulls.
+A `null` value creates a gap in the line, both a `null` number (`double?`, `int?`) and a `null` item in the
+collection, such as a `null` `ObservablePoint`. This is controlled by `EnableNullSplitting`, which is `true` by
+default; disabling it saves some work when your data never contains nulls.
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/linesnullsplit.png)
-
-```csharp
-Series = new ISeries[]
-{
-    new LineSeries<int?>
-    {
-        Values = new int?[] { 5, 4, 2, null, 3, 8, 6 }, // mark
-        LineSmoothness = 0
-    }
-};
-```
+{{ render_sample "general/nullPoints" }}
 
 ## Step lines
 
