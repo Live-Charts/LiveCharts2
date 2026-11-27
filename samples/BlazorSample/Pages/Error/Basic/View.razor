@@ -55,12 +55,14 @@
         new ColumnSeries<ErrorValue>
         {
             Values = values1,
-            ShowError = true
+            ShowError = true,
+            Padding = 0
         },
         new ColumnSeries<ErrorPoint>
         {
             Values = values2,
-            ShowError = true
+            ShowError = true,
+            Padding = 0
         }
     };
     private ISeries[] series1 = new ISeries[]
@@ -68,7 +70,9 @@
         new LineSeries<ErrorValue>
         {
             Values = values1,
-            ShowError = true
+            ShowError = true,
+            GeometrySize = 4,
+            Fill = null
         }
     };
     private ISeries[] series2 = new ISeries[]
@@ -76,7 +80,8 @@
         new ScatterSeries<ErrorDateTimePoint>
         {
             Values = values3,
-            ShowError = true
+            ShowError = true,
+            GeometrySize = 10
         }
     };
     private Axis[] dateTimeAxis = new Axis[]

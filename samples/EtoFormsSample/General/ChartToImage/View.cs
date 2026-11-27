@@ -2,7 +2,6 @@
 using LiveChartsCore.SkiaSharpView.SKCharts;
 using LiveChartsCore.SkiaSharpView.Eto;
 using LiveChartsCore.SkiaSharpView;
-using ViewModelsSamples.General.ChartToImage;
 using LiveChartsCore;
 
 namespace EtoFormsSample.General.ChartToImage;
@@ -14,15 +13,13 @@ public class View : Panel
 
     public View()
     {
-        var viewModel = new ViewModel();
-
         // Adding a cartesian chart to the UI...
         _cartesian = new CartesianChart
         {
             Series =
             [
-                new ColumnSeries<double> { Values = viewModel.Values1 },
-                new LineSeries<double> { Values = viewModel.Values2 }
+                new LineSeries<double> { Values = [1, 5, 4, 6] },
+                new ColumnSeries<double> { Values = [4, 8, 2, 4] }
             ]
         };
 
@@ -31,9 +28,9 @@ public class View : Panel
         {
             Series =
             [
-                new PieSeries<double> { Values = viewModel.PieValues1 },
-                new PieSeries<double> { Values = viewModel.PieValues2 },
-                new PieSeries<double> { Values = viewModel.PieValues3 }
+                new PieSeries<double> { Values = [10] },
+                new PieSeries<double> { Values = [6] },
+                new PieSeries<double> { Values = [4] }
             ]
         };
 

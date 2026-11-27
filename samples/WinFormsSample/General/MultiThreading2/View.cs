@@ -12,6 +12,7 @@ namespace WinFormsSample.General.MultiThreading2;
 public partial class View : UserControl
 {
     private readonly ObservableCollection<int> _values;
+    private readonly Random _random = new();
     private int _current;
     private bool _isReading = true;
 
@@ -24,7 +25,7 @@ public partial class View : UserControl
         var items = new List<int>();
         for (var i = 0; i < 1500; i++)
         {
-            _current += new Random().Next(-9, 10);
+            _current += _random.Next(-9, 10);
             items.Add(_current);
         }
         _values = new ObservableCollection<int>(items);
@@ -37,6 +38,7 @@ public partial class View : UserControl
                     Values = _values,
                     GeometryFill = null,
                     GeometryStroke = null,
+                    LineSmoothness = 0
                 }
             ],
             Location = new System.Drawing.Point(0, 0),
@@ -55,7 +57,6 @@ public partial class View : UserControl
 
     private async Task ReadData()
     {
-        var r = new Random();
         await Task.Delay(1000);
         while (_isReading)
         {
@@ -64,18 +65,18 @@ public partial class View : UserControl
             // Ensure UI update on UI thread
             if (InvokeRequired)
             {
-                BeginInvoke(new Action(() => UpdateValues(r)));
+                BeginInvoke(new Action(() => UpdateValues()));
             }
             else
             {
-                UpdateValues(r);
+                UpdateValues();
             }
         }
     }
 
-    private void UpdateValues(Random r)
+    private void UpdateValues()
     {
-        _current += r.Next(-9, 10);
+        _current += _random.Next(-9, 10);
         _values.Add(_current);
         _values.RemoveAt(0);
     }

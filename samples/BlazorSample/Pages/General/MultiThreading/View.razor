@@ -3,7 +3,6 @@
 @using LiveChartsCore;
 @using LiveChartsCore.SkiaSharpView;
 @using System.Collections.ObjectModel
-@using System.Threading
 
 <CartesianChart
     @ref="_chart"
@@ -15,6 +14,7 @@
     private CartesianChart _chart;
     private ObservableCollection<int> _values;
     private object _sync = new object();
+    private Random _random = new Random();
     private int _current;
     private bool _isReading = true;
     private ISeries[] series;
@@ -24,7 +24,7 @@
         var items = new List<int>();
         for (var i = 0; i < 1500; i++)
         {
-            _current += new Random().Next(-9, 10);
+            _current += _random.Next(-9, 10);
             items.Add(_current);
         }
         _values = new ObservableCollection<int>(items);
@@ -34,7 +34,8 @@
             {
                 Values = _values,
                 GeometryFill = null,
-                GeometryStroke = null
+                GeometryStroke = null,
+                LineSmoothness = 0
             }
         };
         for (var i = 0; i < 10; i++)
@@ -45,16 +46,16 @@
 
     private async Task ReadData()
     {
-        var r = new Random();
         await Task.Delay(1000);
         while (_isReading)
         {
             await Task.Delay(1);
-            _current = Interlocked.Add(ref _current, r.Next(-9, 10));
             lock (_sync)
             {
                 if (_values.Count > 0)
                 {
+                    // Random is not thread safe, use it inside the lock
+                    _current += _random.Next(-9, 10);
                     _values.Add(_current);
                     _values.RemoveAt(0);
                 }

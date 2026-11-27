@@ -306,20 +306,30 @@ The following platforms each need a view for every sample. **ConsoleSample** and
 </UserControl>
 ```
 
-**Code-only platforms (WinForms / EtoForms)** typically instantiate the ViewModel directly or inline the data:
+**Code-only platforms (WinForms / EtoForms) and Blazor** are not MVVM: they never use the `ViewModel` class. Write the data inline, with the same values, series names and visible options as the XAML sample (the docs show one image per sample next to each platform's code). Shared classes in `ViewModelsSamples` that are not the view model (a custom tooltip, legend or geometry, a resource) may be used.
 
 ```csharp
 // WinForms — partial class View : UserControl
-var vm = new ViewModel();
-var chart = new GeoMap { Series = vm.Series, ... };
-chart.Location = new System.Drawing.Point(0, 0);
-chart.Size = new System.Drawing.Size(50, 50);
-chart.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom;
+var chart = new CartesianChart
+{
+    Series = new ISeries[]
+    {
+        new LineSeries<double> { Values = new double[] { 2, 1, 3, 5, 3, 4, 6 } }
+    },
+    Location = new System.Drawing.Point(0, 0),
+    Size = new System.Drawing.Size(50, 50),
+    Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom
+};
 Controls.Add(chart);
 
 // EtoForms — class View : Panel (non-partial, no Designer file)
-var vm = new ViewModel();
-var chart = new GeoMap { Series = vm.Series, ... };
+var chart = new CartesianChart
+{
+    Series = new ISeries[]
+    {
+        new LineSeries<double> { Values = new double[] { 2, 1, 3, 5, 3, 4, 6 } }
+    }
+};
 Content = new DynamicLayout(chart);
 ```
 

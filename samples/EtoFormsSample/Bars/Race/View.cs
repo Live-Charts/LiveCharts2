@@ -23,19 +23,22 @@ public class View : Panel
         {
             Values = Fetch(),
             DataLabelsTranslate = new LiveChartsCore.Drawing.LvcPoint(-1, 0),
-            DataLabelsPaint = new SolidColorPaint(SKColors.Black),
+            ShowDataLabels = true,
             DataLabelsPosition = LiveChartsCore.Measure.DataLabelsPosition.End,
+            MaxBarWidth = 50,
+            Padding = 10,
             DataLabelsFormatter = point => ((PilotInfo)point.Context.DataSource).Name,
         };
 
         _series.PointMeasured += OnPointMeasured;
 
         var yAxis = new Axis { IsVisible = false };
-        var xAxis = new Axis { IsVisible = false };
+        var xAxis = new Axis { SeparatorsPaint = new SolidColorPaint(new SKColor(220, 220, 220)) };
 
         var cartesianChart = new CartesianChart
         {
             Series = [_series],
+            XAxes = [xAxis],
             YAxes = [yAxis],
             TooltipPosition = LiveChartsCore.Measure.TooltipPosition.Hidden
         };

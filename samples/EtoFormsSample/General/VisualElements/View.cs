@@ -25,8 +25,7 @@ public class View : Panel
 
         var cartesianChart = new CartesianChart
         {
-            VisualElements = visualElements,
-            ZoomMode = LiveChartsCore.Measure.ZoomAndPanMode.X
+            VisualElements = visualElements
         };
 
         Content = cartesianChart;

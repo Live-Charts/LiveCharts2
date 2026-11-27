@@ -1,8 +1,9 @@
-﻿using Eto.Forms;
-using LiveChartsCore.SkiaSharpView.Extensions;
-using LiveChartsCore.SkiaSharpView.Painting;
+﻿using System;
+using Eto.Forms;
+using LiveChartsCore;
+using LiveChartsCore.Kernel;
+using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Eto;
-using SkiaSharp;
 
 namespace EtoFormsSample.Pies.Custom;
 
@@ -12,37 +13,53 @@ public class View : Panel
 
     public View()
     {
-        var outer = 0;
-        var data = new[] { 6, 5, 4, 3 };
-
-        var seriesCollection = data.AsPieSeries((value, series) =>
+        static string Formatter(ChartPoint point)
         {
-            series.OuterRadiusOffset = outer;
-            outer += 50;
+            var pv = point.Coordinate.PrimaryValue;
+            var sv = point.StackedValue!;
 
-            series.DataLabelsPaint = new SolidColorPaint(SKColors.White)
+            return $"{pv}/{sv.Total}{Environment.NewLine}{sv.Share:P2}";
+        }
+
+        var seriesCollection = new ISeries[]
+        {
+            new PieSeries<double>
             {
-                SKTypeface = SKTypeface.FromFamilyName("Arial", SKFontStyle.Bold)
-            };
-
-            series.ToolTipLabelFormatter =
-                point =>
-                {
-                    var pv = point.Coordinate.PrimaryValue;
-                    var sv = point.StackedValue!;
-                    var a = $"{pv}/{sv.Total}{System.Environment.NewLine}{sv.Share:P2}";
-                    return a;
-                };
-
-            series.DataLabelsFormatter =
-                point =>
-                {
-                    var pv = point.Coordinate.PrimaryValue;
-                    var sv = point.StackedValue!;
-                    var a = $"{pv}/{sv.Total}{System.Environment.NewLine}{sv.Share:P2}";
-                    return a;
-                };
-        });
+                Name = "Mary",
+                Values = new double[] { 10 },
+                OuterRadiusOffset = 0,
+                ShowDataLabels = true,
+                ToolTipLabelFormatter = Formatter,
+                DataLabelsFormatter = Formatter
+            },
+            new PieSeries<double>
+            {
+                Name = "John",
+                Values = new double[] { 20 },
+                OuterRadiusOffset = 50,
+                ShowDataLabels = true,
+                ToolTipLabelFormatter = Formatter,
+                DataLabelsFormatter = Formatter
+            },
+            new PieSeries<double>
+            {
+                Name = "Alice",
+                Values = new double[] { 30 },
+                OuterRadiusOffset = 100,
+                ShowDataLabels = true,
+                ToolTipLabelFormatter = Formatter,
+                DataLabelsFormatter = Formatter
+            },
+            new PieSeries<double>
+            {
+                Name = "Bob",
+                Values = new double[] { 40 },
+                OuterRadiusOffset = 150,
+                ShowDataLabels = true,
+                ToolTipLabelFormatter = Formatter,
+                DataLabelsFormatter = Formatter
+            }
+        };
 
         pieChart = new PieChart
         {

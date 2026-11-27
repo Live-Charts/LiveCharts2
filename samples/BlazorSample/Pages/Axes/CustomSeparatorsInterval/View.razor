@@ -2,6 +2,8 @@
 @using LiveChartsCore.SkiaSharpView.Blazor
 @using LiveChartsCore;
 @using LiveChartsCore.SkiaSharpView;
+@using LiveChartsCore.SkiaSharpView.Painting
+@using SkiaSharp
 
 <CartesianChart
     Series="@series"
@@ -23,7 +25,10 @@
         var customSeparators = new double[] { 0, 10, 25, 50, 100 };
         yAxis = new Axis
         {
-            CustomSeparators = customSeparators
+            CustomSeparators = customSeparators,
+            MinLimit = 0,
+            MaxLimit = 100,
+            SeparatorsPaint = new SolidColorPaint(new SKColor(180, 180, 180, 100))
         };
         yAxes = new[] { yAxis };
     }

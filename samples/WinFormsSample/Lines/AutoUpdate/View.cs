@@ -12,7 +12,7 @@ public partial class View : UserControl
 {
     private readonly CartesianChart _cartesianChart;
     private readonly ObservableCollection<ISeries> _seriesCollection;
-    private readonly ObservableCollection<ObservableValue> _juanaValues;
+    private readonly ObservableCollection<ObservableValue> _anaValues;
     private readonly Random _random = new();
 
     public View()
@@ -20,7 +20,7 @@ public partial class View : UserControl
         InitializeComponent();
         Size = new System.Drawing.Size(100, 100);
 
-        _juanaValues = new ObservableCollection<ObservableValue>
+        _anaValues = new ObservableCollection<ObservableValue>
         {
             new(2), new(5), new(4)
         };
@@ -29,8 +29,8 @@ public partial class View : UserControl
         {
             new LineSeries<ObservableValue>
             {
-                Name = "Juana",
-                Values = _juanaValues
+                Name = "Ana",
+                Values = _anaValues
             },
             new LineSeries<ObservableValue>
             {
@@ -89,20 +89,20 @@ public partial class View : UserControl
     private void AddItem()
     {
         var newPoint = new ObservableValue { Value = _random.Next(0, 10) };
-        _juanaValues.Add(newPoint);
+        _anaValues.Add(newPoint);
     }
 
     private void RemoveItem()
     {
-        if (_juanaValues.Count < 2) return;
-        _juanaValues.RemoveAt(0);
+        if (_anaValues.Count < 2) return;
+        _anaValues.RemoveAt(0);
     }
 
     private void ReplaceItem()
     {
-        if (_juanaValues.Count < 2) return;
-        var randomIndex = _random.Next(0, _juanaValues.Count - 1);
-        _juanaValues[randomIndex] = new ObservableValue(_random.Next(1, 10));
+        if (_anaValues.Count < 2) return;
+        var randomIndex = _random.Next(0, _anaValues.Count - 1);
+        _anaValues[randomIndex] = new ObservableValue(_random.Next(1, 10));
     }
 
     private ObservableCollection<ObservableValue> FetchValues()

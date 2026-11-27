@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Windows.Forms;
-using LiveChartsCore.SkiaSharpView.Extensions;
-using LiveChartsCore.SkiaSharpView.Painting;
+using LiveChartsCore;
+using LiveChartsCore.Kernel;
+using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.WinForms;
-using SkiaSharp;
 
 namespace WinFormsSample.Pies.Custom;
 
@@ -16,47 +16,53 @@ public partial class View : UserControl
         InitializeComponent();
         Size = new System.Drawing.Size(50, 50);
 
-        var outer = 0;
-        var data = new[] { 6, 5, 4, 3 };
-
-        // you can convert any array, list or IEnumerable<T> to a pie series collection:
-        var seriesCollection = data.AsPieSeries((value, series) =>
+        static string Formatter(ChartPoint point)
         {
-            // this method is called once per element in the array, so:
+            var pv = point.Coordinate.PrimaryValue;
+            var sv = point.StackedValue!;
 
-            // for the series with the value 6, we set the OuterRadiusOffset to 0
-            // for the series with the value 5, the OuterRadiusOffset is 50
-            // for the series with the value 4, the OuterRadiusOffset is 100
-            // for the series with the value 3, the OuterRadiusOffset is 150
+            return $"{pv}/{sv.Total}{Environment.NewLine}{sv.Share:P2}";
+        }
 
-            series.OuterRadiusOffset = outer;
-            outer += 50;
-
-            series.DataLabelsPaint = new SolidColorPaint(SKColors.White)
+        var seriesCollection = new ISeries[]
+        {
+            new PieSeries<double>
             {
-                SKTypeface = SKTypeface.FromFamilyName("Arial", SKFontStyle.Bold)
-            };
-
-            series.ToolTipLabelFormatter =
-                point =>
-                {
-                    var pv = point.Coordinate.PrimaryValue;
-                    var sv = point.StackedValue!;
-
-                    var a = $"{pv}/{sv.Total}{Environment.NewLine}{sv.Share:P2}";
-                    return a;
-                };
-
-            series.DataLabelsFormatter =
-                point =>
-                {
-                    var pv = point.Coordinate.PrimaryValue;
-                    var sv = point.StackedValue!;
-
-                    var a = $"{pv}/{sv.Total}{Environment.NewLine}{sv.Share:P2}";
-                    return a;
-                };
-        });
+                Name = "Mary",
+                Values = new double[] { 10 },
+                OuterRadiusOffset = 0,
+                ShowDataLabels = true,
+                ToolTipLabelFormatter = Formatter,
+                DataLabelsFormatter = Formatter
+            },
+            new PieSeries<double>
+            {
+                Name = "John",
+                Values = new double[] { 20 },
+                OuterRadiusOffset = 50,
+                ShowDataLabels = true,
+                ToolTipLabelFormatter = Formatter,
+                DataLabelsFormatter = Formatter
+            },
+            new PieSeries<double>
+            {
+                Name = "Alice",
+                Values = new double[] { 30 },
+                OuterRadiusOffset = 100,
+                ShowDataLabels = true,
+                ToolTipLabelFormatter = Formatter,
+                DataLabelsFormatter = Formatter
+            },
+            new PieSeries<double>
+            {
+                Name = "Bob",
+                Values = new double[] { 40 },
+                OuterRadiusOffset = 150,
+                ShowDataLabels = true,
+                ToolTipLabelFormatter = Formatter,
+                DataLabelsFormatter = Formatter
+            }
+        };
 
         pieChart = new PieChart
         {

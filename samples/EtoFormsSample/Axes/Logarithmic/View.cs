@@ -41,8 +41,8 @@ public class View : Panel
 
         var yAxis = new LogarithmicAxis(logBase)
         {
-            SeparatorsPaint = new SolidColorPaint(SKColors.LightSlateGray),
-            SubseparatorsPaint = new SolidColorPaint(SKColors.LightSlateGray) { StrokeThickness = 0.5f },
+            SeparatorsPaint = new SolidColorPaint(new SKColor(180, 180, 180, 100)),
+            SubseparatorsPaint = new SolidColorPaint(new SKColor(180, 180, 180, 100)) { StrokeThickness = 0.5f },
             SubseparatorsCount = 9
         };
 

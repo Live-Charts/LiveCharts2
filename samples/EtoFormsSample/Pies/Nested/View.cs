@@ -75,7 +75,9 @@ public class View : Panel
                 ShowDataLabels = x.IsTotal,
                 DataLabelsPosition = LiveChartsCore.Measure.PolarLabelsPosition.Outer,
                 IsVisibleAtLegend = x.IsTotal
-            }).ToArray()
+            }).ToArray(),
+            InitialRotation = 120,
+            LegendPosition = LiveChartsCore.Measure.LegendPosition.Right
         };
         Content = pieChart;
     }

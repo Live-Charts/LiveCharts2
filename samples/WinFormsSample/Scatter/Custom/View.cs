@@ -12,6 +12,8 @@ namespace WinFormsSample.Scatter.Custom;
 
 public partial class View : UserControl
 {
+    private readonly System.Random _random = new();
+
     public View()
     {
         InitializeComponent();
@@ -59,15 +61,14 @@ public partial class View : UserControl
         Controls.Add(cartesianChart);
     }
 
-    private static ObservablePoint[] Fetch()
+    private ObservablePoint[] Fetch()
     {
-        var r = new System.Random();
         var length = 10;
         var values = new ObservablePoint[length];
         for (var i = 0; i < length; i++)
         {
-            var x = r.Next(0, 20);
-            var y = r.Next(0, 20);
+            var x = _random.Next(0, 20);
+            var y = _random.Next(0, 20);
             values[i] = new ObservablePoint(x, y);
         }
         return values;

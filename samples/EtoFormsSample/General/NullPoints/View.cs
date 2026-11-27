@@ -24,9 +24,9 @@ public class View : Panel
 
         var series = new ISeries[]
         {
-            new LineSeries<double?> { Name = "Series 1", Values = values1 },
-            new LineSeries<double?> { Name = "Series 2", Values = values2 },
-            new LineSeries<ObservablePoint?> { Name = "Series 3", Values = values3 }
+            new LineSeries<double?> { Values = values1 },
+            new LineSeries<double?> { Values = values2 },
+            new LineSeries<ObservablePoint?> { Values = values3 }
         };
 
         var cartesianChart = new CartesianChart

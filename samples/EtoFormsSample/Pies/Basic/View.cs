@@ -1,6 +1,7 @@
 ﻿using Eto.Forms;
+using LiveChartsCore;
+using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Drawing.Geometries;
-using LiveChartsCore.SkiaSharpView.Extensions;
 using LiveChartsCore.SkiaSharpView.Painting;
 using LiveChartsCore.SkiaSharpView.VisualElements;
 using LiveChartsCore.SkiaSharpView.Eto;
@@ -16,7 +17,14 @@ public class View : Panel
     {
         Chart = new PieChart
         {
-            Series = new[] { 2, 4, 1, 4, 3 }.AsPieSeries(),
+            Series = new ISeries[]
+            {
+                new PieSeries<double> { Name = "Mary", Values = new double[] { 10 } },
+                new PieSeries<double> { Name = "John", Values = new double[] { 20 } },
+                new PieSeries<double> { Name = "Alice", Values = new double[] { 30 } },
+                new PieSeries<double> { Name = "Bob", Values = new double[] { 40 } },
+                new PieSeries<double> { Name = "Charlie", Values = new double[] { 50 } }
+            },
             Title = new DrawnLabelVisual(
                 new LabelGeometry
                 {

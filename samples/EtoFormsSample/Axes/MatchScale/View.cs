@@ -15,8 +15,6 @@ public class View : Panel
 
     public View()
     {
-        BackgroundColor = new Eto.Drawing.Color(60, 60, 60);
-
         var values = new ObservablePoint[1001];
         var fx = LiveChartsCore.EasingFunctions.BounceInOut;
         for (var i = 0; i < 1001; i++)
@@ -38,7 +36,7 @@ public class View : Panel
             }
         };
 
-        var separatorColor = new SKColor(119, 148, 180, 100); // #64b4b4b4 with alpha 100
+        var separatorColor = new SKColor(180, 180, 180, 100); // #64b4b4b4
 
         // we are forcing the step to 0.1 to highlight that
         // both axes take the same amount of pixels per unit of data,

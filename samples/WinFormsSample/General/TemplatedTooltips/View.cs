@@ -3,6 +3,7 @@ using LiveChartsCore.SkiaSharpView.WinForms;
 using LiveChartsCore.SkiaSharpView;
 using ViewModelsSamples.General.TemplatedTooltips;
 using LiveChartsCore;
+using LiveChartsCore.Drawing;
 
 namespace WinFormsSample.General.TemplatedTooltips;
 
@@ -13,11 +14,22 @@ public partial class View : UserControl
         InitializeComponent();
         Size = new System.Drawing.Size(50, 50);
 
-        var viewModel = new ViewModel();
+        // Register a map to convert the GeometryPoint to a coordinate in the chart
+        LiveCharts.Configure(config =>
+            config.HasMap<GeometryPoint>((dataPoint, index) => new(index, dataPoint.Value)));
+
+        var values = new GeometryPoint[]
+        {
+            new() { Value = 4, Geometry = SVGPoints.Star },
+            new() { Value = 2, Geometry = SVGPoints.Square },
+            new() { Value = 6, Geometry = SVGPoints.Circle },
+            new() { Value = 3, Geometry = SVGPoints.Cross },
+            new() { Value = 5, Geometry = SVGPoints.Diamond }
+        };
 
         var series = new ISeries[]
         {
-            new ColumnSeries<GeometryPoint> { Values = viewModel.Values }
+            new ColumnSeries<GeometryPoint> { Values = values }
         };
 
         var cartesianChart = new CartesianChart

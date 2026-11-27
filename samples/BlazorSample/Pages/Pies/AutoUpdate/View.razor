@@ -21,8 +21,8 @@
 
     protected override void OnInitialized()
     {
-        Series.Add(new PieSeries<int> { Values = Fetch() });
-        Series.Add(new PieSeries<int> { Values = Fetch() });
+        Series.Add(new PieSeries<int> { Name = "Ana", Values = new[] { 2 } });
+        Series.Add(new PieSeries<int> { Name = "Juan", Values = new[] { 8 } });
     }
 
     private void AddSeries()

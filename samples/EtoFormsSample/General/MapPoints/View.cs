@@ -1,6 +1,7 @@
 ﻿using Eto.Forms;
 using LiveChartsCore;
 using LiveChartsCore.Kernel;
+using LiveChartsCore.Measure;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Eto;
 using LiveChartsCore.SkiaSharpView.Painting;
@@ -16,7 +17,9 @@ public class View : Panel
     {
         var columnSeries = new ColumnSeries<int>
         {
-            Values = [2, 5, 4, 6, 8, 3, 2, 4, 6]
+            Values = [2, 5, 4, 6, 8, 3, 2, 4, 6],
+            ShowDataLabels = true,
+            DataLabelsPosition = DataLabelsPosition.Top
         };
         columnSeries.PointMeasured += OnPointMeasured;
 

@@ -36,8 +36,7 @@ public class View : Panel
         var cartesianChart = new CartesianChart
         {
             Series = series,
-            XAxes = [xAxis],
-            LegendPosition = LiveChartsCore.Measure.LegendPosition.Right,
+            XAxes = [xAxis]
         };
 
         Content = cartesianChart;

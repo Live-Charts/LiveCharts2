@@ -13,12 +13,10 @@ public partial class View : UserControl
         InitializeComponent();
         Size = new System.Drawing.Size(50, 50);
 
-        var viewModel = new ViewModel();
-
         var series = new ISeries[]
         {
-            new ColumnSeries<double> { Values = viewModel.RogerValues, Name = "Roger" },
-            new ColumnSeries<double> { Values = viewModel.SusanValues, Name = "Susan" }
+            new ColumnSeries<double> { Values = [2, 1, 3, 5, 3, 4, 6], Name = "Roger" },
+            new ColumnSeries<double> { Values = [1, 3, 2, 7, 3, 5, 2], Name = "Susan" }
         };
 
         var cartesianChart = new CartesianChart

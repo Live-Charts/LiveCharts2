@@ -6,6 +6,9 @@ using LiveChartsCore.SkiaSharpView.WinForms;
 using LiveChartsCore.Geo;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Drawing.Geometries;
+using LiveChartsCore.Measure;
+using LiveChartsCore.SkiaSharpView.SKCharts;
+using LiveChartsCore.SkiaSharpView.VisualElements;
 
 namespace WinFormsSample.Maps.World;
 
@@ -45,6 +48,18 @@ public partial class View : UserControl
         {
             Series = series,
             MapProjection = MapProjection.Mercator,
+            LegendPosition = LegendPosition.Right,
+            Title = new DrawnLabelVisual(
+                new LabelGeometry
+                {
+                    Text = "World population by country",
+                    TextSize = 20,
+                    Padding = new LiveChartsCore.Drawing.Padding(12)
+                }),
+            Legend = new SKHeatLegend
+            {
+                BadgePadding = new LiveChartsCore.Drawing.Padding(20, 16, 8, 16)
+            },
             Location = new System.Drawing.Point(0, 0),
             Size = new System.Drawing.Size(50, 50),
             Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom

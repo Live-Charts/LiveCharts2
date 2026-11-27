@@ -1,6 +1,7 @@
 ﻿using System.Windows.Forms;
 using LiveChartsCore;
 using LiveChartsCore.Kernel;
+using LiveChartsCore.Measure;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
 using LiveChartsCore.SkiaSharpView.WinForms;
@@ -17,7 +18,9 @@ public partial class View : UserControl
 
         var columnSeries = new ColumnSeries<int>
         {
-            Values = [2, 5, 4, 6, 8, 3, 2, 4, 6]
+            Values = [2, 5, 4, 6, 8, 3, 2, 4, 6],
+            ShowDataLabels = true,
+            DataLabelsPosition = DataLabelsPosition.Top
         };
 
         columnSeries.PointMeasured += OnPointMeasured;

@@ -83,7 +83,7 @@ public partial class View : UserControl
 
         cartesianChart = new CartesianChart
         {
-            BackColor = Color.FromArgb(255, 48, 48, 48),
+            BackColor = Color.FromArgb(255, 51, 51, 51),
             Series = series,
             XAxes = [xAxis],
             YAxes = [yAxis],
