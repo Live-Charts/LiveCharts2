@@ -350,7 +350,9 @@ public static class LiveChartsthemeExtensions
     }
 
     /// <summary>
-    /// Defines a style builder for <see cref= "VisualElement" /> objects.
+    /// Defines a style builder for <see cref= "VisualElement" /> objects. When the theme already has a rule for
+    /// <typeparamref name="TChartElement"/>, both run, in the order they were added, so a theme built on top of
+    /// another one can change what the first one set.
     /// </summary>
     /// <typeparam name="TChartElement">The type of the chart element.</typeparam>
     /// <param name="theme">the theme.</param>
@@ -359,7 +361,12 @@ public static class LiveChartsthemeExtensions
     public static Theme HasRuleFor<TChartElement>(this Theme theme, Action<TChartElement> predicate)
         where TChartElement : ChartElement
     {
-        theme.ChartElementElementBuilder.Add(typeof(TChartElement), predicate);
+        var rules = theme.ChartElementElementBuilder;
+
+        rules[typeof(TChartElement)] = rules.TryGetValue(typeof(TChartElement), out var previous)
+            ? (Action<TChartElement>)previous + predicate
+            : predicate;
+
         return theme;
     }
 
