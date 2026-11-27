@@ -183,8 +183,8 @@ new ColumnSeries<ErrorValue>
   `BoxValue` and the error types notify their changes too, so changing one of their properties updates the chart.
 - To plot your own types, see [mappers]({{ website_url }}/docs/{{ platform }}/{{ version }}/Overview.Mappers). For a
   box series, the mapping returns `new Coordinate(x, max, thirdQuartile, firstQuartile, min, median)`.
-- `Name`{{ if xaml }} (`SeriesName` in XAML){{ end }} is shown in tooltips and legends. When it is not set, the
-  series is named "Series 1", "Series 2" and so on.
+- `Name`{{ if xaml }} (`SeriesName` in XAML){{ end }} is shown in tooltips and legends. When it is not set, the tooltip shows the
+  values without a series name.
 - `ZIndex` sets which series draws on top, and `IsVisible` shows or hides the series.
 - For the other properties of the series that draw error bars, see
   [column and row series]({{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Column%20and%20row%20series),

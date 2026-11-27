@@ -37,8 +37,11 @@ the low, a tick to the left at the open price and a tick to the right at the clo
 
 ## Date time X axis
 
-Each candle is as wide as the `UnitWidth` of the X axis, measured in pixels. With dates on the X axis, the unit is a
-number of ticks, so it must match the distance between your points, one day in the samples above. A `DateTimeAxis`
+Each candle is as wide as the `UnitWidth` of the X axis, a distance in the units of the axis, up to `MaxBarWidth`
+pixels. With dates on the X axis, the unit is a number of ticks, so it must match the distance between your points,
+one day in the samples above. See
+[the unit]({{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Time%20and%20logarithmic%20scales#the-unit)
+for more. A `DateTimeAxis`
 does that for you: `new DateTimeAxis(TimeSpan.FromDays(1), date => date.ToString("yyyy MMM dd"))` sets the
 `UnitWidth` and the `MinStep` of the axis to one day, and formats the labels with the given function.{{ if xaml }}
 In XAML, the `XamlDateTimeAxis` takes the unit in its `Interval` property (one day by default) and the format
@@ -178,6 +181,6 @@ new CandlesticksSeries<FinancialPoint>
   replaced value. `FinancialPoint` also updates the chart when one of its properties changes, see
   [automatic updates]({{ website_url }}/docs/{{ platform }}/{{ version }}/Overview.Automatic%20updates).
 - To plot your own types, see [mappers]({{ website_url }}/docs/{{ platform }}/{{ version }}/Overview.Mappers).
-- `Name`{{ if xaml }} (`SeriesName` in XAML){{ end }} is shown in tooltips and legends. When it is not set, the
-  series is named "Series 1", "Series 2" and so on.
+- `Name`{{ if xaml }} (`SeriesName` in XAML){{ end }} is shown in tooltips and legends. When it is not set, the tooltip shows the
+  values without a series name.
 - `ZIndex` sets which series draws on top, and `IsVisible` shows or hides the series.

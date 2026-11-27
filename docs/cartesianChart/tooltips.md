@@ -1,240 +1,230 @@
 <!--
 To get help on editing this file, see https://github.com/beto-rodriguez/LiveCharts2/blob/master/docs/readme.md
+Samples are pulled from the repository with render_sample, the code shown always matches the samples.
 -->
 
-# Tooltips
+# Tooltips and crosshairs
 
-Tooltips are popups that help the user to read a chart as the pointer moves.
+A tooltip is a popup that shows the points under the pointer. The chart decides which points to show with its
+`FindingStrategy`, places the popup with `TooltipPosition`, and builds its text with the tooltip formatters of each
+series. A crosshair is a line that follows the pointer across the plot area, with a label on the axis; it is set on
+the axes. Legends have their own
+[article]({{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Legends).
 
 ![tooltips](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/tooltips.gif)
 
+:::info
+This article highlights the most used features. Every member is listed in the API explorer:
+[TooltipPosition]({{ website_url }}/api/{{ version }}/LiveChartsCore.Measure.TooltipPosition),
+[FindingStrategy]({{ website_url }}/api/{{ version }}/LiveChartsCore.Measure.FindingStrategy),
+[SKDefaultTooltip]({{ website_url }}/api/{{ version }}/LiveChartsCore.SkiaSharpView.SKCharts.SKDefaultTooltip),
+[IChartTooltip]({{ website_url }}/api/{{ version }}/LiveChartsCore.Kernel.Sketches.IChartTooltip) and
+[Axis]({{ website_url }}/api/{{ version }}/LiveChartsCore.SkiaSharpView.Axis).
+{{~ if xaml ~}}
+In XAML, declare the axes as `XamlAxis`.
+{{~ end ~}}
+:::
+
 ## Behaviour
 
-On **Windows** or **MacOS** you can move the pointer over the chart to display the tooltip, tooltips will be closed when the
-pointer leaves the chart area.
+With a mouse, the tooltip opens when the pointer moves over a point and closes when the pointer leaves the chart.
+On Android and iOS, slide your finger over the chart to open it; it closes when the finger goes up. The tooltip also
+closes when the user starts panning the chart.
 
-On **Android** or **iOS** slide your finger over the chart to display the tooltip, the tooltip will be closed when the finger
-goes up.
+Every series takes part in the tooltip. Set `IsHoverable` to `false` on a series to leave it out, it is `true` by
+default.
 
-## TooltipPosition property
+## Tooltip position
 
-You can place a tooltip at `Top`, `Bottom`, `Left`, `Right`, `Center` or `Hidden` positions, for now 
-tooltips for the `PieChart` class only support the `Center` position, default value is `Top`.
-
-Notice the `Hidden` position will disable tooltips in a chart.
+`TooltipPosition` places the tooltip. The default is `Auto`: the tooltip goes above the hovered points, or below
+them when all of them are under the pivot of their series, such as negative columns. `Top`, `Bottom`, `Left`,
+`Right` and `Center` place it at that side of the hovered points, or at their center. When the tooltip does not fit
+in the chart at the requested side, it moves to another one. `Hidden` disables tooltips.
 
 {{~ if xaml ~}}
-<pre><code>&lt;lvc:CartesianChart
+```xml
+<lvc:CartesianChart
     Series="{Binding Series}"
-    TooltipPosition="Top">&lt;!-- mark -->
-&lt;/lvc:CartesianChart>
-&lt;lvc:CartesianChart
-    Series="{Binding Series}"
-    TooltipPosition="Bottom">&lt;!-- mark -->
-&lt;/lvc:CartesianChart>
-&lt;lvc:CartesianChart
-    Series="{Binding Series}"
-    TooltipPosition="Left">&lt;!-- mark -->
-&lt;/lvc:CartesianChart>
-&lt;lvc:CartesianChart
-    Series="{Binding Series}"
-    TooltipPosition="Right">&lt;!-- mark -->
-&lt;/lvc:CartesianChart>
-&lt;lvc:CartesianChart
-    Series="{Binding Series}"
-    TooltipPosition="Center">&lt;!-- mark -->
-&lt;/lvc:CartesianChart>
-&lt;lvc:CartesianChart
-    Series="{Binding Series}"
-    TooltipPosition="Hidden">&lt;!-- mark -->
-&lt;/lvc:CartesianChart></code></pre>
+    TooltipPosition="Bottom"><!-- mark -->
+</lvc:CartesianChart>
+```
 {{~ end ~}}
 
 {{~ if blazor ~}}
-<pre><code>&lt;CartesianChart
+```xml
+<CartesianChart
     Series="series"
-    TooltipPosition="LiveChartsCore.Measure.TooltipPosition.Top">&lt;!-- mark -->
-&lt;/CartesianChart>
-&lt;CartesianChart
-    Series="series"
-    TooltipPosition="LiveChartsCore.Measure.TooltipPosition.Bottom">&lt;!-- mark -->
-&lt;/CartesianChart>
-&lt;CartesianChart
-    Series="series"
-    TooltipPosition="LiveChartsCore.Measure.TooltipPosition.Left">&lt;!-- mark -->
-&lt;/CartesianChart>
-&lt;CartesianChart
-    Series="series"
-    TooltipPosition="LiveChartsCore.Measure.TooltipPosition.Right">&lt;!-- mark -->
-&lt;/CartesianChart>
-&lt;CartesianChart
-    Series="series"
-    TooltipPosition="LiveChartsCore.Measure.TooltipPosition.Center">&lt;!-- mark -->
-&lt;/CartesianChart>
-&lt;CartesianChart
-    Series="series"
-    TooltipPosition="LiveChartsCore.Measure.TooltipPosition.Hidden">&lt;!-- mark -->
-&lt;/CartesianChart></code></pre>
+    TooltipPosition="LiveChartsCore.Measure.TooltipPosition.Bottom"><!-- mark -->
+</CartesianChart>
+```
 {{~ end ~}}
 
-{{~ if winforms ~}}
-<pre><code>cartesianChart1.Series = new ISeries[] { new LineSeries&lt;int> { Values = new[] { 2, 5, 4 } } };
-cartesianChart1.TooltipPosition = LiveChartsCore.Measure.TooltipPosition.Bottom;</code></pre>
+{{~ if winforms || eto ~}}
+```csharp
+cartesianChart1.TooltipPosition = LiveChartsCore.Measure.TooltipPosition.Bottom; // mark
+// or use Auto, Top, Left, Right, Center or Hidden
+```
 {{~ end ~}}
 
-## FindingStrategy property
+A pie chart always places the tooltip on the hovered slice, it only takes `Hidden` from this property.
 
-Every point drawn by the library defines a [HoverArea]({{ website_url }}/api/{{ version }}/LiveChartsCore.Kernel.Drawing.HoverArea),
-it defines an area in the chart that "triggers" the point, it is specially important to fire tooltips, a point will be included in a
-tooltip when the hover area was triggered by the pointer position.
+## Finding strategy
 
-The `FindingStrategy` property determines the hover area planes (X or Y) that a chart will use to trigger the `HoverArea` instances.
-In a chart, the following options are available:
+Every point drawn by the library has a
+[HoverArea]({{ website_url }}/api/{{ version }}/LiveChartsCore.Kernel.Drawing.HoverArea), the zone of the chart that
+selects that point. `FindingStrategy` sets how the chart compares the pointer position with those areas, to pick
+the points shown in the tooltip and the points passed to the pointer events, such as `DataPointerDown`.
 
-**CompareAll**: Selects all the points whose hover area contain the pointer position.
+**CompareAll**: selects the points whose hover area contains the pointer.
 
 ![tooltips](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/tsm_cac.gif)
 
-**CompareOnlyX**: Selects all the points whose hover area contain the pointer position, but it ignores the Y plane.
+**CompareOnlyX**: selects the points whose hover area contains the pointer on the X axis, the Y position is ignored.
 
 ![tooltips](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/tsm_cxc.gif)
 
-**CompareOnlyY**: Selects all the points whose hover area contain the pointer position, but it ignores the X plane.
+**CompareOnlyY**: selects the points whose hover area contains the pointer on the Y axis, the X position is ignored.
 
 ![tooltips](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/tsm_cyc.gif)
 
-**ExactMatch**: Selects all the points whose drawn shape contain the pointer position.
+**ExactMatch**: selects the points whose drawn shape contains the pointer.
 
 ![tooltips](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/tsm_cec.gif)
 
-**CompareAllTakeClosest**: Selects the points whose hover area contain the pointer position, 
-if overlapped then takes the closest to the pointer in each series.
+**CompareAllTakeClosest**, **CompareOnlyXTakeClosest**, **CompareOnlyYTakeClosest** and **ExactMatchTakeClosest**
+compare the same way, but when several points of a series match, they keep only the closest to the pointer, one
+point per series.
 
-**CompareOnlyXTakeClosest**: Selects the points whose hover area contain the pointer position, but it ignores the Y plane,
-if overlapped then takes the closest to the pointer in each series.
-
-**CompareOnlyYTakeClosest**: Selects the points whose hover area contain the pointer position, but it ignores the X plane,
-if overlapped then takes the closest to the pointer in each series.
-
-**ExactMatchTakeClosest**: Selects all the points whose drawn shape contain the pointer position,
-if overlapped then takes the closest to the pointer in each series.
-
-**Automatic** *(default)*: Based on the series in the chart, LiveCharts will determine a finding strategy (one of the previous mentioned),
-all the series have a preferred finding strategy, normally vertical series prefer the `CompareOnlyXTakeClosest` strategy, 
-horizontal series prefer `CompareOnlyYTakeClosest`, and scatter series prefers `CompareAllTakeClosest`, if all the series prefer the same 
-strategy, then that strategy will be selected for the chart, if any series differs then the `CompareAllTakeClosest` strategy will be used.
-
-:::info
-Notice that the `Axis.UnitWidth` property might affect the tooltips in `DateTime` scaled charts, ensure your chart axis is using
-the properly [unit width]({{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Axes%20properties#unitwidth-property).
-:::
+**Automatic** is the default. Each series prefers a strategy: line, step line, column, financial and box series
+prefer `CompareOnlyXTakeClosest`, row series prefer `CompareOnlyYTakeClosest`, and the others, such as scatter and
+heat series, prefer none. When all the visible series prefer the same strategy the chart uses it, otherwise it uses
+`CompareAllTakeClosest`.
 
 {{~ if xaml ~}}
-<pre><code>&lt;lvc:CartesianChart
+```xml
+<lvc:CartesianChart
     Series="{Binding Series}"
-    FindingStrategy="CompareOnlyX">&lt;!-- mark -->
-&lt;/lvc:CartesianChart></code></pre>
+    FindingStrategy="CompareOnlyX"><!-- mark -->
+</lvc:CartesianChart>
+```
 {{~ end ~}}
 
 {{~ if blazor ~}}
-<pre><code>&lt;CartesianChart
+```xml
+<CartesianChart
     Series="series"
-    FindingStrategy="LiveChartsCore.Measure.FindingStrategy.CompareOnlyX">&lt;!-- mark -->
-&lt;/CartesianChart></code></pre>
+    FindingStrategy="LiveChartsCore.Measure.FindingStrategy.CompareOnlyX"><!-- mark -->
+</CartesianChart>
+```
 {{~ end ~}}
 
-{{~ if winforms ~}}
-<pre><code>cartesianChart1.Series = new ISeries[] { new LineSeries&lt;int> { Values = new[] { 2, 5, 4 } } };
-cartesianChart1.FindingStrategy = LiveChartsCore.Measure.FindingStrategy.CompareOnlyX;</code></pre>
+{{~ if winforms || eto ~}}
+```csharp
+cartesianChart1.FindingStrategy = LiveChartsCore.Measure.FindingStrategy.CompareOnlyX; // mark
+```
 {{~ end ~}}
 
-## Customize FindingStrategy
+:::info
+The width of the hover area of a column or a point follows the `UnitWidth` of the axis. On a date time axis, set
+the unit that matches your data, see
+[the unit]({{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Time%20and%20logarithmic%20scales#the-unit).
+:::
 
-Depending on the series type and [FindingStrategy](https://livecharts.dev/docs/{{ platform }}/{{ version }}/CartesianChart.Tooltips#findingstrategy-property), LiveCharts decides the logic to show points on tooltips and also the points passed
-to any pointer event in the library (like `Hover`, `HoverLeft` or `PointerDown`), lets take as an example the default behavior of 
-the `ColumnSeries<T>`, it selects all the points that share the same `X` coordinate:
+## Custom point finding
+
+When no strategy fits, override how a series finds its points. By default, a column series selects all the columns
+that share the X coordinate of the pointer:
 
 ![custom tooltip](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/custom-ha-compare.gif)
 
-But for this example, we want to override this behavior, instead we only need the tooltip to display the exact column where the pointer is in:
+To show only the column under the pointer instead:
 
 ![custom tooltip](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/custom-ha.gif)
 
-When the [FindingStrategy](https://livecharts.dev/docs/{{ platform }}/{{ version }}/CartesianChart.Tooltips#findingstrategy-property), 
-is not enough, we can override the logic to determine whether a given point is inside a drawn `ChartPoint`. This method
-will be used by the library to resolve the points to show in a tooltip, or the points passed in any pointer event:
+inherit from the series and override `FindPointsInPosition()`. The library calls it to resolve the points of the
+tooltip (`FindPointFor.HoverEvent`) and of the pointer events (`FindPointFor.PointerDownEvent`):
 
 ```csharp
 {{~ render "~/../samples/ViewModelsSamples/Events/OverrideFind/ViewModel.cs" ~}}
 ```
 
 :::tip
-Another alternative is to override the `HoverArea`, this area defines a section in the UI where the point is "selectable", you can find an example [here](https://github.com/beto-rodriguez/LiveCharts2/blob/master/samples/ViewModelsSamples/General/TooltipHoverArea/ViewModel.cs).
+Another option is to replace the `HoverArea` of each point, the area that makes a point selectable and suggests
+where the tooltip goes. See
+[this example](https://github.com/beto-rodriguez/LiveCharts2/blob/master/samples/ViewModelsSamples/General/TooltipHoverArea/ViewModel.cs).
 :::
 
 ## Tooltip text
 
-You can define the text the tooltip will display for a given point, using the 
-`YToolTipLabelFormatter`, `XToolTipLabelFormatter` or `ToolTipLabelFormatter` properties, these 
-properties are of type `Func<ChartPoint, string>` it means that both are a function, that takes a point as parameter
-and return a string, the point will be injected by LiveCharts in this function to get a string out of it when it
-requires to build the text for a point in a tooltip, the injected point will be different as the user moves the pointer 
-over the user interface.
+The default tooltip shows a header, then one row per point with the series miniature, the series
+`Name`{{ if xaml }} (`SeriesName` in XAML){{ end }} and the value. A series with no name shows no name in the
+tooltip. Two properties of the series build that text, both take the point and return a string:
 
-By default the library already defines a default formatter  for every series, all the series have a different
-formatters, but generally the default value uses the `Series.Name` and the `ChartPoint.Coordinate.PrimaryValue` properties, the following
-code snippet illustrates how to build a custom tooltip formatter.
+- `YToolTipLabelFormatter` builds the value of each row.
+- `XToolTipLabelFormatter` builds the header, from the first point in the tooltip.
 
-Lets take the example of the next series:"
+When they are not set, a line or column series formats the value with the `Labels` or the `Labeler` of its Y axis.
+The header uses the `Labels` or the `Labeler` of its X axis, and is left out while the X axis has neither. Some
+series set their own `YToolTipLabelFormatter`: a scatter series shows `X = ` and `Y = ` (and `W = ` when it is
+weighted), a financial series shows the high, open, close and low values, a box series its five values, and a heat
+series the Y label and the weight. Range series show both ends of the range.
 
-<pre><code>public ISeries[] Series { get; set; } = [
-    new LineSeries&lt;double>
+Take these two series:
+
+```csharp
+public ISeries[] Series { get; set; } = [
+    new LineSeries<double>
     {
         Values = [2, 1, 3, 5, 3, 4, 6],
         Fill = null,
-        GeometrySize = 20,
+        GeometrySize = 20
     },
-    new LineSeries&lt;int, StarGeometry>
+    new LineSeries<int, StarGeometry>
     {
         Values = [4, 2, 5, 2, 4, 5, 3],
         Fill = null,
         GeometrySize = 20
     }
-];</code></pre>
+];
+```
 
-By default the tooltip will be:
+By default the tooltip is:
 
 ![tooltip](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/tooltip-format1.png)
 
-We can add format to the tooltip:
+`YToolTipLabelFormatter` changes the value:
 
-<pre><code>public ISeries[] Series { get; set; } = [
-    new LineSeries&lt;double>
+```csharp
+public ISeries[] Series { get; set; } = [
+    new LineSeries<double>
     {
         Values = [2, 1, 3, 5, 3, 4, 6],
         Fill = null,
         GeometrySize = 20,
-        YToolTipLabelFormatter = point => point.Model.ToString("N2") // mark
+        YToolTipLabelFormatter = point => point.Model.ToString("C2") // mark
     },
-    new LineSeries&lt;int, StarGeometry>
+    new LineSeries<int, StarGeometry>
     {
         Values = [4, 2, 5, 2, 4, 5, 3],
         Fill = null,
         GeometrySize = 20,
-        YToolTipLabelFormatter = point => point.Model.ToString("N2") // mark
+        YToolTipLabelFormatter = point => point.Model.ToString("C2") // mark
     }
-];</code></pre>
+];
+```
 
 ![tooltip](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/tooltip-format2.png)
 
-We used the Model property of the point, the Model property is just the item in the Values
-collection, for example in the next case, the Model property is of type `City`.
+`point.Model` is the item of the `Values` collection, so with your own types it gives access to all their
+properties. In the next case it is a `City`:
 
-<pre><code>public ISeries[] Series { get; set; } = [
-    new LineSeries&lt;City>
+```csharp
+public ISeries[] Series { get; set; } = [
+    new LineSeries<City>
     {
-        Values = [new() { Population = 4 }, new() { Population = 2}],
-        YToolTipLabelFormatter = point => point.Model.Population.ToString("N2") // mark
+        Values = [new() { Population = 4 }, new() { Population = 2 }],
+        Mapping = (city, index) => new(index, city.Population),
+        YToolTipLabelFormatter = point => point.Model!.Population.ToString("N2") // mark
     }
 ];
 
@@ -243,84 +233,144 @@ collection, for example in the next case, the Model property is of type `City`.
 public class City
 {
     public double Population { get; set; }
-}</code></pre>
+}
+```
 
-We can also show a label for the `X` coordinate, the default tooltip uses the X label as the header in the tooltip.
+`XToolTipLabelFormatter` adds a header. `point.Index` is the position of the point in the `Values` collection:
 
-<pre><code>new LineSeries&lt;double>
+```csharp
+new LineSeries<double>
 {
     Values = [2, 1, 3, 5, 3, 4, 6],
     Fill = null,
     GeometrySize = 20,
-    XToolTipLabelFormatter = point => point.Index.ToString(), // mark
+    XToolTipLabelFormatter = point => $"X = {point.Index}", // mark
     YToolTipLabelFormatter = point => point.Model.ToString("C2")
-};</code></pre>
+};
+```
 
 ![tooltip](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/tooltip-format3.png)
 
-When the series is "Stacked" (`PieSeries`, `StackedColumn` or `StackedRow`) we can find information about the stacked data
-in the `StackedValue` property, for example:
+Pie series have no X and Y, they use `ToolTipLabelFormatter` for the value and show no header.
 
+## Stacked values
 
-<pre><code>public ISeries[] Series { get; set; } = [
-    new StackedColumnSeries&lt;double>
+The points of the series that stack (stacked area, stacked step area, stacked column, stacked row and pie series)
+have a `StackedValue` property with the `Start`, `End` and `Total` of the stack, and the `Share` of the point in that
+total, from `0` to `1`. See the
+[stacked series article]({{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Stacked%20series).
+
+```csharp
+public ISeries[] Series { get; set; } = [
+    new StackedColumnSeries<double>
     {
         Values = [2, 1, 3, 5, 3, 4, 6],
         YToolTipLabelFormatter =
             point => $"{point.Model} / {point.StackedValue!.Total} ({point.StackedValue.Share:P2})"
     },
-    new StackedColumnSeries&lt;int>
+    new StackedColumnSeries<int>
     {
         Values = [4, 2, 5, 2, 4, 5, 3],
         YToolTipLabelFormatter =
             point => $"{point.Model} / {point.StackedValue!.Total} ({point.StackedValue.Share:P2})"
     }
-];</code></pre>
-
-Will result in:
+];
+```
 
 ![tooltip](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/tooltip-format4.png)
 
-:::tip
-The PieSeries class uses the `ToolTipLabelFormatter` property to configure the text inside the tooltip.
-:::
+## Tooltip style
 
-# Customize default tooltips
+`TooltipTextPaint`, `TooltipTextSize` and `TooltipBackgroundPaint` style the default tooltip. When they are not
+set, the default theme draws the text at size `16`, dark gray on a light gray background with a shadow (light gray
+on a dark gray background in the dark theme).
 
-You can quickly change the position, the font, the text size or the background color:
-
-#### {{ view_title }}
-
+{{~ if xaml ~}}
+```xml
+<lvc:CartesianChart
+    Series="{Binding Series}"
+    TooltipPosition="Left"
+    TooltipBackgroundPaint="{lvc:SolidColorPaint Color='#480032'}"
+    TooltipTextPaint="{lvc:SolidColorPaint Color='#F2F4FF', FontFamily='Courier New'}"
+    TooltipTextSize="16">
+</lvc:CartesianChart>
 ```
-{{~ render $"~/../samples/{platform_samples_folder}/Axes/NamedLabels{view_extension}" ~}}
+{{~ end ~}}
+
+{{~ if blazor ~}}
+```xml
+<CartesianChart
+    Series="series"
+    TooltipPosition="LiveChartsCore.Measure.TooltipPosition.Left"
+    TooltipBackgroundPaint="@tooltipBackgroundPaint"
+    TooltipTextPaint="@tooltipTextPaint"
+    TooltipTextSize="16">
+</CartesianChart>
+
+@code {
+    private SolidColorPaint tooltipBackgroundPaint = new(new SKColor(72, 0, 50));
+    private SolidColorPaint tooltipTextPaint = new(new SKColor(242, 244, 255)) { FontFamily = "Courier New" };
+    // ...
+}
 ```
+{{~ end ~}}
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/samples/general/customTooltips/styling-tooltips.png)
-
-## Custom tooltip control
-
-You can also create your own tooltip, the recommended way is to use the LiveCharts API (example below) but you can
-use anything as tooltip as soon as it implements the `IChartTooltip<T>` interface. In the following example we build
-a custom control to render tooltips in our charts using the LiveCharts API.
-
-:::tip
-The next tooltip is drawn by the library, LiveCharts can only draw inside the control bounds, in some cases it could 
-cause issues like [#912](https://github.com/beto-rodriguez/LiveCharts2/issues/912).
-
-Alternatively, you can build your own Tooltips and use the power of your UI framework, 
-see [#1558](https://github.com/beto-rodriguez/LiveCharts2/issues/1558) for more info.
-:::
-
-#### CustomTooltip.cs
-
+{{~ if winforms || eto ~}}
 ```csharp
-{{~ render "~/../samples/ViewModelsSamples/General/TemplatedTooltips/CustomTooltip.cs" ~}}
+cartesianChart1.TooltipPosition = LiveChartsCore.Measure.TooltipPosition.Left;
+cartesianChart1.TooltipBackgroundPaint = new SolidColorPaint(new SKColor(72, 0, 50)); // mark
+cartesianChart1.TooltipTextPaint = new SolidColorPaint(new SKColor(242, 244, 255)) { FontFamily = "Courier New" }; // mark
+cartesianChart1.TooltipTextSize = 16; // mark
 ```
+{{~ end ~}}
 
-#### View
+![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/samples/general/templatedTooltips/styling-tooltips.png)
 
-```
-{{~ render $"~/../samples/{platform_samples_folder}/General/TemplatedTooltips{view_extension}" ~}}
-```
+A text wider than 170 pixels wraps to the next line; the limit is `MaxTooltipsAndLegendsLabelsWidth` in
+`LiveCharts.DefaultSettings`, and legends use it too.
 
-![custom tooltip](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/tooltip-custom-template.gif)
+## Custom tooltips
+
+Set the `Tooltip` property of the chart to replace the default tooltip. The easiest way to build your own is to
+inherit from `SKDefaultTooltip`: `Initialize()` sets the background, the wedge (the triangle that points to the
+hovered point) and the animations, and `GetLayout()` returns the content, built with the LiveCharts layouts
+(`StackLayout`, `LabelGeometry` and the miniature of each series). `Show()` and `Hide()` can be overridden too. In this
+sample, each data point has an SVG path, and `CustomTooltip` draws that path next to the value.
+{{~ if xaml2006 ~}}
+The XAML parser of this platform does not take generic types, so the sample declares a non-generic series in
+`CustomGeometryPointColumnSeries.cs`.
+{{~ end ~}}
+
+{{ render_sample "general/templatedTooltips" }}
+
+## Tooltip from scratch
+
+A tooltip can be any class that implements `IChartTooltip`: the chart calls `Show()` with the points to show, and
+`Hide()` to close it. Use the
+[SKDefaultTooltip source code](https://github.com/beto-rodriguez/LiveCharts2/blob/master/src/skiasharp/LiveChartsCore.SkiaSharp/SKCharts/SKDefaultTooltip.cs)
+as a guide, it is the tooltip the library uses by default.
+
+A tooltip drawn with the LiveCharts API can only draw inside the bounds of the chart control, which can cut it in
+small charts ([#912](https://github.com/beto-rodriguez/LiveCharts2/issues/912)). You can also build the tooltip with
+your UI framework instead, [#1558](https://github.com/beto-rodriguez/LiveCharts2/issues/1558) shows a WPF control
+that implements `IChartTooltip`.
+
+## Crosshairs
+
+Crosshairs are set on each axis. `CrosshairPaint` draws a line that follows the pointer while it is over the plot
+area: a vertical line for an X axis, a horizontal one for a Y axis. An axis with no `CrosshairPaint` draws no
+crosshair. The line is removed when the tooltip closes.
+
+- `CrosshairLabelsPaint` draws a label on the axis with the value under the pointer, formatted with the `Labels` or
+  `Labeler` of the axis and at the axis `TextSize`.
+- `CrosshairLabelsBackground` is the background color of that label, and `CrosshairPadding` its padding; when the
+  padding is not set, the axis `Padding` is used.
+- `CrosshairSnapEnabled` moves the line to the point closest to the pointer, among the visible series that use that
+  axis, and the label shows the value of that point. It is `false` by default.
+
+In this sample both axes draw a crosshair, and only the Y crosshair snaps to the points:
+
+{{ render_sample "axes/crosshairs" }}
+
+When axes are shared between charts with `SharedAxes.Set()`, the crosshair moves in all of them, see the
+[shared axes]({{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Axes#shared-axes).

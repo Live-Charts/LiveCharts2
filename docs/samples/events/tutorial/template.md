@@ -23,7 +23,7 @@ the pointer is not in the drawn shape, this is because the `HoverArea` is not th
 The `Chart.FindingStrategy` property, defines the method to use to find points in the chart, this strategy is used for 
 tooltips, hover events and pressed events. By default it is `FindingStrategy.Automatic`, and it means that the chart will decide
 the best strategy based on the defaults on each series type, in the next example we use the default automatic strategy in a couple
-of column series, you can learn more about the [supported strategies here](https://livecharts.dev/docs/{{ platform }}/{{ version }}/CartesianChart.Tooltips#findingstrategy-property).
+of column series, you can learn more about the [supported strategies here]({{ website_url }}/docs/{{ platform }}/{{ version }}/CartesianChart.Tooltips%20and%20crosshairs#finding-strategy).
 
 ## Chart events
 

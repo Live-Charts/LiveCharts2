@@ -231,6 +231,6 @@ new LineSeries<double>
 - `Values` takes any `IEnumerable<T>`. Use an `ObservableCollection<T>` and the chart animates every added, removed or
   replaced value, see [automatic updates]({{ website_url }}/docs/{{ platform }}/{{ version }}/Overview.Automatic%20updates).
 - To plot your own types, or set both X and Y, see [mappers]({{ website_url }}/docs/{{ platform }}/{{ version }}/Overview.Mappers).
-- `Name`{{ if xaml }} (`SeriesName` in XAML){{ end }} is shown in tooltips and legends. When it is not set, the
-  series is named "Series 1", "Series 2" and so on.
+- `Name`{{ if xaml }} (`SeriesName` in XAML){{ end }} is shown in tooltips and legends. When it is not set, the tooltip shows the
+  values without a series name.
 - `ZIndex` sets which series draws on top, and `IsVisible` shows or hides the series.
