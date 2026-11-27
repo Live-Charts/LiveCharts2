@@ -28,7 +28,8 @@ The second generic argument changes the geometry, the second series in this samp
 ## Straight or smooth lines
 
 `LineSmoothness` goes from `0` to `1`: `0` draws straight segments between the points and `1` draws the most curved
-line. Values outside that range are clamped to it. Setting `GeometrySize` to `0` hides the points.
+line. Values outside that range are clamped to it. Setting `GeometrySize` to `0` hides the points, see also
+[point geometries](#point-geometries).
 
 {{ render_sample "lines/straight" }}
 
@@ -122,6 +123,29 @@ Paints can also draw gradients and dashed lines, see the
 `GeometryFill` and `GeometryStroke` paint the shape drawn at each point, and `GeometrySize` sets its size. While
 `GeometryStroke` is not set, the theme derives it from the series' `Stroke` (when `Stroke` is a `SolidColorPaint`),
 so the points match the line.
+
+When the points are so close that their geometries would overlap, for example a long line in a small chart or a
+zoomed out chart, the series does not draw them: the line shows the data, and the point under the pointer still shows
+its geometry. They come back when the points are far enough apart again. This is `GeometryVisibility.Auto`, the
+default; a point alone between two gaps (see [Gaps](#gaps)) always keeps its geometry, it is the only thing that
+shows it. `GeometryVisibility.Always` draws the geometries whatever the spacing, as versions before 3.0 did, and
+`GeometryVisibility.Never` never draws them.
+
+{{~ if xaml ~}}
+```xml
+<lvc:XamlLineSeries Values="{Binding Values}" GeometryVisibility="Always"/>
+```
+{{~ else ~}}
+```csharp
+new LineSeries<double>
+{
+    Values = values,
+    GeometryVisibility = GeometryVisibility.Always // mark
+};
+```
+{{~ end ~}}
+
+The step line, polar line and range line series work the same way.
 
 ![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/geometrystrokefill.png)
 
