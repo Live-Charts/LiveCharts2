@@ -22,6 +22,7 @@
 
 using System;
 using LiveChartsCore.Drawing;
+using LiveChartsCore.Geo;
 using LiveChartsCore.Kernel;
 using LiveChartsCore.Kernel.Sketches;
 using LiveChartsCore.Measure;
@@ -86,6 +87,21 @@ public static class ThemesExtensions
                             theme.TooltipTextPaint = new SolidColorPaint(new(30, 30, 30));
                             theme.LegendTextPaint = new SolidColorPaint(new(30, 30, 30));
                         }
+                    })
+                    .HasRuleForChart(chart =>
+                    {
+                        if (chart is not IGeoMapView map) return;
+
+                        // the land without data, quiet against the background in both variants
+                        SKColor land = theme.IsDark ? new(55, 55, 55) : new(240, 240, 240);
+                        SKColor borders = theme.IsDark ? new(0, 0, 0) : new(255, 255, 255);
+
+                        // a map applies the theme on every measure, and a paint can not be shared by two maps,
+                        // so each map gets its own paints, replaced only when the variant changes
+                        if (map.Fill is not SolidColorPaint fill || fill.Color != land)
+                            map.Fill = new SolidColorPaint(land);
+                        if (map.Stroke is not SolidColorPaint stroke || stroke.Color != borders)
+                            map.Stroke = new SolidColorPaint(borders);
                     })
                     .HasDefaultTooltip(() => new SKDefaultTooltip())
                     .HasDefaultLegend(() => new SKDefaultLegend())
