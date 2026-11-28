@@ -349,6 +349,20 @@ public static class ThemesExtensions
                             sankey.DataLabelsPaint =
                                 new SolidColorPaint(theme.IsDark ? new(245, 245, 245) : new(45, 45, 45));
                     })
+                    .HasRuleForTreemapSeries(treemap =>
+                    {
+                        // the padding between tiles already separates them, a stroke is not needed
+                        var color = theme.GetSeriesColor(treemap).AsSKColor();
+
+                        treemap.Stroke = null;
+                        treemap.Fill = new SolidColorPaint(color);
+
+                        // the labels are drawn inside the tiles, like the inner labels of a pie
+                        if (treemap.ShowDataLabels)
+                            treemap.DataLabelsPaint = theme.IsDark
+                                ? new SolidColorPaint(new(45, 45, 45))
+                                : new SolidColorPaint(new(245, 245, 245));
+                    })
                     // CS0618: BaseLabelVisual is obsolete and still themed, a LabelVisual that is
                     // already out there has to keep following the theme.
 #pragma warning disable CS0618
