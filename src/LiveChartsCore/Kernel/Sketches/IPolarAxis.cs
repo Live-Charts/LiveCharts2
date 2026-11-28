@@ -48,7 +48,9 @@ public interface IPolarAxis : IPlane
     float Ro { get; set; }
 
     /// <summary>
-    /// Gets the angle in degrees where the labels are drawn, default is 0, notice this property has no effect
+    /// Gets the angle in degrees of the line the labels are drawn along, 0 points right and the angle grows clockwise.
+    /// The default, <see cref="double.NaN"/>, places them halfway between the first two spokes of the angle axis, so
+    /// they never sit on a spoke, under the points of the series or on an angle label. This property has no effect
     /// when the axis has <see cref="PolarAxisOrientation.Angle"/> orientation.
     /// </summary>
     double LabelsAngle { get; set; }
@@ -72,6 +74,12 @@ public interface IPolarAxis : IPlane
     /// Gets or sets the labels background.
     /// </summary>
     LvcColor LabelsBackground { get; set; }
+
+    /// <summary>
+    /// Gets the size of the largest label the axis could draw with its current limits, measured once per measure
+    /// of the chart; it is empty while the axis has no data bounds.
+    /// </summary>
+    LvcSize PossibleMaxLabelSize { get; }
 
     /// <summary>
     /// Initializes the axis for the specified orientation.
