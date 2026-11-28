@@ -22,6 +22,7 @@
 
 using System;
 using LiveChartsCore.Drawing;
+using LiveChartsCore.Geo;
 using LiveChartsCore.Kernel;
 using LiveChartsCore.Kernel.Sketches;
 using LiveChartsCore.Measure;
@@ -86,6 +87,21 @@ public static class ThemesExtensions
                             theme.TooltipTextPaint = new SolidColorPaint(new(30, 30, 30));
                             theme.LegendTextPaint = new SolidColorPaint(new(30, 30, 30));
                         }
+                    })
+                    .HasRuleForChart(chart =>
+                    {
+                        if (chart is not IGeoMapView map) return;
+
+                        // the land without data, quiet against the background in both variants
+                        SKColor land = theme.IsDark ? new(55, 55, 55) : new(240, 240, 240);
+                        SKColor borders = theme.IsDark ? new(0, 0, 0) : new(255, 255, 255);
+
+                        // a map applies the theme on every measure, and a paint can not be shared by two maps,
+                        // so each map gets its own paints, replaced only when the variant changes
+                        if (map.Fill is not SolidColorPaint fill || fill.Color != land)
+                            map.Fill = new SolidColorPaint(land);
+                        if (map.Stroke is not SolidColorPaint stroke || stroke.Color != borders)
+                            map.Stroke = new SolidColorPaint(borders);
                     })
                     .HasDefaultTooltip(() => new SKDefaultTooltip())
                     .HasDefaultLegend(() => new SKDefaultLegend())
@@ -339,15 +355,35 @@ public static class ThemesExtensions
                         // override per-node via NodeColorMapper or
                         // per-link via LinkColorMapper on the typed series.
                         var color = theme.GetSeriesColor(sankey).AsSKColor();
+                        var fill = new SolidColorPaint(color);
 
                         sankey.Stroke = null;
-                        sankey.Fill = new SolidColorPaint(color);
+                        sankey.Fill = fill;
+
+                        // each node takes the next color of the palette, unless the user picked a fill for the
+                        // series, the theme can not replace it, then every node keeps that color
+                        if (sankey.Fill == fill)
+                            sankey.NodeColors = theme.Colors;
                         if (sankey.LinkFill is null)
                             sankey.LinkFill = new SolidColorPaint(color.WithAlpha(90));
 
                         if (sankey.ShowDataLabels)
                             sankey.DataLabelsPaint =
                                 new SolidColorPaint(theme.IsDark ? new(245, 245, 245) : new(45, 45, 45));
+                    })
+                    .HasRuleForTreemapSeries(treemap =>
+                    {
+                        // the padding between tiles already separates them, a stroke is not needed
+                        var color = theme.GetSeriesColor(treemap).AsSKColor();
+
+                        treemap.Stroke = null;
+                        treemap.Fill = new SolidColorPaint(color);
+
+                        // the labels are drawn inside the tiles, like the inner labels of a pie
+                        if (treemap.ShowDataLabels)
+                            treemap.DataLabelsPaint = theme.IsDark
+                                ? new SolidColorPaint(new(45, 45, 45))
+                                : new SolidColorPaint(new(245, 245, 245));
                     })
                     // CS0618: BaseLabelVisual is obsolete and still themed, a LabelVisual that is
                     // already out there has to keep following the theme.

@@ -263,9 +263,8 @@ public abstract class CorePolarAxis<TTextGeometry, TLineGeometry, TCircleGeometr
         var separatorsSource = CustomSeparators ?? EnumerateSeparators(start, s, max);
         var labelsAngle = _orientation == PolarAxisOrientation.Radius ? PolarLabels.GetRadiusLabelsAngle(this, polarChart, scaler) : 0;
 
-        foreach (var i in separatorsSource)
+        foreach (var i in GetDrawnSeparators(separatorsSource, min, max, polarChart))
         {
-            if (i < min) continue;
             var label = labeler(i - 1d + 1d);
 
             if (!separators.TryGetValue(i, out var visualSeparator))
@@ -465,7 +464,7 @@ public abstract class CorePolarAxis<TTextGeometry, TLineGeometry, TCircleGeometr
         var totalH = 0f;
         var r = (float)LabelsRotation;
 
-        for (var i = start; i <= max; i += s)
+        foreach (var i in GetDrawnSeparators(EnumerateSeparators(start, s, max), min, max, polarChart))
         {
             var textGeometry = new TTextGeometry
             {
@@ -647,6 +646,25 @@ public abstract class CorePolarAxis<TTextGeometry, TLineGeometry, TCircleGeometr
         for (var i = start; i <= max; i += s) yield return i;
     }
 
+
+    // The separators the axis draws, from min to max. On a full circle a value one whole range after the first
+    // separator lands on the same angle as the first one (a closed polar line ends its angle axis there), so it is
+    // skipped, its label would cover the first label.
+    private IEnumerable<double> GetDrawnSeparators(IEnumerable<double> source, double min, double max, PolarChartEngine chart)
+    {
+        var isFullCircle = _orientation == PolarAxisOrientation.Angle && chart.TotalAnge >= 360;
+        var range = max - min;
+        double? first = null;
+
+        foreach (var i in source)
+        {
+            if (i < min) continue;
+            if (isFullCircle && first is not null && Math.Abs(i - first.Value - range) <= range * 1e-9) continue;
+
+            first ??= i;
+            yield return i;
+        }
+    }
 
     private Func<double, string> GetActualLabeler()
     {
