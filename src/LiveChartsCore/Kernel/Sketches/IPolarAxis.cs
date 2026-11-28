@@ -76,6 +76,12 @@ public interface IPolarAxis : IPlane
     LvcColor LabelsBackground { get; set; }
 
     /// <summary>
+    /// Gets the size of the largest label the axis could draw with its current limits, measured once per measure
+    /// of the chart; it is empty while the axis has no data bounds.
+    /// </summary>
+    LvcSize PossibleMaxLabelSize { get; }
+
+    /// <summary>
     /// Initializes the axis for the specified orientation.
     /// </summary>
     /// <param name="orientation">The orientation.</param>

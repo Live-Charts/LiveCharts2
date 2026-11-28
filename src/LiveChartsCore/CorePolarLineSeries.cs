@@ -568,7 +568,7 @@ public abstract class CorePolarLineSeries<TModel, TVisual, TLabel, TPathGeometry
         if (baseSeriesBounds.HasData) return baseSeriesBounds;
         var baseBounds = baseSeriesBounds.Bounds;
 
-        var tickPrimary = radiusAxis.GetTick((PolarChartEngine)chart, baseBounds.VisiblePrimaryBounds);
+        var tickPrimary = radiusAxis.GetPaddingTick((PolarChartEngine)chart, baseBounds.VisiblePrimaryBounds);
 
         var tp = tickPrimary.Value * DataPadding.Y;
 
