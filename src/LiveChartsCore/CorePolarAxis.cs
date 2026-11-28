@@ -88,7 +88,7 @@ public abstract class CorePolarAxis<TTextGeometry, TLineGeometry, TCircleGeometr
     public PolarAxisOrientation Orientation => _orientation;
 
     /// <inheritdoc cref="IPolarAxis.LabelsAngle"/>
-    public double LabelsAngle { get; set => SetProperty(ref field, value); }
+    public double LabelsAngle { get; set => SetProperty(ref field, value); } = double.NaN;
 
     /// <inheritdoc cref="IPlane.Labeler"/>
     public Func<double, string> Labeler { get; set => SetProperty(ref field, value); } = Labelers.Default;
@@ -260,6 +260,7 @@ public abstract class CorePolarAxis<TTextGeometry, TLineGeometry, TCircleGeometr
         var measured = new HashSet<IVisualSeparator>();
 
         var separatorsSource = CustomSeparators ?? EnumerateSeparators(start, s, max);
+        var labelsAngle = _orientation == PolarAxisOrientation.Radius ? GetRadiusLabelsAngle(polarChart, scaler) : 0;
 
         foreach (var i in GetDrawnSeparators(separatorsSource, min, max, polarChart))
         {
@@ -273,7 +274,7 @@ public abstract class CorePolarAxis<TTextGeometry, TLineGeometry, TCircleGeometr
 
                 var l = _orientation == PolarAxisOrientation.Angle
                     ? scaler.ToPixels(visualSeparator.Value, scaler.MaxRadius)
-                    : scaler.ToPixelsWithAngleInDegrees((float)LabelsAngle, visualSeparator.Value);
+                    : scaler.ToPixelsWithAngleInDegrees(labelsAngle, visualSeparator.Value);
 
                 if (LabelsPaint is not null && LabelsPaint != Paint.Default)
                 {
@@ -333,7 +334,7 @@ public abstract class CorePolarAxis<TTextGeometry, TLineGeometry, TCircleGeometr
 
             var location = _orientation == PolarAxisOrientation.Angle
                 ? scaler.ToPixels(visualSeparator.Value, scaler.MaxRadius)
-                : scaler.ToPixelsWithAngleInDegrees((float)LabelsAngle, visualSeparator.Value);
+                : scaler.ToPixelsWithAngleInDegrees(labelsAngle, visualSeparator.Value);
 
             if (visualSeparator.Label is not null)
             {
@@ -582,6 +583,43 @@ public abstract class CorePolarAxis<TTextGeometry, TLineGeometry, TCircleGeometr
     private IEnumerable<double> EnumerateSeparators(double start, double s, double max)
     {
         for (var i = start; i <= max; i += s) yield return i;
+    }
+
+    // The angle in degrees of the line the radius labels are drawn along. LabelsAngle when it is set, otherwise
+    // halfway between the first two spokes of the angle axis: a spoke is where the points of the series and the
+    // angle labels are, the labels there would sit under the points and the last one on top of an angle label.
+    private double GetRadiusLabelsAngle(PolarChartEngine chart, PolarScaler scaler)
+    {
+        if (!double.IsNaN(LabelsAngle)) return LabelsAngle;
+
+        var angleAxis = chart.AngleAxes[0];
+        var bounds = angleAxis.VisibleDataBounds ?? angleAxis.DataBounds;
+        var min = angleAxis.MinLimit ?? bounds.Min;
+
+        double first, second;
+
+        var custom = angleAxis.CustomSeparators?.Where(x => x >= min).OrderBy(x => x).Take(2).ToArray();
+        if (custom is not null)
+        {
+            // fewer than two custom spokes, there is no gap to place the labels in, they go along the first one
+            if (custom.Length == 0) return scaler.GetAngle(min);
+            if (custom.Length == 1) return scaler.GetAngle(custom[0]);
+            first = custom[0];
+            second = custom[1];
+        }
+        else
+        {
+            var step = angleAxis.GetTick(chart).Value;
+            if (step < angleAxis.MinStep) step = angleAxis.MinStep;
+            if (angleAxis.ForceStepToMin) step = angleAxis.MinStep;
+            if (step <= 0) return scaler.GetAngle(min);
+
+            first = Math.Truncate(min / step) * step;
+            if (first < min) first += step;
+            second = first + step;
+        }
+
+        return scaler.GetAngle((first + second) * 0.5);
     }
 
     // The separators the axis draws, from min to max. On a full circle a value one whole range after the first

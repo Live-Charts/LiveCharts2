@@ -533,7 +533,12 @@ public class PolarChartEngine(
                 axis.VisibleDataBounds.Max = axis.VisibleDataBounds.Max + p;
                 ce._isInternalSet = false;
             }
+        }
 
+        // every axis is padded before any is drawn, an axis reads the bounds of the other one: the radius labels
+        // are placed between two spokes of the angle axis
+        foreach (var axis in totalAxes)
+        {
             if (axis.IsVisible) AddVisual(axis.ChartElementSource);
             axis.ChartElementSource.RemoveOldPaints(View); // <- this is probably obsolete.
             // the probable issue is the "IsVisible" property
