@@ -49,6 +49,48 @@ public static partial class ColorPalletes
     };
 
     /// <summary>
+    /// Gets the colors of the light variant of the default theme: Material Design hues, each in the shade that has
+    /// 3:1 contrast or more on white, ordered so that every color and the next one, the last and the first
+    /// included, are told apart with any color vision.
+    /// </summary>
+    /// <value>
+    /// Blue, red, cyan, green, purple, orange, teal, indigo and pink.
+    /// </value>
+    public static LvcColor[] DefaultLight => new LvcColor[]
+    {
+        RGB(33,150,243),    // blue 500
+        RGB(244,67,54),     // red 500
+        RGB(0,151,167),     // cyan 700
+        RGB(104,159,56),    // light green 700
+        RGB(171,71,188),    // purple 400
+        RGB(239,108,0),     // orange 800
+        RGB(0,150,136),     // teal 500
+        RGB(63,81,181),     // indigo 500
+        RGB(233,30,99),     // pink 500
+    };
+
+    /// <summary>
+    /// Gets the colors of the dark variant of the default theme: the hues of <see cref="DefaultLight"/> in the same
+    /// order, each in the shade that has 3:1 contrast or more on black without being so light that it reads as a
+    /// pastel, so a series keeps its hue when the app switches between light and dark.
+    /// </summary>
+    /// <value>
+    /// Blue, red, cyan, green, purple, orange, teal, indigo and pink.
+    /// </value>
+    public static LvcColor[] DefaultDark => new LvcColor[]
+    {
+        RGB(33,150,243),    // blue 500
+        RGB(239,83,80),     // red 400
+        RGB(0,172,193),     // cyan 600
+        RGB(104,159,56),    // light green 700
+        RGB(186,104,200),   // purple 300
+        RGB(239,108,0),     // orange 800
+        RGB(38,166,154),    // teal 400
+        RGB(121,134,203),   // indigo 300
+        RGB(240,98,146),    // pink 300
+    };
+
+    /// <summary>
     /// Gets the material design500 colors.
     /// </summary>
     /// <value>

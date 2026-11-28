@@ -56,8 +56,8 @@ public class TreemapThemeTests
                 var center = bitmap.GetPixel(bitmap.Width / 2, bitmap.Height / 2);
 
                 var expected = (kind == LvcThemeKind.Dark
-                    ? ColorPalletes.MaterialDesign200
-                    : ColorPalletes.MaterialDesign500)[0];
+                    ? ColorPalletes.DefaultDark
+                    : ColorPalletes.DefaultLight)[0];
 
                 Assert.AreEqual(new SKColor(expected.R, expected.G, expected.B), center, $"{kind}: the tile is drawn");
             }
