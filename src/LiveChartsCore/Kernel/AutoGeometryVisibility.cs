@@ -128,24 +128,34 @@ internal sealed class AutoGeometryVisibility
     }
 
     /// <summary>
-    /// Shows the geometry of the point under the pointer when the geometries are hidden because they are too close.
+    /// Shows the geometry of the point under the pointer when the geometries are hidden because they are too close,
+    /// at once: it is the answer to the pointer, a fade of the chart's animation would trail behind it.
     /// </summary>
     public void OnPointerEnter(Animatable? geometry, GeometryVisibility mode)
     {
-        if (mode != GeometryVisibility.Auto || !_hidden || geometry is not IDrawnElement drawn) return;
-        drawn.Opacity = 1f;
+        if (mode != GeometryVisibility.Auto || !_hidden || geometry is not IDrawnElement) return;
+        SetOpacityNow(geometry, 1f);
     }
 
     /// <summary>
-    /// Hides again the geometry of the point the pointer left, when the geometries are hidden because they are too
-    /// close; the hover state does not restore it, it may not hold the opacity (the default theme's line hover only
+    /// Hides again, at once, the geometry of the point the pointer left, when the geometries are hidden because they
+    /// are too close; the hover state does not restore it, it may not hold the opacity (the default theme's line hover only
     /// scales the geometry).
     /// </summary>
     public void OnPointerLeft(Animatable? geometry, GeometryVisibility mode)
     {
-        if (mode != GeometryVisibility.Auto || !_hidden || geometry is not IDrawnElement drawn) return;
+        if (mode != GeometryVisibility.Auto || !_hidden || geometry is not IDrawnElement) return;
         if (_isolated.Count > 0 && _isolated.Contains(geometry)) return;
-        drawn.Opacity = 0f;
+        SetOpacityNow(geometry, 0f);
+    }
+
+    // sets the opacity without the transition of the chart's animation, the change is drawn in the next frame
+    private static void SetOpacityNow(Animatable geometry, float opacity)
+    {
+        ((IDrawnElement)geometry).Opacity = opacity;
+
+        var property = geometry.GetPropertyDefinition(nameof(IDrawnElement.Opacity));
+        if (property is not null) geometry.CompleteTransition(property);
     }
 
     private static bool IsHovered(Animatable geometry) =>
