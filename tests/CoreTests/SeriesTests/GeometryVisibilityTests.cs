@@ -5,6 +5,7 @@ using LiveChartsCore.Drawing;
 using LiveChartsCore.Kernel;
 using LiveChartsCore.Kernel.Drawing;
 using LiveChartsCore.Measure;
+using LiveChartsCore.Motion;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
 using LiveChartsCore.SkiaSharpView.SKCharts;
@@ -142,6 +143,38 @@ public class GeometryVisibilityTests
         Assert.AreEqual(0f, opacities[0], "the point the pointer left is hidden again");
         Assert.IsTrue(opacities[5] > 0, "the point under the pointer shows its geometry");
         Assert.IsTrue(opacities.Where((_, i) => i != 5).All(o => o == 0), "every other point is hidden");
+    }
+
+    [TestMethod]
+    public async Task TheHoveredGeometryShowsAndHidesWithoutAFade()
+    {
+        var series = Line();
+        var chart = Chart(series, width: 80);
+        chart.Tooltip = new SKDefaultTooltip();
+        // an in-memory chart does not animate, this one does, like a chart in an app
+        chart.EasingFunction = EasingFunctions.ExponentialOut;
+        _ = chart.GetImage();
+        chart.CoreCanvas.DisableAnimations = false;
+
+        var first = ((ISeries)series).Fetch(chart.CoreChart).First();
+        var visual = (IDrawnElement)first.Context.Visual!;
+
+        try
+        {
+            // the clock stops: a transition of the chart's animation would still be at its start
+            CoreMotionCanvas.DebugElapsedMilliseconds = CoreMotionCanvas.ElapsedMilliseconds;
+
+            chart.CoreChart.InvokePointerMove(Center(first));
+            await chart.CoreChart.TooltipThrottlerUnlocked();
+            Assert.AreEqual(1f, visual.Opacity, "the geometry shows in the same frame");
+
+            chart.CoreChart.InvokePointerLeft();
+            Assert.AreEqual(0f, visual.Opacity, "the geometry hides in the same frame");
+        }
+        finally
+        {
+            CoreMotionCanvas.DebugElapsedMilliseconds = -1;
+        }
     }
 
     [TestMethod]
