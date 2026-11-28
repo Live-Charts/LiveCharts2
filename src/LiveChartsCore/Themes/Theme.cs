@@ -164,6 +164,11 @@ public class Theme
     public List<Action<ISankeySeries>> SankeySeriesBuilder { get; set; } = [];
 
     /// <summary>
+    /// Theme rules applied to treemap series.
+    /// </summary>
+    public List<Action<ITreemapSeries>> TreemapSeriesBuilder { get; set; } = [];
+
+    /// <summary>
     /// Gets or sets the Cartesian series builder.
     /// </summary>
     /// <value>
@@ -496,6 +501,11 @@ public class Theme
         if ((series.SeriesProperties & SeriesProperties.Sankey) == SeriesProperties.Sankey)
         {
             foreach (var rule in SankeySeriesBuilder) rule((ISankeySeries)series);
+        }
+
+        if (series is ITreemapSeries treemap)
+        {
+            foreach (var rule in TreemapSeriesBuilder) rule(treemap);
         }
 
         // Runs last, after the type-specific builders assigned the series' paints / defaults,

@@ -110,6 +110,18 @@ public static class LiveChartsthemeExtensions
     }
 
     /// <summary>
+    ///  Defines a style builder for <see cref="ITreemapSeries"/> objects.
+    /// </summary>
+    /// <param name="theme">The theme.</param>
+    /// <param name="predicate">The predicate.</param>
+    /// <returns></returns>
+    public static Theme HasRuleForTreemapSeries(this Theme theme, Action<ITreemapSeries> predicate)
+    {
+        theme.TreemapSeriesBuilder.Add(predicate);
+        return theme;
+    }
+
+    /// <summary>
     ///  Defines a style builder for <see cref="IPieSeries"/> objects when used as gauges.
     /// </summary>
     /// <param name="theme">The theme.</param>
@@ -350,7 +362,9 @@ public static class LiveChartsthemeExtensions
     }
 
     /// <summary>
-    /// Defines a style builder for <see cref= "VisualElement" /> objects.
+    /// Defines a style builder for <see cref= "VisualElement" /> objects. When the theme already has a rule for
+    /// <typeparamref name="TChartElement"/>, both run, in the order they were added, so a theme built on top of
+    /// another one can change what the first one set.
     /// </summary>
     /// <typeparam name="TChartElement">The type of the chart element.</typeparam>
     /// <param name="theme">the theme.</param>
@@ -359,7 +373,12 @@ public static class LiveChartsthemeExtensions
     public static Theme HasRuleFor<TChartElement>(this Theme theme, Action<TChartElement> predicate)
         where TChartElement : ChartElement
     {
-        theme.ChartElementElementBuilder.Add(typeof(TChartElement), predicate);
+        var rules = theme.ChartElementElementBuilder;
+
+        rules[typeof(TChartElement)] = rules.TryGetValue(typeof(TChartElement), out var previous)
+            ? (Action<TChartElement>)previous + predicate
+            : predicate;
+
         return theme;
     }
 
