@@ -49,6 +49,28 @@ public static partial class ColorPalletes
     };
 
     /// <summary>
+    /// Gets the colors of the default theme, the same in light and dark: vivid Material Design colors, light and dark
+    /// ones mixed, so they stay apart for colorblind readers, who tell colors apart mostly by how light they are.
+    /// The order keeps every pair of the first six colors apart with red-green color blindness, light green and
+    /// amber, the closest pair, are the 7th and the 5th.
+    /// </summary>
+    /// <value>
+    /// Blue, red, cyan, indigo, amber, teal, light green, pink and blue gray.
+    /// </value>
+    public static LvcColor[] Default => new LvcColor[]
+    {
+        RGB(33,150,243),    // blue
+        RGB(244,67,54),     // red
+        RGB(0,188,212),     // cyan
+        RGB(63,81,181),     // indigo
+        RGB(255,193,7),     // amber
+        RGB(0,150,136),     // teal
+        RGB(139,195,74),    // light green
+        RGB(233,30,99),     // pink
+        RGB(96,125,139),    // blue gray
+    };
+
+    /// <summary>
     /// Gets the material design500 colors.
     /// </summary>
     /// <value>

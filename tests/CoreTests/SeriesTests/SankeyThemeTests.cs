@@ -44,7 +44,7 @@ public class SankeyThemeTests
 
             var (a, b) = SourceNodeColors(Sankey());
 
-            var palette = ColorPalletes.MaterialDesign500;
+            var palette = ColorPalletes.Default;
             Assert.AreEqual(new SKColor(palette[0].R, palette[0].G, palette[0].B), a, "the first node");
             Assert.AreEqual(new SKColor(palette[1].R, palette[1].G, palette[1].B), b, "the second node");
         }
