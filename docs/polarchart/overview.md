@@ -353,9 +353,10 @@ AngleAxes = new PolarAxis[]
 
 ## Labels position and rotation
 
-The labels of a radius axis are drawn along a line from the center. `LabelsAngle` sets the angle of that line in
-degrees, `0` by default, which points right; the angle grows clockwise and `InitialRotation` does not change it. It
-has no effect on an angle axis.
+The labels of a radius axis are drawn along a line from the center. By default that line goes halfway between the
+first two spokes of the angle axis, so the labels never sit on a spoke, where the points and the angle labels are.
+`LabelsAngle` sets the angle of the line in degrees instead: `0` points right, the angle grows clockwise and
+`InitialRotation` does not change it. It has no effect on an angle axis.
 
 `LabelsRotation` rotates the labels, in degrees. On an angle axis, `LiveCharts.TangentAngle` and
 `LiveCharts.CotangentAngle` make each label follow the circle, as they do for [data labels](#data-labels). This

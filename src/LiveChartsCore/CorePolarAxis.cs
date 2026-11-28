@@ -57,6 +57,7 @@ public abstract class CorePolarAxis<TTextGeometry, TLineGeometry, TCircleGeometr
     private double _minStep = 0;
     private Bounds? _dataBounds = null;
     private Bounds? _visibleDataBounds = null;
+    private LvcSize? _possibleMaxLabelSize = null;
     private LvcColor _labelsBackground = new(255, 255, 255);
 
     // Shared Animation reference; mutated in-place so AnimationsSpeed/EasingFunction changes
@@ -88,7 +89,7 @@ public abstract class CorePolarAxis<TTextGeometry, TLineGeometry, TCircleGeometr
     public PolarAxisOrientation Orientation => _orientation;
 
     /// <inheritdoc cref="IPolarAxis.LabelsAngle"/>
-    public double LabelsAngle { get; set => SetProperty(ref field, value); }
+    public double LabelsAngle { get; set => SetProperty(ref field, value); } = double.NaN;
 
     /// <inheritdoc cref="IPlane.Labeler"/>
     public Func<double, string> Labeler { get; set => SetProperty(ref field, value); } = Labelers.Default;
@@ -260,10 +261,10 @@ public abstract class CorePolarAxis<TTextGeometry, TLineGeometry, TCircleGeometr
         var measured = new HashSet<IVisualSeparator>();
 
         var separatorsSource = CustomSeparators ?? EnumerateSeparators(start, s, max);
+        var labelsAngle = _orientation == PolarAxisOrientation.Radius ? PolarLabels.GetRadiusLabelsAngle(this, polarChart, scaler) : 0;
 
-        foreach (var i in separatorsSource)
+        foreach (var i in GetDrawnSeparators(separatorsSource, min, max, polarChart))
         {
-            if (i < min) continue;
             var label = labeler(i - 1d + 1d);
 
             if (!separators.TryGetValue(i, out var visualSeparator))
@@ -274,7 +275,7 @@ public abstract class CorePolarAxis<TTextGeometry, TLineGeometry, TCircleGeometr
 
                 var l = _orientation == PolarAxisOrientation.Angle
                     ? scaler.ToPixels(visualSeparator.Value, scaler.MaxRadius)
-                    : scaler.ToPixelsWithAngleInDegrees((float)LabelsAngle, visualSeparator.Value);
+                    : scaler.ToPixelsWithAngleInDegrees(labelsAngle, visualSeparator.Value);
 
                 if (LabelsPaint is not null && LabelsPaint != Paint.Default)
                 {
@@ -334,7 +335,7 @@ public abstract class CorePolarAxis<TTextGeometry, TLineGeometry, TCircleGeometr
 
             var location = _orientation == PolarAxisOrientation.Angle
                 ? scaler.ToPixels(visualSeparator.Value, scaler.MaxRadius)
-                : scaler.ToPixelsWithAngleInDegrees((float)LabelsAngle, visualSeparator.Value);
+                : scaler.ToPixelsWithAngleInDegrees(labelsAngle, visualSeparator.Value);
 
             if (visualSeparator.Label is not null)
             {
@@ -463,7 +464,7 @@ public abstract class CorePolarAxis<TTextGeometry, TLineGeometry, TCircleGeometr
         var totalH = 0f;
         var r = (float)LabelsRotation;
 
-        for (var i = start; i <= max; i += s)
+        foreach (var i in GetDrawnSeparators(EnumerateSeparators(start, s, max), min, max, polarChart))
         {
             var textGeometry = new TTextGeometry
             {
@@ -488,7 +489,67 @@ public abstract class CorePolarAxis<TTextGeometry, TLineGeometry, TCircleGeometr
         _orientation = orientation;
         _dataBounds = new Bounds();
         _visibleDataBounds = new Bounds();
+        _possibleMaxLabelSize = null;
         Initialized?.Invoke(this);
+    }
+
+    /// <inheritdoc cref="IPolarAxis.PossibleMaxLabelSize"/>
+    LvcSize IPolarAxis.PossibleMaxLabelSize
+    {
+        get
+        {
+            if (_possibleMaxLabelSize is not null) return _possibleMaxLabelSize.Value;
+
+            var size = GetPossibleMaxLabelSize();
+
+            // while the series are still adding their bounds there is nothing to measure yet, it is not kept
+            if (size.Width > 0 || size.Height > 0) _possibleMaxLabelSize = size;
+
+            return size;
+        }
+    }
+
+    // measures the labels of about 25 values between the limits and keeps the largest size; the values are
+    // multiples of a round step, like the ones the axis draws, "5.5" and not "5.52"
+    private LvcSize GetPossibleMaxLabelSize()
+    {
+        var bounds = _visibleDataBounds ?? _dataBounds;
+        if (LabelsPaint is null || LabelsPaint == Paint.Default || bounds is null || bounds.IsEmpty) return new LvcSize();
+
+        var labeler = GetActualLabeler();
+
+        var max = MaxLimit ?? bounds.Max;
+        var min = MinLimit ?? bounds.Min;
+        if (max - min <= 0) return new LvcSize();
+
+        const double testSeparators = 25;
+        var raw = (max - min) / testSeparators;
+        var magnitude = Math.Pow(10, Math.Floor(Math.Log10(raw)));
+        var residual = raw / magnitude;
+        var s = residual > 5 ? 10 * magnitude : residual > 2 ? 5 * magnitude : residual > 1 ? 2 * magnitude : magnitude;
+        if (s < _minStep) s = _minStep;
+        if (ForceStepToMin) s = _minStep;
+
+        var width = 0f;
+        var height = 0f;
+
+        for (var i = Math.Ceiling(min / s) * s; i <= max; i += s)
+        {
+            var textGeometry = new TTextGeometry
+            {
+                Text = labeler(i),
+                TextSize = (float)TextSize,
+                RotateTransform = (float)LabelsRotation,
+                Padding = LabelsPadding,
+                Paint = LabelsPaint
+            };
+
+            var m = textGeometry.Measure();
+            if (m.Width > width) width = m.Width;
+            if (m.Height > height) height = m.Height;
+        }
+
+        return new LvcSize(width, height);
     }
 
     /// <summary>
@@ -583,6 +644,26 @@ public abstract class CorePolarAxis<TTextGeometry, TLineGeometry, TCircleGeometr
     private IEnumerable<double> EnumerateSeparators(double start, double s, double max)
     {
         for (var i = start; i <= max; i += s) yield return i;
+    }
+
+
+    // The separators the axis draws, from min to max. On a full circle a value one whole range after the first
+    // separator lands on the same angle as the first one (a closed polar line ends its angle axis there), so it is
+    // skipped, its label would cover the first label.
+    private IEnumerable<double> GetDrawnSeparators(IEnumerable<double> source, double min, double max, PolarChartEngine chart)
+    {
+        var isFullCircle = _orientation == PolarAxisOrientation.Angle && chart.TotalAnge >= 360;
+        var range = max - min;
+        double? first = null;
+
+        foreach (var i in source)
+        {
+            if (i < min) continue;
+            if (isFullCircle && first is not null && Math.Abs(i - first.Value - range) <= range * 1e-9) continue;
+
+            first ??= i;
+            yield return i;
+        }
     }
 
     private Func<double, string> GetActualLabeler()

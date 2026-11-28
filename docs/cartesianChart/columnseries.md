@@ -40,9 +40,11 @@ otherwise. Setting `DataLabelsPaint` also turns the labels on.
 When `Fill` is not set, LiveCharts picks it from the current theme, based on the position of the series in the
 chart's series collection. The default theme draws bars with no `Stroke`.
 
-`Stroke` draws the border of each bar:
+:::: variations
+::: variation
+![Two column series drawn only with a blue and a red border](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/columnstroke.png)
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/columnstroke.png)
+`Stroke` draws the border of each bar.
 
 ```csharp
 Series = new ISeries[]
@@ -61,10 +63,11 @@ Series = new ISeries[]
     }
 };
 ```
+:::
+::: variation
+![Two column series filled in blue and red, without a border](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/columnfill.png)
 
-`Fill` paints the inside of each bar:
-
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/columnfill.png)
+`Fill` paints the inside of each bar.
 
 ```csharp
 Series = new ISeries[]
@@ -83,6 +86,8 @@ Series = new ISeries[]
     }
 };
 ```
+:::
+::::
 
 :::info
 Paints can also draw gradients and dashed lines, see the
@@ -115,9 +120,11 @@ The space of each category is shared by the bar series in it, then two propertie
 - `MaxBarWidth` limits the width of a bar, in pixels. It is `50` by default, so bars stop growing on wide charts.
 - `Padding` is the space between the bars, in pixels. It is `2` by default.
 
-With `MaxBarWidth = 10`:
+:::: variations
+::: variation
+![Thin columns, ten pixels wide](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/columnmw10.png)
 
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/columnmw10.png)
+With `MaxBarWidth = 10` the bars are thin.
 
 ```csharp
 Series = new ISeries[]
@@ -129,10 +136,11 @@ Series = new ISeries[]
     }
 };
 ```
+:::
+::: variation
+![Columns that take all the width of their category](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/columnmwmax.png)
 
-With `MaxBarWidth = double.MaxValue` the bars take all the space they get:
-
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/columnmwmax.png)
+With `MaxBarWidth = double.MaxValue` the bars take all the space they get.
 
 ```csharp
 Series = new ISeries[]
@@ -144,10 +152,11 @@ Series = new ISeries[]
     }
 };
 ```
+:::
+::: variation
+![Columns that touch each other](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/columnmwmaxp0.png)
 
-And with `Padding = 0` too, the bars touch each other:
-
-![image](https://raw.githubusercontent.com/beto-rodriguez/LiveCharts2/master/docs/_assets/columnmwmaxp0.png)
+And with `Padding = 0` too, the bars touch each other.
 
 ```csharp
 Series = new ISeries[]
@@ -160,6 +169,8 @@ Series = new ISeries[]
     }
 };
 ```
+:::
+::::
 
 This sample uses both to draw a histogram-like chart:
 

@@ -88,8 +88,8 @@ public interface ICartesianSeries : ISeries
     /// Gets the series bounds.
     /// </summary>
     /// <param name="chart">The chart.</param>
-    /// <param name="x">The x.</param>
-    /// <param name="y">The y.</param>
+    /// <param name="x">The axis the series scales on in the X plane.</param>
+    /// <param name="y">The axis the series scales on in the Y plane.</param>
     /// <returns>the series bounds</returns>
     SeriesBounds GetBounds(Chart chart, ICartesianAxis x, ICartesianAxis y);
 }

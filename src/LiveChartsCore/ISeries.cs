@@ -303,6 +303,7 @@ public interface ISeries : IChartElement
     /// <summary>
     /// Deletes the series from the user interface.
     /// </summary>
+    /// <param name="chart">The chart that draws the series.</param>
     void SoftDeleteOrDispose(IChartView chart);
 
     /// <summary>

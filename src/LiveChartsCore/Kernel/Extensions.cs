@@ -272,13 +272,91 @@ public static class Extensions
 
         var controlSize = chart.ControlSize;
         var minD = controlSize.Width < controlSize.Height ? controlSize.Width : controlSize.Height;
-        var radius = minD - chart.InnerRadius;
         var c = minD * chart.TotalAnge / 360;
 
         var range = max - min;
-        var separations = axis.Orientation == PolarAxisOrientation.Angle
-            ? Math.Round(c / 30, 0)
-            : Math.Round(radius / 90, 0);
+
+        double separations;
+        double maxSeparations;
+
+        if (axis.Orientation == PolarAxisOrientation.Angle)
+        {
+            separations = Math.Round(c / 30, 0);
+            maxSeparations = double.PositiveInfinity;
+        }
+        else
+        {
+            // the labels of a radius axis are drawn along one line from the center, the step leaves room for the
+            // largest one: what it takes along that line, its width when the line is horizontal, its height when
+            // it is vertical
+            const float MinLabelSize = 10;
+
+            // the draw margin once the chart measured it, the angle labels are outside of it
+            var drawMargin = chart.DrawMarginSize;
+            var area = drawMargin.Width > 0 && drawMargin.Height > 0 ? drawMargin : controlSize;
+            var d = area.Width < area.Height ? area.Width : area.Height;
+
+            var labelSize = axis.PossibleMaxLabelSize;
+            double label = MinLabelSize;
+
+            // nothing to measure while the series are still adding their bounds
+            if (labelSize.Width > 0 && labelSize.Height > 0)
+            {
+                var scaler = new PolarScaler(
+                    chart.DrawMarginLocation, area, chart.AngleAxes[0], axis, chart.InnerRadius,
+                    chart.InitialRotation, chart.TotalAnge);
+                var angle = PolarLabels.GetRadiusLabelsAngle(axis, chart, scaler) * Math.PI / 180;
+
+                // the angle axis has no limits yet either, the label could point anywhere: the larger side
+                var along = double.IsNaN(angle) || double.IsInfinity(angle)
+                    ? Math.Max(labelSize.Width, labelSize.Height)
+                    : Math.Abs(labelSize.Width * Math.Cos(angle)) + Math.Abs(labelSize.Height * Math.Sin(angle));
+
+                if (along > label) label = along;
+            }
+
+            var radius = Math.Max(label, d * 0.5 - chart.InnerRadius);
+
+            separations = Math.Max(1, Math.Round(radius / label, 0));
+            maxSeparations = separations;
+        }
+
+        var minimum = range / separations;
+
+        var magnitude = Math.Pow(10, Math.Floor(Math.Log(minimum) / Math.Log(10)));
+
+        var residual = minimum / magnitude;
+        var tick = residual > 5 ? 10 * magnitude : residual > 2 ? 5 * magnitude : residual > 1 ? 2 * magnitude : magnitude;
+
+        EnsureMinSeparators(axis.MinSeparators, axis.ForceStepToMin, range, ref tick, ref magnitude);
+
+        // MinSeparators asks for more labels, but never more than fit along the radius
+        if (!axis.ForceStepToMin)
+            while (range / tick > maxSeparations && tick > 0)
+            {
+                var mul = tick / magnitude;
+                if (mul < 1.5) tick = 2 * magnitude;
+                else if (mul < 3.5) tick = 5 * magnitude;
+                else { magnitude *= 10; tick = magnitude; }
+            }
+
+        return new AxisTick { Value = tick, Magnitude = magnitude };
+    }
+
+    // The step a polar line pads its radius bounds with: the one the radius axis used before it measured its
+    // labels, 90px per step on the shorter side of the control. The padding sets the scale of the chart, it does not
+    // follow the labels, so the shapes keep their size when the labels change.
+    internal static AxisTick GetPaddingTick(this IPolarAxis axis, PolarChartEngine chart, Bounds bounds)
+    {
+        var max = axis.MaxLimit is null ? bounds.Max : axis.MaxLimit.Value;
+        var min = axis.MinLimit is null ? bounds.Min : axis.MinLimit.Value;
+
+        var controlSize = chart.ControlSize;
+        var minD = controlSize.Width < controlSize.Height ? controlSize.Width : controlSize.Height;
+        var radius = minD - chart.InnerRadius;
+
+        var range = max - min;
+        var separations = Math.Round(radius / 90, 0);
         var minimum = range / separations;
 
         var magnitude = Math.Pow(10, Math.Floor(Math.Log(minimum) / Math.Log(10)));
