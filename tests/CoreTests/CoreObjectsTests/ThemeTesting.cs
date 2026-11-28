@@ -88,6 +88,7 @@ public class ThemeTesting
         var palettes = new[]
         {
             ColorPalletes.FluentDesign,
+            ColorPalletes.Default,
             ColorPalletes.MaterialDesign500,
             ColorPalletes.MaterialDesign200,
             ColorPalletes.MaterialDesign800
@@ -108,6 +109,7 @@ public class ThemeTesting
         var palettes = new[]
         {
             ColorPalletes.FluentDesign,
+            ColorPalletes.Default,
             ColorPalletes.MaterialDesign500,
             ColorPalletes.MaterialDesign200,
             ColorPalletes.MaterialDesign800
