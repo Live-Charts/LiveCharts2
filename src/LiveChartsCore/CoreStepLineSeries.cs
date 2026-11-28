@@ -71,6 +71,12 @@ public abstract class CoreStepLineSeries<TModel, TVisual, TLabel, TPathGeometry,
     /// <inheritdoc cref="IStepLineSeries.GeometrySize"/>
     public double GeometrySize { get => _geometrySize; set => SetProperty(ref _geometrySize, (float)value); }
 
+    /// <inheritdoc cref="IStepLineSeries.GeometryVisibility"/>
+    public GeometryVisibility GeometryVisibility { get; set => SetProperty(ref field, value); } = GeometryVisibility.Auto;
+
+    // hides the geometries while the points are too close, see GeometryVisibility.Auto
+    private readonly AutoGeometryVisibility _autoGeometries = new();
+
     /// <inheritdoc cref="IStepLineSeries.GeometryFill"/>
     public Paint? GeometryFill
     {
@@ -386,11 +392,15 @@ public abstract class CoreStepLineSeries<TModel, TVisual, TLabel, TPathGeometry,
         }
 
         var segmentI = 0;
+        _autoGeometries.Begin();
 
         foreach (var segment in segments)
         {
             var hasPaths = false;
             var isSegmentEmpty = true;
+            // a segment of a single point has no line, see AutoGeometryVisibility.KeepVisible
+            var segmentPoints = 0;
+            Animatable? segmentGeometry = null;
             VectorManager? strokeVector = null, fillVector = null;
 
             double previousPrimary = 0, previousSecondary = 0;
@@ -425,7 +435,7 @@ public abstract class CoreStepLineSeries<TModel, TVisual, TLabel, TPathGeometry,
                 }
 
                 visual ??= EnsureStepLineVisualForPoint(point, ds, in ctx);
-                visual.Geometry.Opacity = 1;
+                _autoGeometries.Apply(visual.Geometry, GeometryVisibility);
 
                 if (ctx.HasSvg)
                 {
@@ -455,6 +465,7 @@ public abstract class CoreStepLineSeries<TModel, TVisual, TLabel, TPathGeometry,
 
                 var x = ctx.SecondaryScale.ToPixels(coordinate.SecondaryValue);
                 var y = ctx.PrimaryScale.ToPixels(coordinate.PrimaryValue + s);
+                _autoGeometries.Add(x, y, alongPath: false);
 
                 DrawnGeometry.XProperty.GetMotion(visual.Geometry)!
                     .CopyFrom(Segment.XjProperty.GetMotion(visual.Segment)!);
@@ -485,7 +496,11 @@ public abstract class CoreStepLineSeries<TModel, TVisual, TLabel, TPathGeometry,
 
                 previousPrimary = coordinate.PrimaryValue + s;
                 previousSecondary = coordinate.SecondaryValue;
+                segmentPoints++;
+                segmentGeometry = visual.Geometry;
             }
+
+            if (segmentPoints == 1) _autoGeometries.KeepVisible(segmentGeometry, GeometryVisibility);
 
             if (GeometryFill is not null && GeometryFill != Paint.Default)
             {
@@ -511,6 +526,11 @@ public abstract class CoreStepLineSeries<TModel, TVisual, TLabel, TPathGeometry,
             cartesianChart.Canvas.AddDrawableTask(DataLabelsPaint, zone: CanvasZone.DrawMargin);
             DataLabelsPaint.ZIndex = ctx.ActualZIndex + PaintConstants.SeriesDataLabelsZIndexOffset;
         }
+
+        // the geometries that were measured before the visibility changed take the new opacity
+        if (_autoGeometries.End(GeometryVisibility, GetGeometryDiameter(), alongPath: false))
+            foreach (var point in everFetched)
+                _autoGeometries.Apply(point.Context.AdditionalVisuals is SegmentVisualPoint v ? v.Geometry : null, GeometryVisibility);
 
         pointsCleanup.CollectPoints(
             everFetched, cartesianChart.View, ctx.PrimaryScale, ctx.SecondaryScale, SoftDeleteOrDisposePoint);
@@ -604,6 +624,7 @@ public abstract class CoreStepLineSeries<TModel, TVisual, TLabel, TPathGeometry,
         visual.ScaleTransform = new LvcPoint(1f, 1f);
 
         base.OnPointerLeft(point);
+        _autoGeometries.OnPointerLeft(visual, GeometryVisibility);
     }
 
     /// <inheritdoc cref="Series{TModel, TVisual, TLabel}.SetDefaultPointTransitions(ChartPoint)"/>
@@ -748,4 +769,15 @@ public abstract class CoreStepLineSeries<TModel, TVisual, TLabel, TPathGeometry,
             SeriesProperties.Sketch | SeriesProperties.PrefersXStrategyTooltips |
             (isStacked ? SeriesProperties.Stacked : 0);
     }
+
+    /// <inheritdoc cref="Series{TModel, TVisual, TLabel}.OnPointerEnter(ChartPoint)"/>
+    protected override void OnPointerEnter(ChartPoint point)
+    {
+        base.OnPointerEnter(point);
+        _autoGeometries.OnPointerEnter(point.Context.Visual as Animatable, GeometryVisibility);
+    }
+
+    // the size of a geometry, its stroke included
+    private float GetGeometryDiameter() =>
+        _geometrySize + (GeometryStroke is null || GeometryStroke == Paint.Default ? 0 : GeometryStroke.StrokeThickness);
 }
